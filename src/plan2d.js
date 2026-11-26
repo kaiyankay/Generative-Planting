@@ -1,5 +1,5 @@
 // Rhino-like orthographic plan: vector canvas, pan / zoom, picking against the shared model.
-import { PAL, mix, rgba, speciesPlanColor, tracePoly, traceLine, paintGround } from './style.js';
+import { PAL, mix, rgba, speciesPlanColor, tracePoly, traceLine, paintGround, paintContours } from './style.js';
 import { speciesLayer, centroidOf, bboxOf } from './model.js';
 
 export class Plan2D {
@@ -87,6 +87,7 @@ export class Plan2D {
     this._grid();
     ctx.save();
     paintGround(ctx, s, T, { scale: sc });
+    if (s.layerVisible('topo.contours')) paintContours(ctx, s, T, { scale: Math.min(sc, 30) * 0.4 });
     if (s.layerVisible('analysis.slope')) this._raster('slope');
     if (s.layerVisible('analysis.pathdist')) this._raster('pathdist');
     if (s.layerVisible('site.water')) this._waterHatch();
@@ -306,9 +307,7 @@ export class Plan2D {
   }
 
   _raster(kind) {
-    if (!this._rasters) this._rasters = {};
-    if (!this._rasters[kind]) this._rasters[kind] = buildRaster(this.s, kind);
-    const R = this._rasters[kind];
+    const R = getRaster(this.s, kind);
     const a = this.T(R.x0, R.y1), b = this.T(R.x1, R.y0);
     this.ctx.save(); this.ctx.globalAlpha = 0.62; this.ctx.imageSmoothingEnabled = true;
     this.ctx.drawImage(R.canvas, a[0], a[1], b[0] - a[0], b[1] - a[1]); this.ctx.restore();
@@ -356,6 +355,12 @@ export class Plan2D {
   }
 }
 
+const _rasterCache = new WeakMap();
+export function getRaster(s, kind) {
+  if (!_rasterCache.has(s)) _rasterCache.set(s, {});
+  const c = _rasterCache.get(s);
+  return (c[kind] ||= buildRaster(s, kind));
+}
 function buildRaster(s, kind) {
   const x0 = -90, x1 = 110, y0 = -100, y1 = 50, res = 1;
   const W = (x1 - x0) / res, H = (y1 - y0) / res;

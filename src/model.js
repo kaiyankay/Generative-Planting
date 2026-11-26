@@ -183,6 +183,30 @@ export class ModelStore extends Emitter {
     const z = (v[0] * (1 - tx) + v[1] * tx) * (1 - ty) + (v[2] * (1 - tx) + v[3] * tx) * ty;
     return m.datumZ + z / 100;
   }
+  // derived contour lines (marching squares on the 3DEP grid); cached per interval
+  contours(step = 0.25) {
+    this._contours ||= {};
+    if (this._contours[step]) return this._contours[step];
+    const m = this.terrain.meta, d = this.terrain.data, C = m.cols, R = m.rows;
+    const z = (c, r) => { const v = d[r * C + c]; return v === -32768 ? NaN : m.datumZ + v / 100; };
+    const out = [];
+    const lo = Math.ceil(m.zMin / step) * step;
+    for (let L = lo; L <= m.zMax; L += step) {
+      const segs = [];
+      for (let r = 0; r < R - 1; r++) for (let c = 0; c < C - 1; c++) {
+        const a = z(c, r), b = z(c + 1, r), e = z(c + 1, r + 1), f = z(c, r + 1);
+        if ([a, b, e, f].some(Number.isNaN)) continue;
+        const pts = [];
+        const edge = (z1, z2, x1, y1, x2, y2) => { if ((z1 < L) !== (z2 < L)) { const t = (L - z1) / (z2 - z1); pts.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]); } };
+        const X = m.origin[0] + c * m.cellSize, Y = m.origin[1] + r * m.cellSize, s = m.cellSize;
+        edge(a, b, X, Y, X + s, Y); edge(b, e, X + s, Y, X + s, Y + s); edge(e, f, X + s, Y + s, X, Y + s); edge(f, a, X, Y + s, X, Y);
+        if (pts.length === 2) segs.push(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+        else if (pts.length === 4) segs.push(pts[0][0], pts[0][1], pts[1][0], pts[1][1], pts[2][0], pts[2][1], pts[3][0], pts[3][1]);
+      }
+      out.push({ z: +L.toFixed(2), major: Math.abs(L - Math.round(L)) < 1e-6, segs: new Float32Array(segs) });
+    }
+    return (this._contours[step] = out);
+  }
   sampleSlope(x, y) {
     const h = 1.0;
     const a = this.sampleElevation(x - h, y), b = this.sampleElevation(x + h, y), c = this.sampleElevation(x, y - h), d = this.sampleElevation(x, y + h);

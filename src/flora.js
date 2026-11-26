@@ -159,13 +159,17 @@ const FAR_OF = {
   shrub: (b) => FAR.woody(b), 'shrub-vase': (b) => FAR.woody(b), tree: (b) => FAR.woody(b), 'tree-small': (b) => FAR.woody(b), 'tree-multistem': (b) => FAR.woody(b),
 };
 
+const BODY = new Set(['daisy', 'daisy-drooping', 'spike', 'spike-airy', 'spike-candelabra', 'spike-tall', 'plume', 'globe', 'globe-small',
+  'umbel', 'umbel-tall', 'cloud-tall', 'saucer', 'dome', 'whorl', 'whorl-tall', 'cup', 'meadow-forb']);
+function body(b) { for (let i = 0; i < 4; i++) { const a = (i / 4) * 6.283 + b.r(); b.blob(Math.cos(a) * 0.16, 0.2 + b.r() * 0.12, Math.sin(a) * 0.16, 0.2, 0, 0.75); } }
+
 const cache = new Map();
 export function formGeometry(form, lod = 'near') {
   const key = form + '|' + lod;
   if (!cache.has(key)) {
     const b = new GB(hash(form));
     if (lod === 'far') (FAR_OF[form] || FAR_OF.umbel)(b);
-    else (FORMS[form] || FORMS.umbel)(b);
+    else { if (BODY.has(form)) body(b); (FORMS[form] || FORMS.umbel)(b); }
     cache.set(key, b.geometry());
   }
   return cache.get(key);

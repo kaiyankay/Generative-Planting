@@ -12,7 +12,7 @@ export const PAL = {
   parking: '#DEDAD1',
   water: '#AFC4C2',
   waterDeep: '#93AEAD',
-  soil: '#7A6550',
+  soil: '#665B45',
   soilLight: '#8A7457',
   steel: '#3A3631',
   limestone: '#C9BC9E',
@@ -57,6 +57,18 @@ export function traceLine(ctx, geom, T) {
   if (!geom) return;
   const lines = geom.type === 'LineString' ? [geom.coordinates] : geom.type === 'MultiLineString' ? geom.coordinates : [];
   for (const r of lines) for (let i = 0; i < r.length; i++) { const q = T(r[i][0], r[i][1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }
+}
+
+export function paintContours(ctx, store, T, { scale = 10, alpha = 1 } = {}) {
+  const lines = store.contours(0.25);
+  for (const L of lines) {
+    ctx.beginPath();
+    const s = L.segs;
+    for (let i = 0; i < s.length; i += 4) { const a = T(s[i], s[i + 1]), b = T(s[i + 2], s[i + 3]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+    ctx.strokeStyle = rgba('#6B5A3A', (L.major ? 0.75 : 0.38) * alpha);
+    ctx.lineWidth = L.major ? Math.max(1, scale * 0.09) : Math.max(0.6, scale * 0.05);
+    ctx.stroke();
+  }
 }
 
 // paint the ground (shared by plan and the 3D terrain texture)

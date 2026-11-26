@@ -16,7 +16,6 @@ async function main() {
   try {
     const { Scene3D } = await import('./scene3d.js');
     scene = new Scene3D($('#c3d'), store, picker, { labelRoot: $('#labels3d'), preserve: params.has('shot'), quality: params.get('q') || 'high' });
-    scene.onRaster = (kind) => { plan._rasters ||= {}; if (!plan._rasters[kind]) { plan._raster(kind); } return plan._rasters[kind]; };
   } catch (err) {
     console.error('3D unavailable', err);
   }

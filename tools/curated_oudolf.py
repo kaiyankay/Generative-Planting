@@ -359,3 +359,18 @@ STATS = {
                    "forbs": [20, 1078], "grasses": [5, 1742], "treesShrubs": [15, 89]},
     "meadows": {"westAcres": 0.38, "eastAcres": 0.87, "graminoids": [27, 2434], "forbs": [47, 12805], "shrubs": [12, 118]},
 }
+
+# display foliage for woody plants (inferred, illustrative summer foliage)
+_WOODY_LEAF = {
+    "sp.betula-nigra-heritage": "#8ea35a", "sp.nyssa-sylvatica": "#4f6e3c", "sp.halesia-carolina": "#7d9a55",
+    "sp.chionanthus-virginicus": "#6f8c4a", "sp.stewartia-pseudocamellia": "#5f7f45", "sp.clethra-alnifolia": "#6a8a46",
+    "sp.hamamelis-jelena": "#7a9450", "sp.hamamelis-vernalis": "#76904d", "sp.ilex-verticillata": "#4d6b3a",
+    "sp.myrica-gale": "#879a6a", "sp.rhododendron-viscosum": "#5e7a48", "sp.lindera-benzoin": "#8aa055",
+    "sp.rhus-copallina": "#5a7a3e", "sp.viburnum-nudum": "#55753f", "sp.amelanchier-lamarckii": "#7f9858",
+    "sp.cornus-sericea": "#6b8a4e", "sp.salix-rosmarinifolia": "#9aa98a", "sp.styrax-americanus": "#678a48",
+    "sp.vaccinium-corymbosum": "#6e8d5a", "sp.viburnum-dentatum": "#5b7c43", "sp.viburnum-trilobum": "#668645",
+    "sp.unidentified-shrub": "#7a8c62", "sp.unidentified-tree": "#6b8550",
+}
+for _k, _v in _WOODY_LEAF.items():
+    if _k in SP:
+        SP[_k]["displayLeaf"] = _v

@@ -70,6 +70,8 @@ def poisson(poly, r, rnd, k=30, max_pts=100000, avoid=None):
     """Bridson-style Poisson-disc sampling inside polygon (deterministic)."""
     if poly is None or poly.is_empty or poly.area < 1e-6:
         return []
+    want = max_pts
+    max_pts = max_pts * 8 if max_pts < 100000 else max_pts  # grow over the whole area, then thin uniformly
     minx, miny, maxx, maxy = poly.bounds
     cell = r / math.sqrt(2)
     gw = int((maxx - minx) / cell) + 1
@@ -119,6 +121,8 @@ def poisson(poly, r, rnd, k=30, max_pts=100000, avoid=None):
                 if ok(x, y):
                     pts.append((x, y)); active.append((x, y)); grid[(int((x - minx) / cell), int((y - miny) / cell))] = (x, y)
                     break
+    if len(pts) > want:
+        pts = rnd.sample(pts, want)
     return pts
 
 
@@ -359,15 +363,12 @@ def main():
          "sourceRefs": ["S-OGD-BIRD"], "status": "schematic", "dataKind": "inferred"})
 
     # water
-    lake_polys = []
     r = rels[420953]
-    segs = [W(m["ref"]) for m in r["members"] if m["type"] == "way" and m["ref"] in ways]
-    for rr in join_rings(segs):
-        if len(rr) > 3:
-            lp = Polygon(rr).buffer(0).intersection(ext)
-            if not lp.is_empty and lp.area > 50:
-                lake_polys.append(lp)
-    lake = unary_union(lake_polys)
+    outer = [Polygon(rr).buffer(0) for rr in join_rings([W(m["ref"]) for m in r["members"] if m["type"] == "way" and m["ref"] in ways and m["role"] == "outer"]) if len(rr) > 3]
+    inner = [Polygon(rr).buffer(0) for rr in join_rings([W(m["ref"]) for m in r["members"] if m["type"] == "way" and m["ref"] in ways and m["role"] == "inner"]) if len(rr) > 3]
+    lake = unary_union(outer).difference(unary_union(inner)) if inner else unary_union(outer)
+    lake = lake.intersection(ext)
+    islands = unary_union(inner).intersection(ext) if inner else Polygon()
     add({"id": "water.lake-tacoma", "type": "water", "name": "Lake Tacoma", "layer": "site.water", "parent": "site.oudolf-garden-detroit",
          "geometry": geo(lake), "props": {"osm": "relation/420953"}})
     moat = poly_of(106966326).difference(poly_of(106966318))
@@ -879,7 +880,7 @@ def main():
                        "status": "schematic", "dataKind": "hypothetical", "sourceRefs": ["S-OGD-MEADOW", "S-MODEL"],
                        "note": "Species list documented; their arrangement, density and hydrology zoning are not published."})
         rnd = rng("meadow", key)
-        n = int(tot * share * 0.16)
+        n = int(tot * share * 0.3)
         pts = poisson(mp.buffer(-0.3), max(0.5, 0.8 * math.sqrt(mp.area / n)), rnd, max_pts=n)
         grass_sids = [s for s in sids if species[s]["plantType"] == "grass"]
         forb_sids = [s for s in sids if species[s]["plantType"] == "forb"]

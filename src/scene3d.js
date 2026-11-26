@@ -1,7 +1,8 @@
 // Botanical diorama: orthographic 3D view of the same model.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PAL, paintGround, tracePoly } from './style.js';
+import { PAL, paintGround, paintContours, tracePoly } from './style.js';
+import { getRaster } from './plan2d.js';
 import { speciesLayer, bboxOf, centroidOf } from './model.js';
 import { formGeometry, plantMaterial } from './flora.js';
 
@@ -316,7 +317,7 @@ export class Scene3D {
       groups.get(k).push(i);
       const sc = s.iscale(i); const woody = L === 'veg.trees' || L === 'veg.shrubs';
       // a visual proxy stands for ~2.4 real perennials: widen its spread so the cover reads correctly
-      const spread = sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.7));
+      const spread = sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.85));
       dummy.position.set(x, this.hY(x, y) - 0.03, -y);
       dummy.rotation.set(0, s.irot(i), 0);
       dummy.scale.set(spread, Math.max(0.05, sp.nominalHeightM * sc), spread);
@@ -346,7 +347,7 @@ export class Scene3D {
       this._fill(far, list);
       this.plantMeshes.push(far);
       if (!woody && layer !== 'veg.bulbs') {
-        const near = make(formGeometry(form, 'near'), Math.min(list.length, 1600), layer, form, 'near');
+        const near = make(formGeometry(form, 'near'), list.length, layer, form, 'near');
         near.count = 0; near.userData.all = list; near.visible = false;
         this.plantMeshes.push(near); this.nearMeshes.push(near);
       }
@@ -369,7 +370,7 @@ export class Scene3D {
   // near LOD: detailed forms only for the plants inside the current view
   _updateLOD(force = false) {
     const ppm = this._pxPerM();
-    const want = ppm > 26;
+    const want = ppm > 14;
     if (!want && !this.lodNear && !force) return;
     if (!want) {
       this.lodNear = false;
@@ -387,7 +388,7 @@ export class Scene3D {
     const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
     const y0 = Math.min(...pts.map((p) => p[1])), y1 = Math.max(...pts.map((p) => p[1]));
     const area = (x1 - x0) * (y1 - y0);
-    if (area > 9000) { // still too wide for detail: stay far
+    if (area > 2600) { // still too wide for detail: stay far
       if (this.lodNear) { this.lodNear = false; this._updateLOD(true); }
       return;
     }
@@ -491,8 +492,10 @@ export class Scene3D {
     if (s.layerVisible('analysis.slope') || s.layerVisible('analysis.pathdist')) {
       // analysis drapes over the ground in 3D as well
       const kind = s.layerVisible('analysis.slope') ? 'slope' : 'pathdist';
-      if (this.onRaster) { const R = this.onRaster(kind); if (R) { const a = T(R.x0, R.y1), b = T(R.x1, R.y0); ctx.globalAlpha = 0.65; ctx.drawImage(R.canvas, a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.globalAlpha = 1; } }
+      const R = getRaster(s, kind); const a = T(R.x0, R.y1), b = T(R.x1, R.y0);
+      ctx.globalAlpha = 0.65; ctx.drawImage(R.canvas, a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.globalAlpha = 1;
     }
+    if (s.layerVisible('topo.contours')) paintContours(ctx, s, T, { scale: sx * 0.6 });
     tex.needsUpdate = true;
     if (this.labelEls) this.labelEls.forEach((e) => (e.el.style.display = s.layerVisible('structure.labels') ? '' : 'none'));
   }
