@@ -2,8 +2,8 @@
 
 - 在线地址：https://kaiyankay.github.io/Generative-Planting/
 - 仓库：https://github.com/kaiyankay/Generative-Planting （`main`）
-- 本轮起点：`main` @ `5a7062d`；工作分支 `refinement/phase-01-1`；最终提交：见 §8（部署后填写的实际值）
-- 测试：模型 23/23；浏览器 113/113（原 42 项全部保留未放宽 + 新增 71 项）；线上结果见 §8
+- 本轮起点：`main` @ `5a7062d`；工作分支 `refinement/phase-01-1`；代码与数据最终提交 **`1ea4975`**（已快进合并到 `main` 并部署），其后仅追加本文档类提交
+- 测试：模型 23/23；浏览器本地 113/113、**线上 113/113**（原 42 项全部保留未放宽 + 新增 71 项）
 - 原始数据未改动：`model.json`、`instances.bin` 的 SHA-256 与 Phase 01 完全相同（测试每次重新校验）
 
 ## 1. 六个必须回答的问题（以实际运行证据回答）
@@ -13,7 +13,7 @@
 3. **一次真实配置修改是否在两个视图、实例、查询、导出中一致？** 是。从数据中自动选出 B1 最大的非 matrix group（`pl.B1.g27`，*Monarda bradburiana*，6 个代理）替换为 *Achillea* ‘Moonshine’：同一批代理 id 的物种改变；B1 模型计数 Monarda 14→8；**3D 实际渲染计数**同步 ±6；该代理的 3D 形态 whorl→umbel、颜色改变；**平面画布像素颜色**改变；点查询 / 物种查询 / Inspector / 导出全部显示新物种。删除、添加（新代理可被点选并渲染）、越界添加被拒、批量中一条非法即整体回滚（含 `__proto__` 路径）、导出→导入指纹一致、Reset 后与参照逐行一致。截图 09a–09d（同镜头前后）。
 4. **图纸与模型是否统一视觉语言？** 是。以 UBC SALA *Landscape as Laboratory* 为主参考（只学原则，未下载或复制任何图）：暖白纸面、淡化周边、鼠尾草绿/赭黄/蓝灰、细墨线、“实心核 + 半透明冠幅”的植物符号。同一套 token 与物种低饱和色同时用于平面、3D 地面纹理、层板和 3D 植物。先在真实模型上做了三种同镜头小样（纯线稿 / 线稿+低饱和插画 / 轻绘本），选定第二种，只保留一套主题。见 `PHASE_01_1_ART_DIRECTION.md`、截图 05-style-test。
 5. **哪些数据真实、示意或未知？** 真实（documented）：床轮廓、道路、墙、水体、建筑（OSM）；床编号与风格（2019/2020 图纸）；各风格物种与图例角色；3DEP 1 m 地形。重建（reconstructed）：29 棵现有树冠（NAIP 目测，物种/高度未知）。示意（schematic）：床内斑块形状、植物与符号位置、草甸轮廓、Bird Border 走向。未知（unknown）：每床真实物种位置与数量、三角床配置、日照、土壤湿度、pH（返回 null + unknown，不画假图层）。另：2026 名录中 10 个品种与 2019 图纸不同，现标为“可能替换/版本差异”，不再当作同义名。详见 `PHASE_01_1_ACCURACY.md`。
-6. **实际线上地址与 commit？** 见 §8（以部署后实际验证为准）。
+6. **实际线上地址与 commit？** https://kaiyankay.github.io/Generative-Planting/ ，`main` @ `1ea4975`（推送后约 40 秒上线）；对线上页面运行完整测试 113/113，并在浏览器中实际打开线上页、完成 B1 替换→计数/3D 渲染同步→Reset 的流程。
 
 ## 2. 十项任务逐条状态
 
@@ -96,4 +96,10 @@ GP.resetDraft()
 
 ## 8. 部署与线上验证
 
-（部署后填写）
+| 项 | 结果 |
+|---|---|
+| 合并 | `refinement/phase-01-1` 快进合并到 `main`（无 force push；origin/main 期间无他人更新） |
+| 部署提交 | `1ea4975`（GitHub Pages，main / root，legacy build；推送后约 40 s 新文件可访问） |
+| 线上自动测试 | `python3 -I tools/run_browser_tests.py --url https://kaiyankay.github.io/Generative-Planting/tests.html` → **113/113**，应用加载 544 ms，总时长 469 s（`docs/qa/browser_tests_live.json`） |
+| 线上人工检查 | 浏览器面板打开线上页：Layers 层叠正常、无控制台错误、API 0.4；控制台执行 B1 替换：Monarda 14→8、Achillea 0→6、3D 渲染 105→111、旧图例码清除并记录 `replaced`、Reset 后实例指纹与参照一致 |
+| 回滚 | 上一可用版本 `5a7062d`（Phase 01）；如需回退：`git revert` 合并范围后推送，不需要 force |

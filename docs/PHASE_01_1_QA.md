@@ -45,6 +45,10 @@ No Phase 01 test was removed or loosened. The harness wall-time limit was raised
 | Analysis opened both rasters, smoothed | group switch + smoothing | one raster at a time; 1 m cells shown crisp |
 | Test-side bugs | slanted bed edge, tolerance, variable shadowing, a `//` comment inside a one-line function | fixed in the test, assertions not weakened |
 
+## 2.3 Live
+
+`main` @ `1ea4975` on GitHub Pages: **113/113** (`docs/qa/browser_tests_live.json`, app load 544 ms, 469 s wall). The live page was also opened in a GPU browser: no console errors; B1 replacement → tallies and rendered counts change; reset matches the reference fingerprint.
+
 ## 3. Screenshots
 
 `docs/screenshots/phase-01-1/` (1440 × 900, headless Chrome, real model). Before: `before/` (same cameras on the Phase 01 code). Index in `PHASE_01_1_HANDOFF.md` §5.
