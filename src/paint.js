@@ -56,7 +56,7 @@ const PAINTERS = {
         const g = O(id)?.geometry; if (!g) continue; fill(ctx, T, g, o.texture ? '#E9E3D3' : TOK.path);
         if (!o.texture) { ctx.strokeStyle = rgba(TOK.pathEdge, 0.95); ctx.lineWidth = 0.7; ctx.stroke(); }
       }
-      if (vis(s, 'built.walks')) { const g = O('built.grass-walks')?.geometry; if (g) { fill(ctx, T, g, o.texture ? '#BFC59E' : TOK.lawnDeep); if (!o.texture && o.scale > 3) { ctx.setLineDash([2, 3]); ctx.strokeStyle = rgba(TOK.ink, 0.35); ctx.lineWidth = 0.6; ctx.stroke(); ctx.setLineDash([]); } } }
+      if (vis(s, 'built.walks')) { const g = O('built.grass-walks')?.geometry; if (g) { fill(ctx, T, g, o.texture ? '#B8BF9C' : TOK.lawnDeep); if (!o.texture && o.scale > 3) { ctx.setLineDash([2, 3]); ctx.strokeStyle = rgba(TOK.ink, 0.35); ctx.lineWidth = 0.6; ctx.stroke(); ctx.setLineDash([]); } } }
       for (const ob of s.model.objects) {
         if ((ob.type === 'building' || ob.type === 'tower') && ob.geometry && vis(s, ob.layer)) fill(ctx, T, ob.geometry, ob.layer === 'built.structures' ? TOK.stone : TOK.building);
         if (ob.type === 'boardwalk' && vis(s, 'built.structures')) fill(ctx, T, ob.geometry, TOK.wood);
@@ -90,7 +90,7 @@ const PAINTERS = {
   siteveg: {
     ground(ctx, s, T, o) {
       if (!vis(s, 'veg.lawn')) return;
-      for (const id of ['veg.lawn', 'veg.carillon-island']) { const g = s.getObject(id)?.geometry; if (g) fill(ctx, T, g, o.texture ? '#C8CEA8' : id === 'veg.lawn' ? TOK.lawn : TOK.lawnDeep); }
+      for (const id of ['veg.lawn', 'veg.carillon-island']) { const g = s.getObject(id)?.geometry; if (g) fill(ctx, T, g, o.texture ? (id === 'veg.lawn' ? '#C3C8AA' : '#B9C09F') : id === 'veg.lawn' ? TOK.lawn : TOK.lawnDeep); }
     },
     top(ctx, s, T, o) {
       if (o.texture || !vis(s, 'siteveg.trees')) return;
@@ -105,7 +105,7 @@ const PAINTERS = {
         if (st === 'M') { fill(ctx, T, b.geometry, o.texture ? '#B9BA8A' : mix(TOK.meadow, TOK.paper, 0.35)); continue; }
         fill(ctx, T, b.geometry, o.texture ? TOK.soil3d : mix(TOK.soil, TOK.paper, 0.25));
       }
-      if (!o.texture && s.scenario === 'working' && s.draft) paintOpenBeds(ctx, s, T, o);
+      if (s.scenario === 'working' && s.draft) paintOpenBeds(ctx, s, T, o);
     },
     top(ctx, s, T, o) {
       if (o.texture) return;
@@ -130,7 +130,7 @@ const PAINTERS = {
         for (const p of P) {
           if (p.kind !== 'area' || (p.role || '').startsWith('bulb') || !p.geometry) continue;
           const sp = s.getObject(p.speciesIds[0]); if (!sp) continue;
-          ctx.globalAlpha = 0.55; fill(ctx, T, p.geometry, mix(speciesLeaf(sp), '#2F3A2A', 0.35), 'nonzero'); ctx.globalAlpha = 1;
+          ctx.globalAlpha = 0.5; fill(ctx, T, p.geometry, mix(speciesLeaf(sp), '#3A4433', 0.28), 'nonzero'); ctx.globalAlpha = 1;
         }
         return;
       }
@@ -160,7 +160,7 @@ const PAINTERS = {
         }
         // emergent / individual / woody positions: open circles, species-coloured rim
         for (const p of P) {
-          if (p.kind !== 'point') continue;
+          if (p.kind !== 'point' || sc < 3.2) continue; // emergents appear progressively with zoom
           const q = T(...p.geometry.coordinates); if (o.vb && !inView(o, [p.geometry.coordinates[0], p.geometry.coordinates[1], p.geometry.coordinates[0], p.geometry.coordinates[1]])) continue;
           const sp = s.getObject(p.speciesIds[0]); const woody = p.role === 'tree' || p.role === 'shrub' || p.role === 'hedgerow';
           const r = Math.max(woody ? 1.6 : 2, (woody ? 0.45 : (p.symbolRadiusM || 0.3)) * sc);
@@ -173,9 +173,9 @@ const PAINTERS = {
           if (p.status === 'draft') { ctx.beginPath(); ctx.arc(q[0], q[1], r + 3, 0, 7); ctx.setLineDash([1.5, 2.5]); ctx.strokeStyle = TOK.draft; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]); }
         }
         for (const p of P) { // scatter (MultiPoint): small crosses
-          if (p.kind !== 'scatter' || !p.geometry || p.geometry.type !== 'MultiPoint') continue;
-          ctx.strokeStyle = rgba(TOK.inkDeep, 0.6); ctx.lineWidth = 0.8; ctx.beginPath();
-          for (const c of p.geometry.coordinates) { const q = T(c[0], c[1]); ctx.moveTo(q[0] - 2, q[1] - 2); ctx.lineTo(q[0] + 2, q[1] + 2); ctx.moveTo(q[0] + 2, q[1] - 2); ctx.lineTo(q[0] - 2, q[1] + 2); }
+          if (p.kind !== 'scatter' || !p.geometry || p.geometry.type !== 'MultiPoint' || sc < 6) continue;
+          const k = Math.min(3, sc * 0.12); ctx.strokeStyle = rgba(TOK.inkDeep, 0.42); ctx.lineWidth = 0.7; ctx.beginPath();
+          for (const c of p.geometry.coordinates) { const q = T(c[0], c[1]); ctx.moveTo(q[0] - k, q[1] - k); ctx.lineTo(q[0] + k, q[1] + k); ctx.moveTo(q[0] + k, q[1] - k); ctx.lineTo(q[0] - k, q[1] + k); }
           ctx.stroke();
         }
       }
@@ -223,10 +223,10 @@ function paintOpenBeds(ctx, s, T, o) {
   const occupied = new Set(s.model.placements.map((p) => p.bedId || p.districtId));
   for (const id of s.draft.scope) {
     if (occupied.has(id)) continue; const b = s.getObject(id); if (!b) continue;
-    ctx.save(); ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.fillStyle = rgba(TOK.paper, 0.55); ctx.fill('evenodd'); ctx.clip('evenodd');
-    ctx.strokeStyle = rgba(TOK.ink, 0.22); ctx.lineWidth = 0.7; ctx.beginPath();
-    const bb = bboxOf(b.geometry); const [ax, ay] = T(bb[0], bb[3]), [bx, by] = T(bb[2], bb[1]);
-    for (let k = ax - (by - ay); k < bx; k += 6) { ctx.moveTo(k, by); ctx.lineTo(k + (by - ay), ay); }
+    ctx.save(); ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.fillStyle = o.texture ? '#B4AE95' : rgba(TOK.paper, 0.55); ctx.fill('evenodd'); ctx.clip('evenodd');
+    ctx.strokeStyle = rgba(o.texture ? '#7C7660' : TOK.ink, o.texture ? 0.35 : 0.22); ctx.lineWidth = o.texture ? 2 : 0.7; ctx.beginPath();
+    const bb = bboxOf(b.geometry); const [ax, ay] = T(bb[0], bb[3]), [bx, by] = T(bb[2], bb[1]); const st = o.texture ? Math.max(8, o.scale * 0.8) : 6;
+    for (let k = ax - (by - ay); k < bx; k += st) { ctx.moveTo(k, by); ctx.lineTo(k + (by - ay), ay); }
     ctx.stroke(); ctx.restore();
   }
 }
@@ -263,27 +263,28 @@ export function paintInstances(ctx, s, T, o) {
   if (!show['veg.forbs'] && !show['veg.grasses'] && !show['veg.bulbs']) return;
   const close = sc > 22, mid = sc > 7;
   const haloA = o.focus === 'representation' ? 0.32 : 0.22;
+  // colour strings per species (built once per draw, not per proxy)
+  const C = new Map(); const col = (sp) => { let c = C.get(sp.index); if (!c) { const pc = speciesPlanColor(sp); c = { halo: rgba(pc, haloA), haloG: rgba(pc, haloA * 0.8), ring: rgba(mix(pc, TOK.inkDeep, 0.4), 0.5), core: mix(speciesFlower(sp), TOK.inkDeep, close ? 0.08 : 0.15), grass: rgba(mix(speciesLeaf(sp), TOK.inkDeep, 0.3), close ? 0.75 : 0.55), bulb: rgba(mix(speciesFlower(sp), TOK.inkDeep, 0.35), 0.8) }; C.set(sp.index, c); } return c; };
   for (let i = 0; i < t.n; i++) {
     if (!t.alive[i] || t.pl[i] < 0) continue;
     const x = t.x[i], y = t.y[i]; if (x < vb[0] - 2 || x > vb[2] + 2 || y < vb[1] - 2 || y > vb[3] + 2) continue;
     const sp = s.speciesByIndex[t.sp[i]]; const L = speciesLayerOf(sp);
     if (L === 'veg.trees' || L === 'veg.shrubs' || !show[L]) continue;
     const q = T(x, y);
-    if (L === 'veg.bulbs') { if (!mid) continue; ctx.fillStyle = rgba(mix(speciesFlower(sp), TOK.inkDeep, 0.35), 0.8); ctx.beginPath(); ctx.arc(q[0], q[1], close ? 1.4 : 0.9, 0, 7); ctx.fill(); continue; }
+    const cc = col(sp);
+    if (L === 'veg.bulbs') { if (!mid) continue; ctx.fillStyle = cc.bulb; ctx.beginPath(); ctx.arc(q[0], q[1], close ? 1.4 : 0.9, 0, 7); ctx.fill(); continue; }
     const r = Math.max(1.1, sp.nominalSpreadM * 0.42 * t.sc[i] * sc);
     if (L === 'veg.grasses') {
-      const c = mix(speciesLeaf(sp), TOK.inkDeep, 0.3);
-      if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = rgba(speciesPlanColor(sp), haloA * 0.8); ctx.fill(); }
-      ctx.strokeStyle = rgba(c, close ? 0.75 : 0.55); ctx.lineWidth = close ? 0.8 : 0.6; ctx.beginPath();
+      if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = cc.haloG; ctx.fill(); }
+      ctx.strokeStyle = cc.grass; ctx.lineWidth = close ? 0.8 : 0.6; ctx.beginPath();
       const n = close ? 11 : mid ? 7 : 4; const rot = t.rot[i];
       for (let k = 0; k < n; k++) { const a = rot + (k / n) * 6.283; const rr = r * (0.75 + 0.25 * ((k * 7) % 3) / 2); ctx.moveTo(q[0] + Math.cos(a) * r * 0.15, q[1] + Math.sin(a) * r * 0.15); ctx.lineTo(q[0] + Math.cos(a) * rr, q[1] + Math.sin(a) * rr); }
       ctx.stroke();
     } else {
-      const col = speciesPlanColor(sp);
-      if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = rgba(col, haloA); ctx.fill(); }
-      if (close) { ctx.lineWidth = 0.6; ctx.strokeStyle = rgba(mix(col, TOK.inkDeep, 0.4), 0.5); ctx.stroke(); }
+      if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = cc.halo; ctx.fill(); }
+      if (close) { ctx.lineWidth = 0.6; ctx.strokeStyle = cc.ring; ctx.stroke(); }
       const cr = Math.max(0.9, Math.min(r * 0.36, close ? 4.5 : 2.4));
-      ctx.beginPath(); ctx.arc(q[0], q[1], cr, 0, 7); ctx.fillStyle = mix(speciesFlower(sp), TOK.inkDeep, close ? 0.08 : 0.15); ctx.fill();
+      ctx.beginPath(); ctx.arc(q[0], q[1], cr, 0, 7); ctx.fillStyle = cc.core; ctx.fill();
     }
   }
 }

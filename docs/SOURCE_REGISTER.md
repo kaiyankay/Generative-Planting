@@ -84,3 +84,14 @@ Counts: A = 5, B = 6, C = 4 → **15 main beds** (tested). The two triangle beds
 ## 5. Public vs. local
 
 The public repository contains no Oudolf drawing, photograph, plant-list PDF or class slide, and no geometry traced from them. Everything inside the beds is generated from citable facts (species names, legend roles, counts, bed codes). The originals are kept only in the git-ignored `private-inputs/` folder on this machine. A future local-only layer could hold traced patch geometry for comparison; none was produced in this phase.
+
+## 6. Phase 01.1 additions (2026-11-26)
+
+| ID / item | Source | Use | Published? |
+|---|---|---|---|
+| Visual reference | UBC SALA, *Landscape as Laboratory* (Alastair White, Tara Shahbazi, Angela Zhang, 2024), four sheets viewed in a browser: Site Plan, Experimental Plots, Ecological Relationships, Site Throughout Time | Principles only: warm paper, quiet context, muted sage / ochre / blue-grey, fine strokes, core-plus-halo plant symbols, layered translucency, section-like soil edge. No image, drawing, colour sample, species set or font was copied or saved. | No — not downloaded into the repository; credited in the app's About sheet and in `PHASE_01_1_ART_DIRECTION.md`. |
+| `case.json` | this project | Path types for distance queries, editable planting units, blank-canvas scope | Yes (MIT, own work) |
+| Alias classification | S-OGD-PL-2026 vs S-OGD-FA/FB/FC-2019 | Ten cultivar names in the 2026 list differ from the 2019 plans; they are now shown as *possible substitution / version change*, not as synonyms. `model.json` unchanged. | Names only (facts) |
+| Accuracy comparison | S-OGD-FA/FB/FC-2019 viewed locally | Written comparison A1 / B1 / C1 (`PHASE_01_1_ACCURACY.md`); nothing traced | Text only |
+
+Licences unchanged: OSM-derived geometry in `model.json` remains **ODbL 1.0** (© OpenStreetMap contributors, attribution in the app and README); USGS layers public domain; code MIT. The repository's MIT licence covers the code and our own generated data, not the OSM-derived geometry.

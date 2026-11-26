@@ -11,7 +11,7 @@ export const TOK = {
   water: '#BACBD0', waterEdge: '#8FA6AE', accent: '#B59CBB',
   path: '#FAF7EF', pathEdge: '#C9BFA9', lawn: '#D3D6BA', lawnDeep: '#C3C9A6',
   building: '#E6E0D2', stone: '#D8CFBC', wood: '#B49A74', steel: '#4B4F48',
-  soil: '#B8BC9C', soil3d: '#6E7558',
+  soil: '#B8BC9C', soil3d: '#7B8264',
   select: '#9A4F2E', hover: '#6F5F86', draft: '#8C6A2E',
 };
 // compatibility alias for older imports

@@ -38,7 +38,7 @@ def main():
            "--window-size=1600,1000", f"--user-data-dir={prof}", "--virtual-time-budget=90000", "--run-all-compositor-stages-before-draw",
            "--dump-dom", url]
     t0 = time.time()
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
     dom = p.stdout
     m = re.search(r'id="summary"[^>]*data-json="([^"]*)"', dom)
     if not m:

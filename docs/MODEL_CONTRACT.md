@@ -1,9 +1,10 @@
-# Model contract — `generative-planting/spatial-model` v0.3
+# Model contract — `generative-planting/spatial-model` v0.3 data · runtime API 0.4 (Phase 01.1)
 
 One JSON document (`data/detroit/model.json`) plus two binary buffers. The 2D plan, the 3D scene and any AI client read the same data; no view owns geometry.
 
 ```
 data/detroit/
+  case.json       case settings (Phase 01.1): path types for distance queries, editable planting units, blank-canvas scope
   model.json      canonical model (project, sources, layers, objects, species, recipes, placements, fields)
   instances.bin   plant instances, 16 bytes each (seeded, stable)
   terrain.bin     Int16 elevation grid (cm above datumZ), 1 m
@@ -40,43 +41,89 @@ Instances are **visual proxies** (≈0.42 per real perennial, ≈0.12 per bulb, 
 
 ## Status vocabulary
 
-- `status`: documented · reconstructed · schematic · unknown
+- `status`: documented · reconstructed · schematic · unknown · draft (working design only)
 - `dataKind`: source · inferred · hypothetical
 - Unknown values are `null` with `status: "unknown"`, never 0. Display-only inferences are listed in `species.inferredFields`.
 
-## Query and edit API
+## Site, reference design, working design, view state (Phase 01.1)
 
-Exposed in the browser as `window.GP` (also usable in Node by importing `src/model.js`):
+One coordinate frame, four concepts (not four files):
+
+| Concept | Where | Mutable? |
+|---|---|---|
+| **Site** — boundary, terrain, paths, walls, water, buildings, existing tree crowns, lawn | `objects[]` (types other than placements) + `terrain.bin`; existing trees = instances with no placement (`siteveg.trees`) | never edited by a planting draft (`E_READONLY`) |
+| **Planting framework** — bed outlines and codes, districts | `objects[]` type `bed` / `district` | constraint for drafts; not editable in this phase |
+| **Reference design** — the schematic reconstruction | `placements[]` + `instances.bin`, frozen (deep-frozen JSON, reference instance table never written; file hashes tested) | no |
+| **Working design** — editable draft | runtime copy: its own placements, instance table, spatial index; persisted per browser as a replayable op list | yes, through validated patches only |
+| **View state** — mode Reference / Canvas / Terrain, layer visibility / lock, hide-planting, selection, camera | UI only | never changes data |
+
+- `createDraft({from:'reference'})` copies the reference; `createDraft({from:'blank', scope})` clears the active placements (and their proxies) of the listed planting units. Default scope = the 15 A/B/C beds; triangles, Rain Garden, meadows and Bird Border only when listed. Site trees, lawn, paths and the bed framework always stay. `blankScopePreview(scope)` reports what would be cleared **before** anything happens.
+- *Hide reference planting* and *Terrain* are view filters: data, counts and constraints are untouched. *Start new planting design* really removes the active planting in scope from the working design (queries and counts no longer return it); the reference keeps it.
+- Instance ids `pi.<row>` are stable within a scenario: removing marks the row dead, adding appends new rows (`pi.20788…`), replacing keeps the row and changes its species. Reference rows are never written.
+
+## Query and edit API (`window.GP`, also usable by importing `src/model.js`)
 
 | Call | Returns |
 |---|---|
-| `getObject(id)` | object, placement, species, recipe, source, or a plant instance (`pi.N`) |
-| `getBedAt(x, y)` | bed containing the point or null |
-| `queryObjects(geometry, filters)` | objects (or `{collection:'placements'}`) intersecting a point+radius, polygon or `{bbox}`; filters: type, layer, style, role, speciesId |
-| `sampleConditions(x, y)` | elevation, slope, distance-to-walk, sun/moisture/pH (null + unknown), bedId, placements at the point |
-| `getPlantingContext(id)` | bed, style, recipe, placements by role, species list, conditions at the centroid |
-| `applyPatch(ops)` | applies `[{op:'set', target, path, value} \| {op:'remove', target} \| {op:'add', collection, value}]` to a **draft copy**; the frozen baseline never changes |
-| `resetDraft()`, `diffDraft()`, `exportModel({draft})` | discard / list / export |
-| `select(id)`, `setLayer(id, {visible, locked})`, `layers()` | shared UI state (both views follow) |
+| `getObject(id)` | object, placement, species, recipe, source, or a live plant instance (`pi.N`) of the active scenario |
+| `getBedAt(x, y)` | bed containing the point (boundary included) or null |
+| `query(geometry, filters)` / `queryObjects(…)` | exact spatial query on the active scenario, see semantics below. `query` returns `{ok, scenario, exact, predicate, radius, results}`; `queryObjects` returns the array (throws on invalid input) |
+| `queryInstances(geometry, filters)` | plant-instance records (same semantics) |
+| `sampleConditions(x, y)` | elevation, slope, distance-to-path (value, units, status, **definition**, source), sun / moisture / pH = null + unknown, `inExtent`, bed, overlapping placements, objects at the point, `constraints.plantable` |
+| `plantableAt(x, y)` | `{value, unitId, reason, editLocked}` — independent of visibility and UI lock |
+| `getPlantingContext(id)`, `speciesTally({bedId})`, `instancesOfPlacement(id)` | context / counts of the active scenario |
+| `createDraft(o)`, `blankScopePreview(scope)`, `draftInfo()`, `draftSummary()` | working-design lifecycle |
+| `applyPatch(ops, {dryRun})` | validated, atomic batch on the working design (below) |
+| `setEditLock(id, on)` | model-level edit lock on a planting unit or placement (separate from the UI layer lock) |
+| `resetDraft()`, `discardDraft()`, `diffDraft()` | back to the draft's starting point / drop it / list of applied ops |
+| `exportDraft()`, `exportModel({draft:true})`, `importDraft(obj)` | working design with **instance state** (removed rows, species changes, added rows, fingerprint); import replays the ops and checks the fingerprint |
+| `setMode('reference'|'canvas'|'terrain')`, `setView('3d'|'plan'|'layers')`, `openLayer(group, {overlays})`, `closeLayer()`, `focusLayer(group)`, `layerGroups()`, `setLayer`, `setLayerGroup`, `setOverlay` | view state (never changes data) |
 
-Example:
+### Spatial query semantics
+
+- Geometry: `Point`, `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, `MultiPolygon` (holes respected), optional `radius` in metres (matches objects within that distance). `{bbox:[x0,y0,x1,y1]}` is an **exact** rectangle; `{bbox, candidates:true}` is broad phase only and every result carries `exact:false`.
+- Predicates: `intersects` (default) — closed sets, so boundary contact counts; `within` — every point of the object in the query area. Tolerance 1 mm (the model's snapping precision).
+- Filters: `collection` (`objects` default, `placements`, `instances`), `type`, `layer`, `style`, `role`, `speciesId`, `bedId`, `limit`.
+- Placements overlap (matrix + groups + emergents + bulbs): a point can return several; nothing is forced into one-plant-per-cell.
+- Units: x/y metres in OGD-LOCAL-2026, z metres NAVD88. The 3D vertical exaggeration (×1.6 by default, ×1 with `?vex=1`) is display only. The DEM is 1 m; 0.25 m contours are interpolated isolines, not a finer survey.
+- Distance to path = planar distance to the nearest object whose `type` is listed in `case.json → pathTypes` (Detroit: `path` → gravel walks, grass walks, sidewalks); 0 inside.
+
+### Patch operations
 
 ```js
-GP.getPlantingContext('bed.B1').placementsByRole        // { matrix: 1, group: 38, emergent: 25, scatter: 3, ... }
-GP.sampleConditions(0, 0)['field.sun']                  // { value: null, status: 'unknown', ... }
-GP.applyPatch([{ op: 'set', target: 'pl.A1.b01', path: 'speciesIds', value: ['sp.sporobolus-heterolepis'] }])
-GP.resetDraft()
+{ op: 'replaceSpecies', target: 'pl.*', speciesIds: ['sp.*', …] }            // keeps proxy rows, changes their species (2D, 3D, queries follow)
+{ op: 'set', target: 'pl.*', path, value }   // path ∈ speciesIds | role | legendCode | note | countEstimatedReal | symbolRadiusM
+{ op: 'remove', target: 'pl.*' }                                              // placement + its proxies leave model, index, render
+{ op: 'add', collection: 'placements', value: { id?, bedId | districtId, role, speciesIds, geometry: Point | (Multi)Polygon, legendCode?, note? } }
+```
+
+- Checked before anything is written: target exists in the working design and is a placement (site objects → `E_READONLY`), path whitelisted and free of `__proto__` / `constructor` / `prototype` (`E_PATH`), species exist (`E_SPECIES`), role in the vocabulary (`E_ROLE`), geometry valid (`E_GEOMETRY`), inside the planting unit (`E_OUTSIDE`), not on a path / water / structure even if that layer is hidden (`E_NOT_PLANTABLE`), unit / placement not edit-locked (`E_LOCKED`), id format and uniqueness (`E_ID`).
+- All-or-nothing: the batch runs on a staged copy; any error returns `{ok:false, errors:[{index, op, code, message}]}` and the working design is unchanged. `dryRun:true` validates only.
+- Success returns `{ok:true, rev, applied, changes:{placementsAdded, placementsRemoved, placementsModified, instancesAdded:[pi.*], instancesRemoved, instancesChanged}}`.
+- Added placements get seeded proxies (seed = placement id; same density rules as the build), `status:'draft'`, `dataKind:'hypothetical'`, `positionSource:'draft'`.
+- No draft yet → `applyPatch` creates a copy of the reference first (`draftCreated:true`). The UI layer lock is **not** a model permission; use `setEditLock`.
+
+Example (the Phase 01.1 acceptance flow):
+
+```js
+GP.createDraft({ from: 'reference' })
+const g = GP._store.model.placements.filter(p => p.bedId === 'bed.B1' && p.role === 'group').sort((a, b) => b.areaM2 - a.areaM2)[0]
+GP.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: ['sp.achillea-moonshine'] }])   // 2D symbols, 3D forms, tallies, queries change
+GP.speciesTally({ bedId: 'bed.B1' })
+GP.applyPatch([{ op: 'remove', target: 'pl.B1.e01' }])
+GP.resetDraft()                                                                                   // back to the reference rows exactly
 ```
 
 The renderer is never an input: an AI proposes operations on the model; the views re-render from it.
 
 ## URL states
 
-`index.html?view=3d|plan&sel=<id>&focus=1&z=<zoom>&at=x,y&layers=+topo.contours,-veg.trees&lopen=1&about=1` reproduces a view (used for screenshots and links).
+`index.html?view=3d|plan|layers&mode=reference|canvas|terrain&layer=<group>&overlay=<group>:<opacity>,…&sel=<id>&focus=1&z=<zoom>&at=x,y&layers=+topo.contours,-veg.trees&lopen=1&legend=1&about=1&vex=1&dev=1`
+reproduces a view (`layer` with `view=layers` focuses a plate, with `view=plan` opens the isolated layer). Screenshot-only helpers: `draft=blank|copy|demo`, `then=reference`. Layer groups: `terrain, infrastructure, siteveg, framework, composition, representation, analysis`.
 
 ## Adding a second case
 
 1. Copy `tools/geo.py` with a new origin and extent; run `tools/fetch_sources.py` for OSM + USGS (or supply local survey data in the same frame).
 2. Write a `curated_<case>.py` with species (`sp()`), legends (role per recipe) and official statistics.
 3. Adapt the bed register in `build_model.py` (OSM ids → model ids, codes, styles) and run it; run `tools/test_model.py`.
-4. Point the viewer at `data/<case>/` (one constant in `src/app.js`). Nothing in the viewer is Detroit-specific except the home camera.
+4. Write `data/<case>/case.json` (path types, editable planting units, blank-canvas scope) and point the viewer at `data/<case>/` (one constant in `src/app.js`). Nothing in the viewer is Detroit-specific except the home camera, the layers-overview crop and a few object ids used for drawing (water, paths).

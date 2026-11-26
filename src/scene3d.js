@@ -14,9 +14,20 @@ const CROP = { x0: -72, x1: 74, y0: -52, y1: 42 }; // layers overview: Main Gard
 const PLATE_GAP = 17; // m between plates in the layers overview
 const PLATES = ['terrain', 'infrastructure', 'siteveg', 'framework', 'composition', 'representation'];
 
+// rAF animation that always lands its final frame: hidden tabs throttle rAF and headless virtual time may never run it
+function animate(ms, frame) {
+  const t0 = performance.now(); let done = false;
+  const tick = () => { if (done) return; const k = Math.min(1, (performance.now() - t0) / ms); frame(k); if (k < 1) requestAnimationFrame(tick); else done = true; };
+  setTimeout(() => { if (!done) { done = true; frame(1); } }, ms + 60);
+  tick();
+}
+const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+
 export class Scene3D {
   constructor(canvas, store, picker, opts = {}) {
     this.c = canvas; this.s = store; this.picker = picker; this.active = false;
+    // synthetic pointer events (automation, agents) have no active pointer: capture must not throw inside OrbitControls
+    for (const k of ['setPointerCapture', 'releasePointerCapture']) canvas[k] = function (id) { try { Element.prototype[k].call(this, id); } catch { /* no active pointer */ } };
     this.quality = opts.quality || 'high';
     this.VEX = opts.vex || 1.6; // vertical exaggeration of TERRAIN only (stated in the UI); plants and buildings true size
     const r = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: !!opts.preserve });
@@ -58,12 +69,14 @@ export class Scene3D {
   }
   home() {
     if (this.layersView) { this._layersCamera(true); return; }
-    const t = this.W(0, -12); t.y = 1.5;
+    // whole garden as one miniature: beds, Rain Garden, both meadows, Carillon (phones: the beds)
+    const narrow = this.w && this.w < 760;
+    const t = narrow ? this.W(0, -12) : this.W(8, -28); t.y = 1.5;
     this.controls.target.copy(t);
     const dir = new THREE.Vector3(0.14, 0.74, 0.66).normalize();
     this.cam.position.copy(t).addScaledVector(dir, 400);
     this.cam.up.set(0, 1, 0);
-    this._frameWidth = this.w && this.w < 760 ? 120 : 150; this.cam.zoom = 1;
+    this._frameWidth = narrow ? 125 : 215; this.cam.zoom = 1;
     this.resize();
     this.controls.update();
   }
@@ -104,15 +117,16 @@ export class Scene3D {
   _tween(target, zoom, off, pos) {
     const t0 = performance.now(), T0 = this.controls.target.clone(), Z0 = this.cam.zoom, P0 = this.cam.position.clone();
     zoom = Math.max(this.controls.minZoom, Math.min(this.controls.maxZoom, zoom));
-    const step = () => {
-      const k = Math.min(1, (performance.now() - t0) / 650); const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    void t0; const gen = (this._tweenGen = (this._tweenGen || 0) + 1);
+    animate(650, (k) => {
+      if (gen !== this._tweenGen) return; // a newer camera move supersedes this one
+      const e = ease(k);
       this.controls.target.lerpVectors(T0, target, e);
       if (pos) this.cam.position.lerpVectors(P0, pos, e); else this.cam.position.copy(this.controls.target).add(off);
       this.cam.zoom = Z0 + (zoom - Z0) * e; this.cam.updateProjectionMatrix(); this.cam.lookAt(this.controls.target);
       this._needsLabels = true; this._dirty = true;
-      if (k < 1) requestAnimationFrame(step); else { this._lastMove = performance.now(); this._lodDone = false; }
-    };
-    step();
+      if (k >= 1) { this.controls.update(); this._lastMove = performance.now(); this._lodDone = false; }
+    });
   }
 
   _lights() {
@@ -131,7 +145,7 @@ export class Scene3D {
   // ---------------------------------------------------------------- ground
   _paintGround(ctx, T, sx, region) {
     const o = { scale: sx, texture: true, vb: region };
-    ctx.fillStyle = this.s.layerVisible('veg.lawn') ? '#C8CEA8' : TOK.paper2; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = this.s.layerVisible('veg.lawn') ? '#C3C8AA' : TOK.paper2; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     if (this.s.view.mode === 'terrain') { ctx.fillStyle = TOK.paper2; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
     for (const [gid, phase] of ORDER) paintGroup(ctx, this.s, T, gid, phase, o);
     // fine grain: mown lawn / leaf litter (deterministic)
@@ -596,13 +610,12 @@ export class Scene3D {
     this._dirty = true; this._needsLabels = true;
   }
   _layersCamera(instant) {
-    const T1 = new THREE.Vector3((CROP.x0 + CROP.x1) / 2 + 6, PLATE_GAP * 2.6, -(CROP.y0 + CROP.y1) / 2);
+    const narrow = this.w < 760; // phones: smaller stack, shifted left so the labels on the right stay clear
+    const T1 = new THREE.Vector3((CROP.x0 + CROP.x1) / 2 + (narrow ? 34 : 6), PLATE_GAP * 2.6, -(CROP.y0 + CROP.y1) / 2);
     const P1 = T1.clone().addScaledVector(new THREE.Vector3(0.34, 0.3, 0.89).normalize(), 400);
-    const aspect = this.w / Math.max(1, this.h);
-    const needH = PLATE_GAP * 5 * 0.95 + 60, needW = 175;
-    const Z1 = Math.min((this.cam.top - this.cam.bottom) / needH, (this.cam.right - this.cam.left) / needW) * (this.w < 760 ? 1.05 : 0.98);
-    void aspect;
-    if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) { this.controls.target.copy(T1); this.cam.position.copy(P1); this.cam.zoom = Z1; this.cam.updateProjectionMatrix(); this.cam.lookAt(T1); this.controls.update(); this._needsLabels = true; this._dirty = true; return; }
+    const needH = PLATE_GAP * 5 * 0.95 + 60, needW = narrow ? 250 : 175;
+    const Z1 = Math.min((this.cam.top - this.cam.bottom) / needH, (this.cam.right - this.cam.left) / needW) * 0.98;
+    if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) { this._tweenGen = (this._tweenGen || 0) + 1; this.controls.target.copy(T1); this.cam.position.copy(P1); this.cam.zoom = Z1; this.cam.updateProjectionMatrix(); this.cam.lookAt(T1); this.controls.update(); this._needsLabels = true; this._dirty = true; return; }
     this._tween(T1, Z1, null, P1);
   }
   // Layers overview on/off. Camera and layer state of the world view are restored on exit.
@@ -615,18 +628,18 @@ export class Scene3D {
     const from = this._ex, to = on ? 1 : 0, t0 = performance.now();
     if (on) this._layersCamera(instant);
     else if (this._preEx) {
-      if (instant) { this.controls.target.copy(this._preEx.t); this.cam.position.copy(this._preEx.p); this.cam.zoom = this._preEx.z; this.cam.updateProjectionMatrix(); this.controls.update(); }
+      if (instant) { this._tweenGen = (this._tweenGen || 0) + 1; this.controls.target.copy(this._preEx.t); this.cam.position.copy(this._preEx.p); this.cam.zoom = this._preEx.z; this.cam.updateProjectionMatrix(); this.controls.update(); }
       else this._tween(this._preEx.t, this._preEx.z, null, this._preEx.p);
     }
     this._applyLayers(); this._updateLOD(true); this._cropFill(on);
-    const step = () => {
-      const k = instant || matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1, (performance.now() - t0) / 750);
-      this._ex = from + (to - from) * (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+    void t0;
+    const frame = (k) => {
+      this._ex = from + (to - from) * ease(k);
       this._applyExplodePositions();
       if (this.onExplode) this.onExplode(this._ex);
-      if (k < 1) requestAnimationFrame(step); else { this._lastMove = performance.now(); this._lodDone = false; this._applyLayers(); }
+      if (k >= 1) { this._lastMove = performance.now(); this._lodDone = false; this._applyLayers(); }
     };
-    step();
+    if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) frame(1); else animate(750, frame);
   }
   // overview shows the cropped garden only: proxies whose centre lies outside the plates are left out (not clipped in half)
   _cropFill(on) {

@@ -1,7 +1,7 @@
 {
- "ok": 42,
- "total": 42,
- "loadMs": 166.69999998807907,
+ "ok": 113,
+ "total": 113,
+ "loadMs": 295.80000001192093,
  "results": [
   {
    "name": "app loads and exposes window.GP",
@@ -131,7 +131,7 @@
   {
    "name": "wheel zooms the plan",
    "ok": true,
-   "detail": "18.209748912525367 vs 8.863636363636363"
+   "detail": "16.913555521217514 vs 8.23271130625686"
   },
   {
    "name": "drag pans the plan",
@@ -179,9 +179,364 @@
    "detail": ""
   },
   {
+   "name": "baseline model.json SHA-256 unchanged",
+   "ok": true,
+   "detail": "b7bc3689929d91f469a58a6592aee689048a671fbcff1d499729ccf641ce7d7b"
+  },
+  {
+   "name": "baseline instances.bin SHA-256 unchanged",
+   "ok": true,
+   "detail": "1bf31385f064f540d3ec68d4855fe92eaf370af7f21ca16da5cb2b8d9483bdf7"
+  },
+  {
+   "name": "starts in Reference (reference scenario)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Hide reference planting = visibility only (placements kept, still queryable)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "blank-design preview lists what will be cleared before it runs",
+   "ok": true,
+   "detail": "{\"units\":[\"bed.C1\",\"bed.C2\",\"bed.B1\",\"bed.B2\",\"bed.A1\",\"bed.A2\",\"bed.B3N\",\"bed.B3S\",\"bed.A3N\",\"bed.A3S\",\"bed.C3\",\"bed.C4"
+  },
+  {
+   "name": "Canvas without a draft opens the scope dialog (nothing created yet)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Start design (blank) -> Canvas on a working scenario",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "blank canvas: B1 has no active placements or proxies",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "name": "blank canvas: cleared proxies leave queries and counts",
+   "ok": true,
+   "detail": "6109 vs 6109"
+  },
+  {
+   "name": "blank canvas keeps site trees, Rain Garden, paths, bed framework",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D follows the working design (rendered proxies = live rows in view)",
+   "ok": true,
+   "detail": "6109 / 6109"
+  },
+  {
+   "name": "site model not reloaded when the design state changes (same terrain mesh)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Reference still complete after a blank draft exists",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Terrain: plants and built forms hidden in 3D, contours on, nothing deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Terrain: hidden boardwalk (inside East Meadow) still blocks planting",
+   "ok": true,
+   "detail": "{\"value\":false,\"unitId\":\"bed.ME\",\"reason\":\"inside boardwalk built.east-meadow-boardwalk\"}"
+  },
+  {
+   "name": "draft survives Reference/Terrain switches",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B1 group chosen from data: pl.B1.g27 (sp.monarda-bradburiana, 6 proxies)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: patch ok, same proxy ids changed species",
+   "ok": true,
+   "detail": "{\"placementsAdded\":[],\"placementsRemoved\":[],\"placementsModified\":[\"pl.B1.g27\"],\"instancesAdded\":[],\"instancesRemoved\":0,\"instancesChanged\":6}"
+  },
+  {
+   "name": "replace: model tally in B1 moved 6 proxies",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: 3D rendered species counts changed the same way",
+   "ok": true,
+   "detail": "[105,111,304,298]"
+  },
+  {
+   "name": "replace: 3D form and colour of the proxy changed (not a label)",
+   "ok": true,
+   "detail": "[\"whorl\",\"umbel\"]"
+  },
+  {
+   "name": "replace: plan symbol colour at the proxy changed",
+   "ok": true,
+   "detail": "[[184,169,178],[187,183,131]]"
+  },
+  {
+   "name": "replace: point query + species query return the new species",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: inspector shows the new species",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: export carries the instance change",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "remove: placement + proxies gone from model, index, render",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "remove: not returned by queries or picking",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "add: new placement with seeded proxies",
+   "ok": true,
+   "detail": "[\"pi.20788\",\"pi.20789\",\"pi.20790\",\"pi.20791\",\"pi.20792\",\"pi.20793\",\"pi.20794\"]"
+  },
+  {
+   "name": "add: clickable (picker returns it) and rendered",
+   "ok": true,
+   "detail": "{\"id\":\"pl.B1.d2041\"}"
+  },
+  {
+   "name": "add outside the bed is rejected (E_OUTSIDE)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "atomic: one bad op rolls back the whole batch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "site objects are read-only in a planting draft",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "unknown species rejected",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UI layer lock != model permission; model edit-lock blocks patches",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "dryRun validates without changing anything",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "export -> import rebuilds the same instance state",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "reset: working design equals the reference again (rows, species, placements)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "reference rows never touched by any edit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "polygon crossing a bed edge (centroid outside) intersects it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "\u2026 but A1 is not within that polygon",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "polygon hole: a bed entirely inside the hole is not returned",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "MultiPolygon query returns both beds",
+   "ok": true,
+   "detail": "bed.A1,bed.C3"
+  },
+  {
+   "name": "LineString query returns every bed it crosses",
+   "ok": true,
+   "detail": "bed.A1,bed.B3N,bed.A3N,bed.C3"
+  },
+  {
+   "name": "MultiLineString query",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "boundary contact counts as intersecting (bed outline as a line)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "point + 7 m radius = brute-force set incl. the 1 mm boundary tolerance (radius-correct index)",
+   "ok": true,
+   "detail": "609 vs 609"
+  },
+  {
+   "name": "nearestInstance with a large radius finds instances beyond the 3\u00d73 cells",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bbox candidates are flagged as not exact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "outside the extent: elevation / slope / distance null + unknown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "conditions carry definitions, units and sources",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "distance-to-path set comes from case.json path types, not hard-coded ids",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "vertical exaggeration never enters the data (z in m NAVD88)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hidden layer still blocks planting; plantable / hidden / locked are separate",
+   "ok": true,
+   "detail": "[{\"value\":false,\"unitId\":\"bed.ME\",\"reason\":\"inside boardwalk built.east-meadow-boardwalk\"},{\"value\":true,\"unitId\":\"bed.ME\",\"editLocked\":false}]"
+  },
+  {
+   "name": "matrix and group overlap at a point (no one-plant-per-cell)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Layers view: six physical plates, analysis as plan-only entry",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Layers view: no cross-layer shadows",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "click on the composition plate focuses it, others dim",
+   "ok": true,
+   "detail": "composition"
+  },
+  {
+   "name": "click on the infrastructure plate moves the focus",
+   "ok": true,
+   "detail": "infrastructure"
+  },
+  {
+   "name": "Open in Plan: isolated orthographic layer, breadcrumb, legend",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "isolated layer: selection limited to that layer (path, not bed)",
+   "ok": true,
+   "detail": "{\"id\":\"built.gravel-walks\"}"
+  },
+  {
+   "name": "reference overlay (framework) does not steal the click",
+   "ok": true,
+   "detail": "{\"id\":\"pl.A1.b28\"}"
+  },
+  {
+   "name": "overlay opacity is applied",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Back returns to the Layers overview with its camera",
+   "ok": true,
+   "detail": "{\"view\":\"layers\",\"d\":0,\"iso\":null}"
+  },
+  {
+   "name": "Esc returns to World and restores the world camera",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "layer visibility restored after leaving the isolated plan",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Analysis isolated: real slope shown, sun / moisture / pH marked no data",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "view switch and design-state switch are separate controls",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Reference status keeps \u201cSchematic reconstruction \u00b7 not a survey\u201d",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no inspector without a selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "model keeps \u2265 80% of the screen by default",
+   "ok": true,
+   "detail": "96.1%"
+  },
+  {
+   "name": "key 3 opens Layers, Esc goes back",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "3D renders triangles",
    "ok": true,
-   "detail": "{\"fps\":0,\"triangles\":1091015,\"calls\":220,\"instances\":20788,\"dpr\":1}"
+   "detail": "{\"fps\":3.5,\"triangles\":1184347,\"calls\":204,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
   },
   {
    "name": "no horizontal overflow at 1440\u00d7900",
@@ -206,7 +561,7 @@
   {
    "name": "phone: layer panel fits the width",
    "ok": true,
-   "detail": "{\"x\":10,\"y\":761.8125,\"width\":91.84375,\"height\":38.1875,\"top\":761.8125,\"right\":101.84375,\"bottom\":800,\"left\":10}"
+   "detail": "{\"x\":10,\"y\":765.8125,\"width\":87.84375,\"height\":34.1875,\"top\":765.8125,\"right\":97.84375,\"bottom\":800,\"left\":10}"
   },
   {
    "name": "no runtime errors (phone)",
@@ -217,5 +572,5 @@
  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
  "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
  "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
- "wallSeconds": 251.7
+ "wallSeconds": 836.4
 }

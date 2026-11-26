@@ -30,3 +30,18 @@ Reference: *Generative Planting at Scale — Systems Design for Ecological Impac
 
 1. **Open Knowledge Base** (not built tonight): plant knowledge, experience, budgets, office principles, preferences.
 2. **Spatial Model** (this phase): geometry, positions, the current plant community and conditions — with a species-ID boundary (`sp.*`, `canonicalKey`) where the knowledge base will connect.
+
+## Phase 01.1 additions (2026-11-26)
+
+The deck was re-read locally (the PDF stays in `private-inputs/`); diagrams on P11, P16–17, P22–25, P28–34, P44, P58, P69, P71–74, P84 and P122–135 were looked at as images, not only as text. Page numbers follow the PDF. The mapping below is this project's own inference, not something the slides prescribe.
+
+| Slides | Slide idea (paraphrase) | Phase 01.1 decision |
+|---|---|---|
+| 11, 16–17 | Designer as curator; real-world knowledge cannot be skipped. | The reference stays frozen and visible; a working design is a separate, explicit act (dialog with the scope shown first). Every edit is a validated patch an expert can read, refuse or reset. |
+| 22–25 | Functional mixes; ground cover; scalable modules on a legible framework. | Site and bed framework are separated from the planting: a blank canvas keeps the framework as a constraint and clears only the planting in scope. |
+| 28–34 | Plants in functional layers; substitute species but keep the role. | `replaceSpecies` keeps the placement, its role and its proxy positions and changes only the species — the substitution pattern of P32–33, now visible in 2D and 3D. |
+| 44, 58 | Time / phenology; curated databases. | Still hooks only (`phenology: null`); the 2026 list cultivars are now flagged as possible substitutions, not synonyms (data versioning before databases). |
+| 69 | Site / Topo / Paving / Planting / Performance as layers of one model. | Seven layer groups (Terrain, Infrastructure, Site Vegetation, Planting Framework, Planting Composition, Plant Representation, Analysis) as one stack you can pull apart, enter and overlay. |
+| 71–74 | Constraint overlays (water, shade, pH, slope, sun, elevation, proximity); computational layout. | `plantableAt` + `sampleConditions` return constraints that do not depend on visibility; only real fields (elevation, slope, distance to path) are drawn; sun / moisture / pH are explicit "no data". Exact polygon / line / point queries make a selection area usable as a layout input. |
+| 84 | Clarity, relative predictability, customisability, evolvability, openness. | Atomic, deterministic patches; export / import replays to the same fingerprint; case settings in `case.json`; open JSON and a documented API. |
+| 122–135 | Accuracy, functionality, time; local data; rules vs generative AI. | Accuracy per object stays explicit; the 2D / 3D / query / export consistency is tested end to end, so a later rule engine or AI can act on the model rather than on pictures. |

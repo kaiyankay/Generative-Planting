@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<h1 style="font-size:18px">In-browser tests: the real app in an iframe, driven through <code>window.GP</code></h1>
+<h1 style="font-size:18px">In-browser tests: the real app in an iframe, driven through <code>window.GP</code>, real pointer events and canvas pixels</h1>
 <p id="summary">running…</p>
 <pre id="out"></pre>
 <div id="frames">
@@ -39,6 +39,7 @@ async function boot(frame, url) {
 }
 
 try {
+  try { localStorage.clear(); } catch {} // same origin as the app: start without a persisted working design
   const t0 = performance.now();
   const { w, errors, GP } = await boot(document.getElementById('desk'), base + 'index.html?view=3d');
   const loadMs = performance.now() - t0;
@@ -139,6 +140,208 @@ try {
   log('exportModel() returns the baseline by default', JSON.parse(GP.exportModel()).placements.find((p) => p.id === pid).speciesIds[0] !== 'sp.sporobolus-heterolepis');
   GP.resetDraft();
   log('resetDraft restores', JSON.stringify(GP.getObject(pid)) === before && GP.diffDraft().length === 0);
+
+  // ======================================================================== Phase 01.1
+  // ---- 10 · baseline files untouched (bytes) and reference rows untouched (memory)
+  const HASH = { 'model.json': 'b7bc3689929d91f469a58a6592aee689048a671fbcff1d499729ccf641ce7d7b', 'instances.bin': '1bf31385f064f540d3ec68d4855fe92eaf370af7f21ca16da5cb2b8d9483bdf7' };
+  for (const f of Object.keys(HASH)) {
+    const buf = await (await fetch(base + 'data/detroit/' + f, { cache: 'no-store' })).arrayBuffer();
+    const h = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map((b) => b.toString(16).padStart(2, '0')).join('');
+    log('baseline ' + f + ' SHA-256 unchanged', h === HASH[f], h);
+  }
+  const refFP = JSON.stringify(S.refInst.fingerprint());
+  try { w.localStorage.clear(); } catch {}
+  GP.discardDraft();
+  const ui = GP._ui; const doc = w.document; const picker = scene.picker;
+
+  // ---- 01 · site vs design: three reachable states, hide != delete, blank canvas scope
+  log('starts in Reference (reference scenario)', GP.mode() === 'reference' && GP.scenario() === 'reference');
+  const nRefPl = S.model.placements.length, terrainMesh = scene.terrain;
+  GP._store.setViewState({ hidePlanting: true });
+  log('Hide reference planting = visibility only (placements kept, still queryable)', S.model.placements.length === nRefPl && !S.layerVisible('structure.patches') && GP.queryObjects({ type: 'Point', coordinates: cen }, { collection: 'placements' }).length > 0);
+  GP._store.setViewState({ hidePlanting: false });
+  const pv = GP.blankScopePreview();
+  log('blank-design preview lists what will be cleared before it runs', pv.clears.units.length === 15 && pv.clears.placements > 1000 && pv.keeps.existingTrees && pv.keeps.bedFramework, JSON.stringify(pv.clears).slice(0, 120));
+  const liveRef = S.liveCount, siteTreesRef = (() => { let n = 0; for (let i = 0; i < S.inst.n; i++) if (S.inst.alive[i] && S.inst.pl[i] < 0) n++; return n; })();
+  const rgRef = S.placementsByBed.get('bed.RG').length;
+  doc.querySelector('.modes [data-m=canvas]').click();
+  const dlg = doc.getElementById('draftdlg');
+  log('Canvas without a draft opens the scope dialog (nothing created yet)', !dlg.hidden && !GP.draftInfo() && /Clears/.test(dlg.innerText));
+  dlg.querySelector('[data-a=go]').click(); await sleep(50);
+  log('Start design (blank) -> Canvas on a working scenario', GP.mode() === 'canvas' && GP.scenario() === 'working' && GP.draftInfo().from === 'blank');
+  const b1ctx = GP.getPlantingContext('bed.B1');
+  log('blank canvas: B1 has no active placements or proxies', b1ctx.placementCount === 0 && b1ctx.instanceCount === 0, JSON.stringify(b1ctx.placementsByRole));
+  log('blank canvas: cleared proxies leave queries and counts', S.liveCount === liveRef - pv.clears.instances && GP.queryObjects({ type: 'Point', coordinates: cen, radius: 2 }, { collection: 'instances' }).length === 0, S.liveCount + ' vs ' + (liveRef - pv.clears.instances));
+  const siteTreesW = (() => { let n = 0; for (let i = 0; i < S.inst.n; i++) if (S.inst.alive[i] && S.inst.pl[i] < 0) n++; return n; })();
+  log('blank canvas keeps site trees, Rain Garden, paths, bed framework', siteTreesW === siteTreesRef && S.placementsByBed.get('bed.RG').length === rgRef && !!GP.getObject('built.gravel-walks') && S.beds.length === 20);
+  log('3D follows the working design (rendered proxies = live rows in view)', scene.renderedInstances() === S.liveCount, scene.renderedInstances() + ' / ' + S.liveCount);
+  log('site model not reloaded when the design state changes (same terrain mesh)', scene.terrain === terrainMesh);
+  GP.setMode('reference');
+  log('Reference still complete after a blank draft exists', GP.getPlantingContext('bed.B1').placementCount === b1ctx.placementCount + GP._store.baseline.placements.filter((p) => p.bedId === 'bed.B1').length && S.liveCount === liveRef);
+  GP.setMode('terrain');
+  log('Terrain: plants and built forms hidden in 3D, contours on, nothing deleted', scene.plantMeshes.every((m) => !m.visible) && S.layerVisible('topo.contours') && S.model.objects.length === 87 && S.liveCount === liveRef);
+  const bw = GP.getObject('built.east-meadow-boardwalk'); const bwc = (() => { const r = bw.geometry.type === 'Polygon' ? bw.geometry.coordinates[0] : bw.geometry.coordinates[0][0]; return [(r[0][0] + r[1][0]) / 2, (r[0][1] + r[1][1]) / 2]; })();
+  const pb = GP.plantableAt(bwc[0], bwc[1]);
+  log('Terrain: hidden boardwalk (inside East Meadow) still blocks planting', !S.layerVisible('built.structures') && pb.value === false && /boardwalk/.test(pb.reason), JSON.stringify(pb));
+  GP.setMode('canvas');
+  log('draft survives Reference/Terrain switches', GP.draftInfo() && GP.draftInfo().from === 'blank' && GP.getPlantingContext('bed.B1').placementCount === 0);
+
+  // ---- 03 · real edit loop on a copy of the reference (B1, non-matrix group found in the data)
+  GP.createDraft({ from: 'reference' });
+  const g = S.model.placements.filter((p) => p.bedId === 'bed.B1' && p.role === 'group' && p.speciesIds.length === 1).sort((a, b) => b.areaM2 - a.areaM2)[0];
+  const NEW = 'sp.achillea-moonshine', OLD = g.speciesIds[0];
+  const rowsG = S.instancesOfPlacement(g.id);
+  log('B1 group chosen from data: ' + g.id + ' (' + OLD + ', ' + rowsG.length + ' proxies)', g.role === 'group' && rowsG.length > 0);
+  const tB = S.speciesTally({ bedId: 'bed.B1' }), rB = scene.renderedSpeciesCounts(), fB = scene.formOfInstance(rowsG[0]);
+  // plan pixel at a proxy core, before
+  GP.setView('plan'); await sleep(50);
+  const px = async (i) => { plan.view.cx = S.ix(i); plan.view.cy = S.iy(i); plan.view.scale = 90; plan.drawNow(); const [qx, qy] = plan.T(S.ix(i), S.iy(i)); const d = plan.ctx.getImageData(Math.round(qx * plan.dpr), Math.round(qy * plan.dpr), 1, 1).data; return [d[0], d[1], d[2]]; };
+  GP.select(null); S.setHover(null);
+  const pxB = await px(rowsG[0]);
+  const rp = GP.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: [NEW] }]);
+  const tA = S.speciesTally({ bedId: 'bed.B1' }), rA = scene.renderedSpeciesCounts(), fA = scene.formOfInstance(rowsG[0]);
+  log('replace: patch ok, same proxy ids changed species', rp.ok && rp.changes.instancesChanged === rowsG.length && rowsG.every((i) => GP.getObject('pi.' + i).speciesId === NEW), JSON.stringify(rp.changes));
+  log('replace: model tally in B1 moved ' + rowsG.length + ' proxies', (tA[NEW] || 0) - (tB[NEW] || 0) === rowsG.length && (tB[OLD] || 0) - (tA[OLD] || 0) === rowsG.length);
+  log('replace: 3D rendered species counts changed the same way', (rA[NEW] || 0) - (rB[NEW] || 0) === rowsG.length && (rB[OLD] || 0) - (rA[OLD] || 0) === rowsG.length, JSON.stringify([rB[NEW], rA[NEW], rB[OLD], rA[OLD]]));
+  log('replace: 3D form and colour of the proxy changed (not a label)', fB && fA && (fB.form !== fA.form || fB.leaf.join() !== fA.leaf.join()), JSON.stringify([fB && fB.form, fA && fA.form]));
+  const pxA = await px(rowsG[0]);
+  log('replace: plan symbol colour at the proxy changed', Math.hypot(pxA[0] - pxB[0], pxA[1] - pxB[1], pxA[2] - pxB[2]) > 20, JSON.stringify([pxB, pxA]));
+  log('replace: point query + species query return the new species', GP.queryObjects({ type: 'Point', coordinates: [S.ix(rowsG[0]), S.iy(rowsG[0])], radius: 0.02 }, { collection: 'instances' })[0].speciesId === NEW && GP.queryObjects({ bbox: [-500, -500, 500, 500] }, { collection: 'placements', speciesId: NEW, bedId: 'bed.B1' }).some((p) => p.id === g.id));
+  GP.select(g.id); await sleep(30);
+  log('replace: inspector shows the new species', doc.getElementById('inspector').innerText.includes('Achillea'));
+  GP.select(null);
+  const exA = GP.exportDraft();
+  log('replace: export carries the instance change', exA.instanceDelta.speciesChanged.length === rowsG.length && exA.recipe.ops.length === 1);
+  // remove
+  const g2 = S.model.placements.find((p) => p.bedId === 'bed.B1' && p.role === 'emergent');
+  const rows2 = S.instancesOfPlacement(g2.id); const liveB = S.liveCount, rendB = scene.renderedInstances();
+  const pr = GP.applyPatch([{ op: 'remove', target: g2.id }]);
+  const at2 = g2.geometry.coordinates;
+  log('remove: placement + proxies gone from model, index, render', pr.ok && !GP.getObject(g2.id) && rows2.every((i) => !GP.getObject('pi.' + i)) && S.liveCount === liveB - rows2.length && scene.renderedInstances() === rendB - rows2.length);
+  log('remove: not returned by queries or picking', GP.queryObjects({ type: 'Point', coordinates: at2, radius: 0.05 }, { collection: 'placements' }).every((p) => p.id !== g2.id) && !(S.getPlacementsAt(at2[0], at2[1]).some((p) => p.id === g2.id)));
+  // add
+  const b1 = GP.getObject('bed.B1'); const cB1 = (() => { const r = b1.geometry.coordinates[0]; let x = 0, y = 0; r.slice(0, -1).forEach((q) => { x += q[0]; y += q[1]; }); return [x / (r.length - 1), y / (r.length - 1)]; })();
+  const sq = { type: 'Polygon', coordinates: [[[cB1[0] - 0.7, cB1[1] - 0.7], [cB1[0] + 0.7, cB1[1] - 0.7], [cB1[0] + 0.7, cB1[1] + 0.7], [cB1[0] - 0.7, cB1[1] + 0.7], [cB1[0] - 0.7, cB1[1] - 0.7]]] };
+  const ad = GP.applyPatch([{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'group', speciesIds: ['sp.echinacea-hula-dancer'], geometry: sq, legendCode: 'ECH' } }]);
+  const nid = ad.ok && ad.changes.placementsAdded[0];
+  log('add: new placement with seeded proxies', ad.ok && ad.changes.instancesAdded.length > 0 && GP.getObject(nid).status === 'draft', JSON.stringify(ad.errors || ad.changes.instancesAdded));
+  picker.scope = 'composition'; const pk2 = picker.resolve(cB1[0], cB1[1], 40); picker.scope = null;
+  log('add: clickable (picker returns it) and rendered', pk2 && pk2.id === nid && (scene.renderedSpeciesCounts()['sp.echinacea-hula-dancer'] || 0) >= ad.changes.instancesAdded.length, JSON.stringify(pk2));
+  const ad2 = GP.applyPatch([{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'group', speciesIds: ['sp.echinacea-hula-dancer'], geometry: { type: 'Polygon', coordinates: [[[0, -80], [1, -80], [1, -79], [0, -79], [0, -80]]] } } }]);
+  log('add outside the bed is rejected (E_OUTSIDE)', !ad2.ok && ad2.errors[0].code === 'E_OUTSIDE');
+  // atomic + permission
+  const fpPre = JSON.stringify(S.inst.fingerprint()), nPre = S.model.placements.length;
+  const bad = GP.applyPatch([{ op: 'remove', target: g.id }, { op: 'set', target: g.id, path: '__proto__.polluted', value: 1 }]);
+  log('atomic: one bad op rolls back the whole batch', !bad.ok && JSON.stringify(S.inst.fingerprint()) === fpPre && S.model.placements.length === nPre && !!GP.getObject(g.id) && ({}).polluted === undefined);
+  log('site objects are read-only in a planting draft', GP.applyPatch([{ op: 'set', target: 'bed.B1', path: 'props.style', value: 'A' }]).errors[0].code === 'E_READONLY');
+  log('unknown species rejected', GP.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: ['sp.not-in-model'] }]).errors[0].code === 'E_SPECIES');
+  GP.setLayer('structure.patches', { locked: true });
+  const uiLocked = GP.applyPatch([{ op: 'set', target: g.id, path: 'note', value: 'ui lock is not a model permission' }]);
+  GP.setLayer('structure.patches', { locked: false });
+  GP.setEditLock('bed.B1', true);
+  const mLocked = GP.applyPatch([{ op: 'set', target: g.id, path: 'note', value: 'x' }]);
+  GP.setEditLock('bed.B1', false);
+  log('UI layer lock != model permission; model edit-lock blocks patches', uiLocked.ok && !mLocked.ok && mLocked.errors[0].code === 'E_LOCKED');
+  const dry = GP.applyPatch([{ op: 'remove', target: g.id }], { dryRun: true });
+  log('dryRun validates without changing anything', dry.ok && dry.dryRun && !!GP.getObject(g.id));
+  // export / import / reset
+  const ex = GP.exportDraft(); const fpD = JSON.stringify(S.inst.fingerprint());
+  GP.discardDraft(); const imp = GP.importDraft(ex);
+  log('export -> import rebuilds the same instance state', imp.ok && imp.fingerprintMatches && JSON.stringify(S.inst.fingerprint()) === fpD);
+  GP.resetDraft();
+  log('reset: working design equals the reference again (rows, species, placements)', JSON.stringify(S.inst.fingerprint()) === refFP && GP.diffDraft().length === 0 && GP.getObject(g.id).speciesIds[0] === OLD && !!GP.getObject(g2.id));
+  log('reference rows never touched by any edit', JSON.stringify(S.refInst.fingerprint()) === refFP);
+
+  // ---- 04 · exact spatial queries
+  GP.discardDraft();
+  const A1 = GP.getObject('bed.A1'); const bA = S.bedBoxes.get('bed.A1');
+  const eR = A1.geometry.coordinates[0]; const em = [(eR[0][0] + eR[1][0]) / 2, (eR[0][1] + eR[1][1]) / 2]; // a point on A1's real (slanted) edge
+  const edgeBox = { bbox: [em[0] - 0.5, em[1] - 0.5, em[0] + 0.5, em[1] + 0.5] };
+  const ebPoly = { type: 'Polygon', coordinates: [[[edgeBox.bbox[0], edgeBox.bbox[1]], [edgeBox.bbox[2], edgeBox.bbox[1]], [edgeBox.bbox[2], edgeBox.bbox[3]], [edgeBox.bbox[0], edgeBox.bbox[3]], [edgeBox.bbox[0], edgeBox.bbox[1]]]] };
+  log('polygon crossing a bed edge (centroid outside) intersects it', GP.queryObjects(ebPoly, { type: 'bed' }).some((o) => o.id === 'bed.A1'));
+  log('… but A1 is not within that polygon', !GP.queryObjects(ebPoly, { type: 'bed', predicate: 'within' }).some((o) => o.id === 'bed.A1'));
+  const big = [bA[0] - 30, bA[1] - 30, bA[2] + 30, bA[3] + 30];
+  const holed = { type: 'Polygon', coordinates: [[[big[0], big[1]], [big[2], big[1]], [big[2], big[3]], [big[0], big[3]], [big[0], big[1]]], [[bA[0] - 1, bA[1] - 1], [bA[0] - 1, bA[3] + 1], [bA[2] + 1, bA[3] + 1], [bA[2] + 1, bA[1] - 1], [bA[0] - 1, bA[1] - 1]]] };
+  log('polygon hole: a bed entirely inside the hole is not returned', !GP.queryObjects(holed, { type: 'bed' }).some((o) => o.id === 'bed.A1') && GP.queryObjects(holed, { type: 'bed' }).length > 3);
+  const C3 = GP.getObject('bed.C3'); const bC = S.bedBoxes.get('bed.C3');
+  const sqAt = (b, k = 0.5) => { const x = (b[0] + b[2]) / 2, y = (b[1] + b[3]) / 2; return [[[x - k, y - k], [x + k, y - k], [x + k, y + k], [x - k, y + k], [x - k, y - k]]]; };
+  const mp = GP.queryObjects({ type: 'MultiPolygon', coordinates: [sqAt(bA), sqAt(bC)] }, { type: 'bed' }).map((o) => o.id);
+  log('MultiPolygon query returns both beds', mp.includes('bed.A1') && mp.includes('bed.C3') && mp.length === 2, mp.join());
+  const line = { type: 'LineString', coordinates: [[(bA[0] + bA[2]) / 2, (bA[1] + bA[3]) / 2], [(bC[0] + bC[2]) / 2, (bC[1] + bC[3]) / 2]] };
+  const lr = GP.queryObjects(line, { type: 'bed' }).map((o) => o.id);
+  log('LineString query returns every bed it crosses', lr.includes('bed.A1') && lr.includes('bed.C3') && lr.length >= 3, lr.join());
+  const ml = GP.queryObjects({ type: 'MultiLineString', coordinates: [line.coordinates, [[bA[0] - 5, bA[1] - 5], [bA[0] - 4, bA[1] - 5]]] }, { type: 'bed' }).length;
+  log('MultiLineString query', ml === lr.length);
+  log('boundary contact counts as intersecting (bed outline as a line)', GP.queryObjects({ type: 'LineString', coordinates: A1.geometry.coordinates[0].slice(0, 2) }, { type: 'bed' }).some((o) => o.id === 'bed.A1'));
+  const bf = (x, y, r) => { let n = 0; for (let i = 0; i < S.inst.n; i++) if (S.inst.alive[i] && Math.hypot(S.inst.x[i] - x, S.inst.y[i] - y) <= r + 1e-3) n++; /* documented 1 mm closed-boundary tolerance */ return n; };
+  log('point + 7 m radius = brute-force set incl. the 1 mm boundary tolerance (radius-correct index)', GP.queryInstances({ type: 'Point', coordinates: cen, radius: 7 }).length === bf(cen[0], cen[1], 7), GP.queryInstances({ type: 'Point', coordinates: cen, radius: 7 }).length + ' vs ' + bf(cen[0], cen[1], 7));
+  const far = S.nearestInstance(cen[0] + 40, cen[1] + 40, 60);
+  log('nearestInstance with a large radius finds instances beyond the 3×3 cells', far >= 0);
+  log('bbox candidates are flagged as not exact', GP.query({ bbox: edgeBox.bbox, candidates: true }, { type: 'bed' }).exact === false && GP.query(edgeBox, { type: 'bed' }).exact === true);
+  const sc0 = GP.sampleConditions(5000, 5000);
+  log('outside the extent: elevation / slope / distance null + unknown', sc0['field.elevation'].value === null && sc0['field.slope'].value === null && sc0['field.distance-to-path'].value === null && sc0.inExtent === false);
+  const sc1 = GP.sampleConditions(cen[0], cen[1]);
+  log('conditions carry definitions, units and sources', /3DEP/.test(sc1['field.elevation'].definition) && sc1['field.slope'].units === 'deg' && /path/.test(sc1['field.distance-to-path'].definition));
+  log('distance-to-path set comes from case.json path types, not hard-coded ids', S.pathObjects().every((o) => o.type === 'path') && S.pathObjects().length >= 2);
+  log('vertical exaggeration never enters the data (z in m NAVD88)', Math.abs(sc1['field.elevation'].value - S.sampleElevation(cen[0], cen[1])) < 0.01 && sc1['field.elevation'].value > 170);
+  GP.setLayer('built.structures', { visible: false });
+  const pb2 = GP.plantableAt(bwc[0], bwc[1]), pm = GP.plantableAt(bwc[0] + 6, bwc[1] + 6);
+  log('hidden layer still blocks planting; plantable / hidden / locked are separate', pb2.value === false && GP.layers()['built.structures'].visible === false && GP.layers()['built.structures'].locked === false, JSON.stringify([pb2, pm]));
+  GP.setLayer('built.structures', { visible: true });
+  log('matrix and group overlap at a point (no one-plant-per-cell)', GP.sampleConditions(...(() => { const r = S.instancesOfPlacement(g.id)[0]; return [S.ix(r), S.iy(r)]; })()).placements.length >= 2);
+
+  // ---- 08 · layer navigation: real clicks on the exploded plates
+  GP.setView('3d'); await sleep(50);
+  const camW = scene.cam.position.clone(), zW = scene.cam.zoom;
+  doc.querySelector('.views [data-v=layers]').click(); await sleep(1200);
+  log('Layers view: six physical plates, analysis as plan-only entry', Object.keys(scene._plates).length === 6 && doc.querySelectorAll('.plabel').length === 7);
+  log('Layers view: no cross-layer shadows', scene.sun.castShadow === false);
+  const THREE_V = scene.cam.position.constructor;
+  const clickPlate = async (gid) => {
+    const yy = scene._plateY(gid) + (gid === 'terrain' ? scene.hY(0, -48) : 0.4);
+    const v = new THREE_V(0, yy, 48).project(scene.cam); // 4 m inside the south edge of the crop
+    const r = scene.c.getBoundingClientRect(); const cx = r.left + (v.x * 0.5 + 0.5) * r.width, cy = r.top + (-v.y * 0.5 + 0.5) * r.height;
+    scene.c.dispatchEvent(new w.PointerEvent('pointerdown', { clientX: cx, clientY: cy, bubbles: true }));
+    scene.c.dispatchEvent(new w.PointerEvent('pointerup', { clientX: cx, clientY: cy, bubbles: true }));
+    await sleep(30);
+  };
+  await clickPlate('composition');
+  log('click on the composition plate focuses it, others dim', ui.plateFocus === 'composition' && scene._plates.framework.mesh.material.opacity < 0.5 && scene._plates.composition.mesh.material.opacity === 1, ui.plateFocus);
+  await clickPlate('infrastructure');
+  log('click on the infrastructure plate moves the focus', ui.plateFocus === 'infrastructure', ui.plateFocus);
+  const camL = scene.cam.position.clone();
+  doc.querySelector('#platecard [data-a=open]').click(); await sleep(60);
+  log('Open in Plan: isolated orthographic layer, breadcrumb, legend', GP.view() === 'plan' && GP.isolation().group === 'infrastructure' && /Infrastructure/.test(doc.getElementById('crumbs').innerText) && !doc.getElementById('legend').hidden && /Infrastructure/.test(doc.getElementById('legend').innerText));
+  const sx = (() => { const r = GP.getObject('built.gravel-walks').geometry.coordinates[0]; return [(r[0][0] + r[1][0]) / 2, (r[0][1] + r[1][1]) / 2]; })();
+  const hitPath = picker.resolve(sx[0], sx[1], 20);
+  log('isolated layer: selection limited to that layer (path, not bed)', hitPath && GP.getObject(hitPath.id).type === 'path', JSON.stringify(hitPath));
+  GP.openLayer('composition'); await sleep(30);
+  GP.setOverlay('framework', 0.5);
+  const hp = picker.resolve(cen[0], cen[1], 20);
+  log('reference overlay (framework) does not steal the click', hp && GP._store.kindOf(hp.id) === 'placement', JSON.stringify(hp));
+  log('overlay opacity is applied', GP.isolation().overlays.framework === 0.5);
+  doc.querySelector('#crumbs [data-a=back]').click(); await sleep(900);
+  log('Back returns to the Layers overview with its camera', GP.view() === 'layers' && scene.cam.position.distanceTo(camL) < 1e-3 && !GP.isolation(), JSON.stringify({ view: GP.view(), d: scene.cam.position.distanceTo(camL), iso: GP.isolation() }));
+  doc.querySelector('#crumbs [data-a=back]').click(); await sleep(50);
+  w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); await sleep(1100);
+  log('Esc returns to World and restores the world camera', GP.view() === '3d' && scene.cam.position.distanceTo(camW) < 1e-3 && Math.abs(scene.cam.zoom - zW) < 1e-6, scene.cam.position.distanceTo(camW));
+  log('layer visibility restored after leaving the isolated plan', S.layerState['built.paths'].visible === true && S.layerState['analysis.slope'].visible === false);
+  GP.openLayer('analysis'); await sleep(30);
+  log('Analysis isolated: real slope shown, sun / moisture / pH marked no data', S.layerVisible('analysis.slope') && (doc.getElementById('legend').innerText.match(/no data/g) || []).length >= 3);
+  GP.closeLayer(); GP.setView('3d');
+
+  // ---- 09 · interface
+  log('view switch and design-state switch are separate controls', doc.querySelector('.views') && doc.querySelector('.modes') && doc.querySelector('.views').contains(doc.querySelector('[data-m]')) === false);
+  log('Reference status keeps “Schematic reconstruction · not a survey”', /Schematic reconstruction · not a survey/.test(doc.getElementById('note').innerText));
+  GP.select(null);
+  log('no inspector without a selection', doc.getElementById('inspector').hidden);
+  const vp = w.innerWidth * w.innerHeight; let ui2 = 0;
+  for (const s of ['.top .brand', '.views', '.right', '#layers', '#note']) { const e = doc.querySelector(s); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); ui2 += r.width * r.height; }
+  log('model keeps ≥ 80% of the screen by default', 1 - ui2 / vp >= 0.8, (100 * (1 - ui2 / vp)).toFixed(1) + '%');
+  w.dispatchEvent(new w.KeyboardEvent('keydown', { key: '3' })); await sleep(900);
+  log('key 3 opens Layers, Esc goes back', GP.view() === 'layers');
+  w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); await sleep(900);
+  GP.discardDraft(); try { w.localStorage.clear(); } catch {}
 
   // ---- rendering sanity
   scene.renderNow();

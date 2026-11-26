@@ -1,12 +1,12 @@
-# Generative Planting — Oudolf Garden Detroit, spatial model (Phase 01)
+# Generative Planting — Detroit · Spatial Laboratory (Phase 01.1)
 
 **Live:** https://kaiyankay.github.io/Generative-Planting/
 
-![Oudolf Garden Detroit, 3D diorama view](docs/screenshots/01-hero.png)
+![World view, reference design](docs/screenshots/phase-01-1/01-hero-reference.png)
 
-An AI-ready, explorable reconstruction of **Piet Oudolf's garden on Belle Isle, Detroit**: the 15 main beds (Block A, Matrix B and Grouping C), the two Triangles, the Rain Garden, the Bird Border and the Native Meadows, with walks, walls, terrain, the Carillon and existing trees. One canonical model drives a Rhino-like **Plan** and a botanical **3D** diorama; both share layers and selection.
+A computable spatial model of **Oudolf Garden Detroit** on Belle Isle — the 15 main beds (Block A, Matrix B, Grouping C), the two Triangles, the Rain Garden, the Bird Border and the Native Meadows, with walks, walls, terrain, the Carillon and existing trees. It is the **spatial input** for later AI-assisted planting research; no AI runs here.
 
-This is Phase 01 of a research project on generative planting design: the **spatial input** a later AI will read, query and propose changes to. No AI runs here.
+**One site, separate designs.** The site (terrain, paths, structures, existing trees) and the bed framework are shared. On top sit a frozen **Reference** (the schematic reconstruction of the original planting) and an editable **Canvas** (a working design: a copy of the reference or a blank planting). **Terrain** shows the ground alone. One model drives the 3D **World**, the orthographic **Plan** and the **Layers** overview; an edit to the working design changes the plan symbols, the 3D plants, the instance table, queries and exports together.
 
 ## What is real and what is drawn
 
@@ -24,17 +24,16 @@ Details: [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md).
 
 ## Using it
 
-- **3D / Plan** switch at the top (keys `1` / `2`). **Fit** button or `F` resets the view.
-- **Click** a bed to select it; click again inside to drill down to a patch, then to a single plant. `Backspace` selects the parent, `Esc` clears.
-- **Layers** (top left): eye = visibility, lock = not selectable. Groups switch their children.
-- The **inspector** shows provenance (status, sources), official counts, the bed's recipe, and conditions at the clicked point.
-- 3D: drag to orbit, right-drag to pan, wheel to zoom; close-ups switch to detailed plant forms.
-- **Exploded layers** (stack icon, or `E`, 3D only): Topography & built · Planting structure · Vegetation pulled apart, like a Rhino/Grasshopper layer stack.
-- For code and agents: `window.GP` (see [docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md)).
+- **World · Plan · Layers** at the top (keys `1` `2` `3`), **Fit** or `F`. **State: Reference · Canvas · Terrain** at the top right — a separate control: it changes what design you look at, not how.
+- **Layers** view: the model pulled apart into Terrain, Infrastructure, Site Vegetation, Planting Framework, Planting Composition and Plant Representation. Click a plate (or its label) to focus it, then **Open in Plan** (or `Enter`, or double-click) for that layer alone in plan, with its own legend, sources and properties; add other layers as **reference overlays** with an opacity slider. **Back** / `Esc` returns with the camera you had.
+- **Canvas**: the first time, a dialog shows what a blank design would clear (and what stays) before anything happens. *Hide planting* in the status line only hides the reference; it never deletes.
+- **Click** a bed, again for a patch, again for a plant; `Backspace` selects the parent, `Esc` clears. The inspector shows evidence status, sources and conditions at the clicked point.
+- The layer index (left) uses the same seven groups: eye = visible, lock = not selectable, arrow = open in Plan.
+- For code and agents: `window.GP` — exact spatial queries, validated atomic patches, export / import with instance state ([docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md)). `?dev=1` adds a small patch-test box to the inspector in Canvas.
 
-![Plan view](docs/screenshots/02-plan.png)
+![Plan](docs/screenshots/phase-01-1/02-plan-reference.png)
 
-![Exploded layers](docs/screenshots/10-exploded.png)
+![Layers overview](docs/screenshots/phase-01-1/03-layer-overview.png)
 
 ## Build and test
 
@@ -45,7 +44,8 @@ python3 -I tools/fetch_sources.py      # OSM + USGS NAIP + 3DEP into sources/raw
 python3 -I tools/build_rasters.py      # ortho + terrain in the local frame
 python3 -I tools/build_model.py        # data/detroit/model.json + instances.bin
 python3 -I tools/test_model.py         # model contract tests
-python3 -I tools/run_browser_tests.py  # headless Chrome, app served under /Generative-Planting/
+python3 -I tools/run_browser_tests.py  # headless Chrome, app served under /Generative-Planting/ (~6 min)
+python3 -I tools/screenshots.py         # docs/screenshots/phase-01-1/ (~40 min)
 python3 -m http.server 8780            # then open http://localhost:8780/
 ```
 
@@ -53,15 +53,15 @@ Python needs `shapely`, `numpy`, `Pillow`. The browser tests need Google Chrome.
 
 ## Documents
 
-- [docs/FINAL_HANDOFF.md](docs/FINAL_HANDOFF.md) — morning summary (Chinese)
-- [docs/QA_REPORT.md](docs/QA_REPORT.md) — tests, coverage, visual reviews, performance, deployment check
-- [docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md) — schema, coordinates, layers, API
+- [docs/PHASE_01_1_HANDOFF.md](docs/PHASE_01_1_HANDOFF.md) — Phase 01.1 handoff (Chinese)
+- [docs/PHASE_01_1_QA.md](docs/PHASE_01_1_QA.md) — tests, screenshots, performance, deployment check
+- [docs/PHASE_01_1_ACCURACY.md](docs/PHASE_01_1_ACCURACY.md) — per-bed evidence, drawing vs model, synonym vs substitution
+- [docs/PHASE_01_1_ART_DIRECTION.md](docs/PHASE_01_1_ART_DIRECTION.md) — visual language and the style test
+- [docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md) — schema, coordinates, scenarios, query and patch API
 - [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md) — sources, versions, licences, accuracy per region
 - [docs/SLIDES_TO_MODEL.md](docs/SLIDES_TO_MODEL.md) — research framing → model decisions
-- [docs/OVERNIGHT_STATUS.md](docs/OVERNIGHT_STATUS.md) — checkpoint
+- Phase 01: [docs/FINAL_HANDOFF.md](docs/FINAL_HANDOFF.md), [docs/QA_REPORT.md](docs/QA_REPORT.md), screenshots in `docs/screenshots/`
 
-## Credits and limits
+## Licences
 
-Map data © OpenStreetMap contributors (ODbL). Aerial imagery and elevation: USGS / USDA, The National Map (public domain). Planting design © Piet Oudolf; plant lists and plans © Oudolf Garden Detroit — cited as facts, not reproduced. three.js © three.js authors (MIT). Code in this repository: MIT.
-
-Limits: the arrangement inside beds is schematic; counts are published per style (March 2023), so per-bed numbers are estimates; no phenology, soil or light data; the triangles' species are not published.
+Code: MIT. Geometry derived from OpenStreetMap in `data/detroit/model.json`: **ODbL 1.0**, © OpenStreetMap contributors. USGS NAIP / 3DEP: US public domain. Oudolf drawings, plant-list PDFs, photographs and the course slides are not in this repository.

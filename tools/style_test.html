@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Style test — three treatments, same camera</title>
+<style>
+  body { margin: 0; background: #F5F1E8; font: 12px/1.35 -apple-system, system-ui, sans-serif; color: #33433A; }
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; }
+  figure { margin: 0; } canvas { width: 100%; display: block; border: 1px solid rgba(51,67,58,.18); }
+  figcaption { padding: 6px 2px; } figcaption b { font: 600 14px Georgia, serif; }
+  h1 { font: 600 16px Georgia, serif; margin: 12px 12px 0; }
+</style>
+<script type="importmap">{ "imports": { "three": "../vendor/three/three.module.js", "three/addons/": "../vendor/three/addons/" } }</script>
+</head>
+<body>
+<h1>Style test on the real model · Beds A1 / B1 / C1 area · same orthographic camera, 14 px/m (one-off comparison, not a theme switch)</h1>
+<div class="row">
+  <figure><canvas id="s1" width="900" height="760"></canvas><figcaption><b>1 · Pure line</b> — every symbol drawn as an outline in its own colour.</figcaption></figure>
+  <figure><canvas id="s2" width="900" height="760"></canvas><figcaption><b>2 · Line + low-saturation illustration</b> — the production painter (adopted).</figcaption></figure>
+  <figure><canvas id="s3" width="900" height="760"></canvas><figcaption><b>3 · Light picture-book</b> — production painter + paper grain + soft colour bleed.</figcaption></figure>
+</div>
+<script type="module">
+import { ModelStore } from '../src/model.js';
+import { ORDER, paintGroup } from '../src/paint.js';
+import { TOK } from '../src/style.js';
+const s = await ModelStore.load('../data/detroit/');
+const view = { cx: -38, cy: 2, scale: 14 };
+function draw(id, variant) {
+  const cv = document.getElementById(id); const ctx = cv.getContext('2d'); const W = cv.width, H = cv.height;
+  const T = (x, y) => [W / 2 + (x - view.cx) * view.scale, H / 2 - (y - view.cy) * view.scale];
+  ctx.fillStyle = TOK.paper; ctx.fillRect(0, 0, W, H);
+  if (variant === 1) { const f = ctx.fill.bind(ctx); ctx.fill = function () { this.save(); this.strokeStyle = this.fillStyle; this.lineWidth = 0.7; this.stroke(); this.restore(); }; ctx._f = f; }
+  const vb = [view.cx - W / 2 / view.scale, view.cy - H / 2 / view.scale, view.cx + W / 2 / view.scale, view.cy + H / 2 / view.scale];
+  for (const [g, ph] of ORDER) paintGroup(ctx, s, T, g, ph, { scale: view.scale, vb });
+  if (variant === 3) {
+    const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; tmp.getContext('2d').drawImage(cv, 0, 0);
+    ctx.globalAlpha = 0.18; for (const [dx, dy] of [[1.5, 0.5], [-1, 1.2], [0.6, -1.4]]) ctx.drawImage(tmp, dx, dy); ctx.globalAlpha = 1;
+    let seed = 3; const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 26000; i++) { ctx.fillStyle = r() < 0.5 ? 'rgba(90,80,60,.07)' : 'rgba(255,255,255,.12)'; ctx.fillRect(r() * W, r() * H, 1.4, 1.4); }
+  }
+}
+draw('s1', 1); draw('s2', 2); draw('s3', 3);
+document.documentElement.dataset.ready = '1';
+</script>
+</body>
+</html>

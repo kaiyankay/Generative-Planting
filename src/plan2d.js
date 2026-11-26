@@ -65,7 +65,7 @@ export class Plan2D {
   _bind() {
     const c = this.c;
     let drag = null;
-    c.addEventListener('pointerdown', (e) => { c.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, cx: this.view.cx, cy: this.view.cy, moved: false }; });
+    c.addEventListener('pointerdown', (e) => { try { c.setPointerCapture(e.pointerId); } catch { /* synthetic / automation events have no active pointer */ } drag = { x: e.clientX, y: e.clientY, cx: this.view.cx, cy: this.view.cy, moved: false }; });
     c.addEventListener('pointermove', (e) => {
       if (drag) {
         const dx = e.clientX - drag.x, dy = e.clientY - drag.y;

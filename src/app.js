@@ -36,7 +36,7 @@ async function main() {
     st.view = v; app.dataset.view = v;
     document.querySelectorAll('.views button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
     plan.setActive(v === 'plan');
-    if (scene) { scene.setActive(v !== 'plan'); scene.setLayersView(v === 'layers'); }
+    if (scene) { scene.setActive(v !== 'plan'); if (v !== 'plan') scene.setLayersView(v === 'layers'); } // in Plan the 3D view keeps its pose for the way back
     if (v === 'plan' && !plan._fitted) { plan.fit(); plan._fitted = true; }
     if (v !== 'layers') { st.plateFocus = null; $('#platecard').hidden = true; }
     else renderPlateLabels();
@@ -64,11 +64,11 @@ async function main() {
   function renderStatus() {
     const n = $('#note'); const d = store.draftInfo();
     if (st.mode === 'terrain') {
-      n.innerHTML = `<b>Terrain</b> · USGS 3DEP 1 m · contours every 0.25 m are interpolated, not a finer survey · 3D relief ×${scene ? scene.VEX : 1.6} <button class="lnk" data-a="vex">${scene && scene.VEX === 1 ? 'Show ×1.6' : 'True scale'}</button>`;
+      n.innerHTML = `<b>Terrain</b> · USGS 3DEP 1 m<span class="long"> · contours every 0.25 m are interpolated, not a finer survey</span> · 3D relief ×${scene ? scene.VEX : 1.6} <button class="lnk" data-a="vex">${scene && scene.VEX === 1 ? 'Show ×1.6' : 'True scale'}</button>`;
     } else if (st.mode === 'canvas' && d) {
       n.innerHTML = `<b>Canvas</b> · working design (${d.from === 'blank' ? 'blank planting' : 'copy of reference'}) · ${d.changes} change${d.changes === 1 ? '' : 's'} · ${d.saved ? 'kept in this browser' : 'not saved'} <button class="lnk" data-a="reset">Reset</button><button class="lnk" data-a="export">Export</button><button class="lnk" data-a="new">New…</button>`;
     } else {
-      n.innerHTML = `<b>Reference</b> · Schematic reconstruction · not a survey · bed outlines as built (OSM), planting inside beds generated from Oudolf's legends <button class="lnk" data-a="hide" aria-pressed="${store.view.hidePlanting}">${store.view.hidePlanting ? 'Show planting' : 'Hide planting'}</button>`;
+      n.innerHTML = `<b>Reference</b> · Schematic reconstruction · not a survey<span class="long"> · bed outlines as built (OSM), planting inside beds generated from Oudolf's legends</span> <button class="lnk" data-a="hide" aria-pressed="${store.view.hidePlanting}">${store.view.hidePlanting ? 'Show planting' : 'Hide planting'}</button>`;
     }
     n.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => statusAction(b.dataset.a)));
   }
@@ -173,7 +173,7 @@ async function main() {
   }
   function openIso(gid, { overlays = {}, fromUrl = false } = {}) {
     if (!st.layersSnapshot) st.layersSnapshot = JSON.parse(JSON.stringify(store.layerState));
-    st.isoFrom = fromUrl ? (st.isoFrom || 'layers') : st.view;
+    if (!st.iso) st.isoFrom = fromUrl ? (st.isoFrom || 'layers') : st.view; // switching layer inside the isolated plan keeps where Back returns to
     st.iso = { group: gid, overlays: { ...overlays } };
     if (!groupVisible(store, gid)) setGroup(store, gid, { visible: true });
     if (gid === 'analysis' && !store.layerVisible('analysis.slope') && !store.layerVisible('analysis.pathdist')) store.setLayer('analysis.slope', { visible: true });
@@ -221,7 +221,8 @@ async function main() {
     const show = st.legendOpen || st.iso || st.mode === 'terrain';
     if (!show || st.view === 'layers') { legendEl.hidden = true; return; }
     const gid = st.iso ? st.iso.group : st.mode === 'terrain' ? 'terrain' : null;
-    legendEl.hidden = false;
+    const wasHidden = legendEl.hidden; legendEl.hidden = false;
+    if (wasHidden && window.innerWidth < 760) legendEl.classList.add('min'); // phones: the model first, legend on demand
     legendEl.innerHTML = gid ? groupLegend(gid) : worldLegend();
     wireLegend();
   }
@@ -287,7 +288,8 @@ async function main() {
       '<p class="muted small">Schematic reconstruction · not a survey.</p>';
   }
   function wireLegend() {
-    legendEl.querySelector('[data-a=close]')?.addEventListener('click', () => { if (st.iso) { legendEl.classList.toggle('min'); return; } st.legendOpen = false; renderLegend(); });
+    legendEl.querySelector('[data-a=close]')?.addEventListener('click', () => { if (st.iso || st.mode === 'terrain') { legendEl.classList.toggle('min'); return; } st.legendOpen = false; renderLegend(); });
+    legendEl.querySelector('.lg-head')?.addEventListener('click', (e) => { if (legendEl.classList.contains('min') && !e.target.closest('button')) legendEl.classList.remove('min'); });
     legendEl.querySelector('[data-tout]')?.addEventListener('change', (e) => { store.setViewState({ terrainOutline: e.target.checked }); });
     legendEl.querySelectorAll('.eye').forEach((b) => b.addEventListener('click', () => { store.setLayer(b.dataset.l, { visible: !store.layerState[b.dataset.l].visible, external: true }); renderLegend(); }));
     legendEl.querySelectorAll('input[data-ov]').forEach((i) => i.addEventListener('change', () => { const g = i.dataset.ov; const r = legendEl.querySelector(`input[data-op="${g}"]`); st.iso.overlays[g] = i.checked ? r.value / 100 : 0; r.disabled = !i.checked; plan.setIsolation(st.iso); syncUrl(); }));
@@ -416,7 +418,7 @@ async function main() {
 function demoDraft(store) {
   store.createDraft({ from: 'reference', activate: false });
   const g = (store.baseline.placements.filter((p) => p.bedId === 'bed.B1' && p.role === 'group' && p.speciesIds.length === 1).sort((a, b) => b.areaM2 - a.areaM2))[0];
-  if (g) store.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: ['sp.echinacea-pallida'] }]);
+  if (g) { const r = store.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: ['sp.achillea-moonshine'] }]); if (!r.ok) console.warn('demo draft refused', r.errors); }
 }
 
 // ======================================================================= layer index (seven groups)
@@ -495,7 +497,7 @@ function renderInspector(store, sel, ctx) {
       ['Species', spName(sp)], ['Plant type', esc(sp.plantType)], ['Form proxy', `${esc(sp.formProxy)} <span class="unk">(inferred)</span>`],
       ['Display height', `${fmt(sp.nominalHeightM * o.scale, 2)} m <span class="unk">nominal, not measured</span>`],
       ['Position', `<span class="mono">${o.position[0]}, ${o.position[1]}</span>`], ['Elevation', `${fmt(o.elevation, 2)} m`], ['Position source', esc(o.positionSource)],
-    ]) + `<p class="note">${esc(o.note)}</p>` + (sp.aliases && sp.aliases.length ? `<p class="note">Also listed as: ${sp.aliases.map(esc).join('; ')}</p>` : ''));
+    ]) + `<p class="note">${esc(o.note)}</p>` + aliasNote(sp));
     if (pl) body += sec('Placement', kv([['Placement', `<span class="mono">${esc(pl.id)}</span>`], ['Role in recipe', esc(ROLE_LABEL[pl.role] || pl.role)], ['Legend code', esc(pl.legendCode || '—')], ['Recipe', esc(pl.recipeId || '—')]]));
   } else if (kind === 'placement') {
     const b = o.bedId ? store.getObject(o.bedId) : null;
@@ -571,6 +573,13 @@ function devAction(store, o, a, el) {
   const out = el.querySelector('[data-out]');
   const r = a === 'replace' ? store.applyPatch([{ op: 'replaceSpecies', target: o.id, speciesIds: [el.querySelector('[data-sel]').value] }]) : store.applyPatch([{ op: 'remove', target: o.id }]);
   if (out) out.textContent = r.ok ? `ok · ${JSON.stringify(r.changes)}` : r.errors.map((e) => e.message).join('; ');
+}
+// a different cultivar in a later list is a possible substitution / version change, never silently the same plant
+function aliasNote(sp) {
+  if (!sp.aliases || !sp.aliases.length) return '';
+  const syn = sp.aliases.filter((a) => !/\(2026 list\)/.test(a)), sub = sp.aliases.filter((a) => /\(2026 list\)/.test(a));
+  return (syn.length ? `<p class="note">Same plant, other spelling: ${syn.map(esc).join('; ')}</p>` : '') +
+    (sub.length ? `<p class="note">The Feb 2026 plant list has <b>${sub.map((a) => esc(a.replace(' (2026 list)', ''))).join('; ')}</b> instead — a different cultivar (possible substitution or version change), not a synonym. The model keeps the 2019/2020 plan name.</p>` : '');
 }
 function roleOrder(r) { return ['matrix', 'block', 'group', 'emergent', 'individual', 'scatter', 'bulb-drift', 'bulb-cluster', 'bulb-scatter', 'bulb-line'].indexOf(r) + 1 || 99; }
 function sec(h, inner) { return `<div class="sec"><h4>${esc(h)}</h4>${inner}</div>`; }
