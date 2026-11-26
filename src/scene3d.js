@@ -64,21 +64,44 @@ export class Scene3D {
     this.controls.minZoom = 0.25; this.controls.maxZoom = 40;
     this.controls.maxPolarAngle = Math.PI * 0.47; this.controls.minPolarAngle = 0.05;
     this.controls.screenSpacePanning = true;
+    // one gesture vocabulary with the plan: left-drag pans, wheel zooms, click selects; right-drag rotates (Rhino-like)
+    this.controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
+    this.controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
     this.controls.addEventListener('change', () => { this._needsLabels = true; });
     this.home();
   }
+  // canonical axonometric: orthographic, camera 20° east of south, 35° above the horizon (north stays near the top, like the plan).
+  // The default entry view and the target of Fit; the same angle every time a site opens.
+  static AXO = { az: 20, el: 35 };
+  axoDir() { const a = (Scene3D.AXO.az * Math.PI) / 180, e = (Scene3D.AXO.el * Math.PI) / 180; return new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)); }
   home() {
     if (this.layersView) { this._layersCamera(true); return; }
-    // whole garden as one miniature: beds, Rain Garden, both meadows, Carillon (phones: the beds)
     const narrow = this.w && this.w < 760;
-    const t = narrow ? this.W(0, -12) : this.W(8, -28); t.y = 1.5;
+    const f = this.frame || (narrow ? { cx: 0, cy: -12, w: 125 } : { cx: 4, cy: -20, w: 200 });
+    const t = this.W(f.cx, f.cy); t.y = 1.5;
+    this._tweenGen = (this._tweenGen || 0) + 1;
     this.controls.target.copy(t);
-    const dir = new THREE.Vector3(0.14, 0.74, 0.66).normalize();
-    this.cam.position.copy(t).addScaledVector(dir, 400);
+    this.cam.position.copy(t).addScaledVector(this.axoDir(), 400);
     this.cam.up.set(0, 1, 0);
-    this._frameWidth = narrow ? 125 : 215; this.cam.zoom = 1;
+    this._frameWidth = f.w; this.cam.zoom = 1;
     this.resize();
     this.controls.update();
+  }
+  isHome() { return this.cam.position.clone().sub(this.controls.target).normalize().distanceTo(this.axoDir()) < 1e-3; }
+  // view centre in site metres + pixels per metre: lets Axo and Plan hand the same place to each other
+  viewCenter() { const t = this.controls.target; return { x: t.x, y: -t.z, ppm: this._pxPerM() }; }
+  setViewCenter(x, y, ppm) {
+    const t = this.W(x, y); t.y = this.controls.target.y;
+    const off = this.cam.position.clone().sub(this.controls.target);
+    this.controls.target.copy(t); this.cam.position.copy(t).add(off);
+    if (ppm) this.cam.zoom = Math.max(this.controls.minZoom, Math.min(this.controls.maxZoom, (ppm * (this.cam.top - this.cam.bottom)) / this.h));
+    this.cam.updateProjectionMatrix(); this.controls.update(); this._dirty = true; this._needsLabels = true; this._lodDone = false; this._lastMove = performance.now();
+  }
+  // screen angle of true north (radians, 0 = up) for the north arrow
+  northAngle() {
+    this.cam.updateMatrixWorld();
+    const a = this.controls.target.clone().project(this.cam), b = this.controls.target.clone().add(new THREE.Vector3(0, 0, -10)).project(this.cam);
+    return Math.atan2((b.x - a.x) * this.w, (b.y - a.y) * this.h);
   }
   resize() {
     const r = this.c.getBoundingClientRect();
@@ -614,7 +637,13 @@ export class Scene3D {
     const T1 = new THREE.Vector3((CROP.x0 + CROP.x1) / 2 + (narrow ? 34 : 6), PLATE_GAP * 2.6, -(CROP.y0 + CROP.y1) / 2);
     const P1 = T1.clone().addScaledVector(new THREE.Vector3(0.34, 0.3, 0.89).normalize(), 400);
     const needH = PLATE_GAP * 5 * 0.95 + 60, needW = narrow ? 250 : 175;
-    const Z1 = Math.min((this.cam.top - this.cam.bottom) / needH, (this.cam.right - this.cam.left) / needW) * 0.98;
+    const lp = document.getElementById('layers'); const panelPx = lp && !lp.hidden && !narrow ? lp.getBoundingClientRect().right + 12 : 0;
+    const Z1 = Math.min((this.cam.top - this.cam.bottom) / needH, ((this.cam.right - this.cam.left) * (1 - panelPx / Math.max(1, this.w))) / needW) * 0.98;
+    if (panelPx) { // keep the stack clear of the docked layers panel
+      const ppm = (this.h / (this.cam.top - this.cam.bottom)) * Z1;
+      const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), P1.clone().sub(T1)).normalize(); // = screen right
+      T1.addScaledVector(right, -(panelPx / 2) / ppm); P1.addScaledVector(right, -(panelPx / 2) / ppm);
+    }
     if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) { this._tweenGen = (this._tweenGen || 0) + 1; this.controls.target.copy(T1); this.cam.position.copy(P1); this.cam.zoom = Z1; this.cam.updateProjectionMatrix(); this.cam.lookAt(T1); this.controls.update(); this._needsLabels = true; this._dirty = true; return; }
     this._tween(T1, Z1, null, P1);
   }

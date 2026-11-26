@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embedding check — Site setup component</title>
+<style>
+  body { margin: 0; background: #E9E5DA; font: 13px/1.4 -apple-system, system-ui, sans-serif; color: #33433A; }
+  .wrap { display: grid; grid-template-columns: 1fr 300px; gap: 14px; padding: 14px; height: 100vh; box-sizing: border-box; }
+  iframe { width: 100%; height: 100%; border: 1px solid rgba(51,67,58,.3); border-radius: 10px; background: #F5F1E8; }
+  aside { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  h1 { font: 600 15px Georgia, serif; margin: 0; }
+  p { margin: 0; color: #506B5F; }
+  button { font: inherit; border: 1px solid rgba(51,67,58,.3); background: #FAF8F2; border-radius: 7px; padding: 5px 9px; cursor: pointer; text-align: left; }
+  pre { flex: 1; overflow: auto; margin: 0; background: #FAF8F2; border: 1px solid rgba(51,67,58,.2); border-radius: 8px; padding: 8px; font-size: 11px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <iframe id="f" src="../index.html?embed=1" title="Site setup component"></iframe>
+  <aside>
+    <h1>Embedding check</h1>
+    <p>QA fixture, not a product page. The component runs in an iframe with <code>?embed=1</code>; this host talks to it only through <code>postMessage</code>.</p>
+    <button data-m="viewState">viewState()</button>
+    <button data-m="setView" data-a='["plan"]'>setView("plan")</button>
+    <button data-m="solo" data-a='["composition", {"overlays": {"framework": 0.5}}]'>solo("composition", framework trace)</button>
+    <button data-m="exitSolo">exitSolo()</button>
+    <button data-m="createDraft" data-a='[{"from": "blank"}]'>createDraft({from: "blank"})</button>
+    <button data-m="setDesign" data-a='["reference"]'>setDesign("reference")</button>
+    <button data-m="getPlantingContext" data-a='["bed.B1"]'>getPlantingContext("bed.B1")</button>
+    <button data-m="exportModel">exportModel() — not bridged, expect an error</button>
+    <pre id="log"></pre>
+  </aside>
+</div>
+<script>
+const f = document.getElementById('f'), log = document.getElementById('log');
+const out = (o) => { log.textContent = JSON.stringify(o, null, 1).slice(0, 1400) + '\n\n' + log.textContent; window.__log = (window.__log || []).concat([o]); };
+let id = 0; const pending = new Map();
+window.call = (method, args = []) => new Promise((res) => { const k = ++id; pending.set(k, res); f.contentWindow.postMessage({ gp: 'call', id: k, method, args }, '*'); });
+window.addEventListener('message', (e) => {
+  if (e.source !== f.contentWindow || !e.data || !e.data.gp) return;
+  if (e.data.gp === 'event') out({ event: e.data.type, detail: e.data.detail });
+  if (e.data.gp === 'result') { out({ result: e.data }); const r = pending.get(e.data.id); if (r) { pending.delete(e.data.id); r(e.data); } }
+});
+document.querySelectorAll('button').forEach((b) => b.onclick = () => call(b.dataset.m, b.dataset.a ? JSON.parse(b.dataset.a) : []));
+</script>
+</body>
+</html>

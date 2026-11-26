@@ -1,0 +1,8 @@
+{
+  "schema": "generative-planting/site-presets",
+  "version": "0.1",
+  "notes": "Site presets available to Site setup. Each entry points at a data folder with model.json, instances.bin, terrain.bin and case.json in the same schema. Detroit is the first; more sites are added here, not in the code.",
+  "presets": [
+    { "id": "detroit", "name": "Oudolf Garden Detroit", "location": "Belle Isle, Detroit, Michigan", "base": "data/detroit/", "designer": "Piet Oudolf", "status": "available" }
+  ]
+}

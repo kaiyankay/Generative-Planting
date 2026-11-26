@@ -19,6 +19,7 @@
 <div id="frames">
   <iframe id="desk" width="1440" height="900" style="transform:scale(.4);transform-origin:0 0;margin-right:-864px;margin-bottom:-540px"></iframe>
   <iframe id="phone" width="390" height="844" style="transform:scale(.4);transform-origin:0 0;margin-right:-234px;margin-bottom:-506px"></iframe>
+  <iframe id="embed" width="960" height="620" style="transform:scale(.4);transform-origin:0 0;margin-right:-576px;margin-bottom:-372px"></iframe>
 </div>
 <script type="module">
 const out = document.getElementById('out');
@@ -45,6 +46,8 @@ try {
   const loadMs = performance.now() - t0;
   log('app loads and exposes window.GP', !!GP, 'no GP');
   log('loaded under base path ' + base, w.location.pathname.startsWith(base));
+  log('UX · enters on the canonical axonometric (default view, home pose)', GP.viewState().view === 'axo' && GP.viewState().axoHome === true, JSON.stringify(GP.viewState()));
+  log('UX · site comes from a preset, named in the bar (Detroit is one preset)', GP.site().id === 'detroit' && w.document.getElementById('siteName').textContent === GP.site().name && GP.sites().length >= 1);
   const S = GP._store, plan = GP._plan, scene = GP._scene;
 
   // ---- data
@@ -119,10 +122,10 @@ try {
 
   // ---- 3D camera reset
   GP.setView('3d'); await sleep(100);
-  const z0 = scene.cam.zoom, p0 = scene.cam.position.clone();
+  scene.home(); const z0 = scene.cam.zoom, p0 = scene.cam.position.clone(); // canonical axo pose (Axo inherits Plan's place, so the pose before home() is not the reference)
   scene.cam.zoom = 3; scene.cam.position.x += 30; scene.cam.updateProjectionMatrix();
   scene.home();
-  log('3D home() resets the camera', Math.abs(scene.cam.zoom - z0) < 1e-6 && scene.cam.position.distanceTo(p0) < 1e-3);
+  log('3D home() resets the camera', Math.abs(scene.cam.zoom - z0) < 1e-6 && scene.cam.position.distanceTo(p0) < 1e-3 && scene.isHome());
 
   // ---- exploded layer view is reversible and does not touch data
   const camBefore = scene.cam.position.clone();
@@ -164,10 +167,10 @@ try {
   log('blank-design preview lists what will be cleared before it runs', pv.clears.units.length === 15 && pv.clears.placements > 1000 && pv.keeps.existingTrees && pv.keeps.bedFramework, JSON.stringify(pv.clears).slice(0, 120));
   const liveRef = S.liveCount, siteTreesRef = (() => { let n = 0; for (let i = 0; i < S.inst.n; i++) if (S.inst.alive[i] && S.inst.pl[i] < 0) n++; return n; })();
   const rgRef = S.placementsByBed.get('bed.RG').length;
-  doc.querySelector('.modes [data-m=canvas]').click();
+  doc.getElementById('btnWorking').click();
   const dlg = doc.getElementById('draftdlg');
-  log('Canvas without a draft opens the scope dialog (nothing created yet)', !dlg.hidden && !GP.draftInfo() && /Clears/.test(dlg.innerText));
-  dlg.querySelector('[data-a=go]').click(); await sleep(50);
+  log('New design without a draft opens the start dialog (nothing created yet)', !dlg.hidden && !GP.draftInfo() && dlg.querySelectorAll('.choice').length === 2 && /Empty the 15 main beds/.test(dlg.innerText));
+  dlg.querySelector('[data-a=blank]').click(); await sleep(50);
   log('Start design (blank) -> Canvas on a working scenario', GP.mode() === 'canvas' && GP.scenario() === 'working' && GP.draftInfo().from === 'blank');
   const b1ctx = GP.getPlantingContext('bed.B1');
   log('blank canvas: B1 has no active placements or proxies', b1ctx.placementCount === 0 && b1ctx.instanceCount === 0, JSON.stringify(b1ctx.placementsByRole));
@@ -293,7 +296,8 @@ try {
   // ---- 08 · layer navigation: real clicks on the exploded plates
   GP.setView('3d'); await sleep(50);
   const camW = scene.cam.position.clone(), zW = scene.cam.zoom;
-  doc.querySelector('.views [data-v=layers]').click(); await sleep(1200);
+  log('UX · layers panel hidden by default, exploded view off by default', doc.getElementById('layers').hidden && !GP.viewState().panel && GP.view() !== 'layers');
+  doc.getElementById('btnLayers').click(); doc.getElementById('btnExplode').click(); await sleep(1200);
   log('Layers view: six physical plates, analysis as plan-only entry', Object.keys(scene._plates).length === 6 && doc.querySelectorAll('.plabel').length === 7);
   log('Layers view: no cross-layer shadows', scene.sun.castShadow === false);
   const THREE_V = scene.cam.position.constructor;
@@ -310,8 +314,8 @@ try {
   await clickPlate('infrastructure');
   log('click on the infrastructure plate moves the focus', ui.plateFocus === 'infrastructure', ui.plateFocus);
   const camL = scene.cam.position.clone();
-  doc.querySelector('#platecard [data-a=open]').click(); await sleep(60);
-  log('Open in Plan: isolated orthographic layer, breadcrumb, legend', GP.view() === 'plan' && GP.isolation().group === 'infrastructure' && /Infrastructure/.test(doc.getElementById('crumbs').innerText) && !doc.getElementById('legend').hidden && /Infrastructure/.test(doc.getElementById('legend').innerText));
+  doc.querySelector('.plabel.on [data-a=solo]').click(); await sleep(60);
+  log('Open in Plan: isolated orthographic layer, marked in the panel, with its key', GP.view() === 'plan' && GP.isolation().group === 'infrastructure' && !!doc.querySelector('.lrow.solo[data-group=infrastructure]') && !doc.getElementById('legend').hidden && /Infrastructure/.test(doc.getElementById('legend').innerText));
   const sx = (() => { const r = GP.getObject('built.gravel-walks').geometry.coordinates[0]; return [(r[0][0] + r[1][0]) / 2, (r[0][1] + r[1][1]) / 2]; })();
   const hitPath = picker.resolve(sx[0], sx[1], 20);
   log('isolated layer: selection limited to that layer (path, not bed)', hitPath && GP.getObject(hitPath.id).type === 'path', JSON.stringify(hitPath));
@@ -320,9 +324,10 @@ try {
   const hp = picker.resolve(cen[0], cen[1], 20);
   log('reference overlay (framework) does not steal the click', hp && GP._store.kindOf(hp.id) === 'placement', JSON.stringify(hp));
   log('overlay opacity is applied', GP.isolation().overlays.framework === 0.5);
-  doc.querySelector('#crumbs [data-a=back]').click(); await sleep(900);
+  log('UX · in solo the other layers become trace overlays (one place for overlay control)', doc.querySelectorAll('#ltree [data-ov]').length === 6 && doc.querySelectorAll('#ltree .lrow.opac').length === 1);
+  doc.querySelector('.lrow.solo .solo').click(); await sleep(900);
   log('Back returns to the Layers overview with its camera', GP.view() === 'layers' && scene.cam.position.distanceTo(camL) < 1e-3 && !GP.isolation(), JSON.stringify({ view: GP.view(), d: scene.cam.position.distanceTo(camL), iso: GP.isolation() }));
-  doc.querySelector('#crumbs [data-a=back]').click(); await sleep(50);
+  w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); await sleep(50);
   w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); await sleep(1100);
   log('Esc returns to World and restores the world camera', GP.view() === '3d' && scene.cam.position.distanceTo(camW) < 1e-3 && Math.abs(scene.cam.zoom - zW) < 1e-6, scene.cam.position.distanceTo(camW));
   log('layer visibility restored after leaving the isolated plan', S.layerState['built.paths'].visible === true && S.layerState['analysis.slope'].visible === false);
@@ -331,17 +336,38 @@ try {
   GP.closeLayer(); GP.setView('3d');
 
   // ---- 09 · interface
-  log('view switch and design-state switch are separate controls', doc.querySelector('.views') && doc.querySelector('.modes') && doc.querySelector('.views').contains(doc.querySelector('[data-m]')) === false);
-  log('Reference status keeps “Schematic reconstruction · not a survey”', /Schematic reconstruction · not a survey/.test(doc.getElementById('note').innerText));
+  log('view switch and design switch are separate controls; Terrain is a view, not a design', !!doc.querySelector('.toolbar .obs') && !!doc.querySelector('.bar .design') && !doc.querySelector('.toolbar').contains(doc.querySelector('[data-d]')) && !/Terrain/.test(doc.querySelector('.bar .design').innerText) && !!doc.querySelector('.filters [data-f=terrain]'));
+  log('Reference status keeps “schematic reconstruction, not a survey”', /schematic reconstruction, not a survey/i.test(doc.getElementById('note').innerText));
   GP.select(null);
   log('no inspector without a selection', doc.getElementById('inspector').hidden);
+  GP.setPanel(false); // default state: panel closed
   const vp = w.innerWidth * w.innerHeight; let ui2 = 0;
-  for (const s of ['.top .brand', '.views', '.right', '#layers', '#note']) { const e = doc.querySelector(s); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); ui2 += r.width * r.height; }
+  for (const s of ['.bar .where', '.bar .design', '.toolbar', '#layers', '#note']) { const e = doc.querySelector(s); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); ui2 += r.width * r.height; }
   log('model keeps ≥ 80% of the screen by default', 1 - ui2 / vp >= 0.8, (100 * (1 - ui2 / vp)).toFixed(1) + '%');
   w.dispatchEvent(new w.KeyboardEvent('keydown', { key: '3' })); await sleep(900);
   log('key 3 opens Layers, Esc goes back', GP.view() === 'layers');
   w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); await sleep(900);
-  GP.discardDraft(); try { w.localStorage.clear(); } catch {}
+  // ---- UX: one canvas, design vs view, quiet defaults
+  GP.discardDraft(); GP.setView('3d'); scene.home(); await sleep(30);
+  const vc = scene.viewCenter(); GP.setView('plan'); await sleep(30);
+  log('UX · Axo → Plan keeps the same place and scale (one canvas)', Math.abs(plan.view.cx - vc.x) < 0.01 && Math.abs(plan.view.cy - vc.y) < 0.01 && Math.abs(plan.view.scale - vc.ppm) / vc.ppm < 0.01, JSON.stringify([plan.view, vc]));
+  plan.view.cx += 12; plan.view.cy -= 6; plan.view.scale *= 2; const pvw = { ...plan.view };
+  GP.setView('3d'); await sleep(30); const vc2 = scene.viewCenter();
+  log('UX · Plan → Axo keeps the same place and scale', Math.abs(vc2.x - pvw.cx) < 0.05 && Math.abs(vc2.y - pvw.cy) < 0.05 && Math.abs(vc2.ppm - pvw.scale) / pvw.scale < 0.01, JSON.stringify([pvw, vc2]));
+  GP.setViewFilter('terrain');
+  log('UX · Terrain filter leaves the design alone', GP.design() === 'reference' && GP.viewFilter() === 'terrain' && GP.mode() === 'terrain');
+  GP.createDraft({ from: 'reference' });
+  log('UX · switching design leaves the view filter alone', GP.design() === 'working' && GP.viewFilter() === 'terrain');
+  GP.setViewFilter('all'); GP.discardDraft();
+  log('UX · reference is kept when a working design is deleted', GP.design() === 'reference' && JSON.stringify(S.refInst.fingerprint()) === refFP);
+  GP.select('bed.B1'); await sleep(20);
+  const ins = doc.getElementById('inspector');
+  log('UX · selection card is compact by default (no ids, no record)', ins.classList.contains('compact') && getComputedStyle(ins.querySelector('.ins-body')).display === 'none' && !/bed\.B1|pl\.|OSM/.test(ins.innerText.replace(/Bed B1/g, '')), ins.innerText.slice(0, 120));
+  ins.querySelector('[data-act=more]').click(); await sleep(20);
+  log('UX · Details opens the full record with data & sources', !doc.getElementById('inspector').classList.contains('compact') && /Data & sources/.test(doc.getElementById('inspector').innerText));
+  doc.getElementById('inspector').querySelector('[data-act=more]').click(); GP.select(null);
+  log('UX · coordinates only in Plan, compass only in Axo', doc.getElementById('coords').hidden === true && doc.getElementById('compass').hidden === false);
+  try { w.localStorage.clear(); } catch {}
 
   // ---- rendering sanity
   scene.renderNow();
@@ -355,9 +381,19 @@ try {
   log('phone: app loads', !!P.GP);
   const d = P.w.document.documentElement;
   log('phone: no horizontal overflow (390 px)', d.scrollWidth <= P.w.innerWidth + 1, d.scrollWidth + ' > ' + P.w.innerWidth);
-  const lay = P.w.document.getElementById('layers').getBoundingClientRect();
+  P.GP.setPanel(true); await sleep(50);
+  const lay = P.w.document.getElementById('layers').getBoundingClientRect(); // measured open (Phase 01.1 measured it collapsed)
   log('phone: layer panel fits the width', lay.right <= P.w.innerWidth && lay.left >= 0, JSON.stringify(lay));
   log('no runtime errors (phone)', P.errors.length === 0, P.errors.slice(0, 3).join(' | '));
+
+  // ---- embedded: product chrome hidden, the parent drives the component only through postMessage
+  const E = await boot(document.getElementById('embed'), base + 'index.html?embed=1');
+  const callE = (method, args = []) => new Promise((res) => { const id = Math.random(); const h = (e) => { if (e.data && e.data.gp === 'result' && e.data.id === id) { removeEventListener('message', h); res(e.data); } }; addEventListener('message', h); E.w.postMessage({ gp: 'call', id, method, args }, '*'); });
+  const where = E.w.document.querySelector('.where .product');
+  log('embed: product name hidden, site chip and design selector kept', E.w.getComputedStyle(where).display === 'none' && E.w.getComputedStyle(E.w.document.getElementById('btnSite')).display !== 'none' && !!E.w.document.querySelector('.design .seg'));
+  const r1 = await callE('viewState'), r2 = await callE('solo', ['framework']), r3 = await callE('getPlantingContext', ['bed.A1']), r4 = await callE('exportModel');
+  log('embed: postMessage bridge works (read, view, design data) and refuses unlisted methods', r1.ok && r1.value.view === 'axo' && r2.ok && E.GP.isolation().group === 'framework' && r3.ok && r3.value.placementCount > 0 && !r4.ok, JSON.stringify([r1, r2.ok, r4.error]));
+  log('no runtime errors (embed)', E.errors.length === 0, E.errors.slice(0, 3).join(' | '));
 
   const ok = res.filter((r) => r.ok).length;
   document.getElementById('summary').textContent = `${ok}/${res.length} passed · app load ${Math.round(loadMs)} ms`;

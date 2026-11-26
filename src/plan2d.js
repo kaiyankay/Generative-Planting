@@ -11,7 +11,7 @@ export class Plan2D {
     this.c = canvas; this.ctx = canvas.getContext('2d'); this.s = store; this.picker = picker;
     this.view = { cx: 0, cy: -2, scale: 8 }; // px per metre (CSS px)
     this.iso = null; // { group, overlays: { gid: opacity } }
-    this.pad = { l: 40, r: 40, t: 70, b: 50 };
+    this.pad = { l: 40, r: 40, t: 70, b: 76 };
     this.active = false;
     this._bind();
     for (const ev of ['layers', 'selection', 'hover', 'model']) store.on(ev, () => this.request());
@@ -48,7 +48,7 @@ export class Plan2D {
   // keep fitted content clear of the panels that are open (legend left, inspector right)
   padFor() {
     const p = { ...this.pad }; if (this.w < 760) return p;
-    const lg = document.getElementById('legend'); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16);
+    const lg = document.getElementById('layers'); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16);
     const ins = document.getElementById('inspector'); if (ins && !ins.hidden) p.r = Math.max(p.r, this.w - ins.getBoundingClientRect().left + 16);
     return p;
   }

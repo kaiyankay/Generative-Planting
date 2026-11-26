@@ -64,6 +64,23 @@ SETS = {
         ("13-plan-b1", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
         ("14-3d-b1", "index.html?view=3d&shot=1&sel=bed.B1&focus=1&z=3.4"),
     ]),
+    # Phase 01.2: Site setup as a component (UX/IA simplification). NAME@WxH sets a viewport for that shot.
+    "ux": ("docs/screenshots/phase-01-2", [
+        ("01-entry-axo", "index.html?view=axo&shot=1"),
+        ("02-plan-same-place", "index.html?view=plan&shot=1"),
+        ("03-layers-panel", "index.html?view=axo&shot=1&panel=1"),
+        ("04-solo-with-trace", "index.html?view=plan&solo=composition&overlay=framework:0.5,infrastructure:0.35&panel=1"),
+        ("05-terrain-filter", "index.html?view=axo&shot=1&filter=terrain&panel=1"),
+        ("06-exploded-optional", "index.html?view=layers&shot=1&panel=1&layer=composition"),
+        ("07-start-design", "index.html?view=axo&shot=1&newdesign=1"),
+        ("08-working-blank", "index.html?view=axo&shot=1&draft=blank&design=working"),
+        ("09-selection-compact", "index.html?view=axo&shot=1&sel=bed.B1"),
+        ("10-selection-details", "index.html?view=plan&sel=bed.B1&details=1&focus=1&z=0.7"),
+        ("11-site-sheet", "index.html?view=axo&shot=1&about=1"),
+        ("12-embedded", "tools/embed_check.html"),
+        ("13-phone-axo@390x844", "index.html?view=axo&shot=1"),
+        ("14-phone-solo@390x844", "index.html?view=plan&solo=composition&panel=1"),
+    ]),
 }
 
 
@@ -85,9 +102,11 @@ def main():
     for name, q in shots:
         if a.only and a.only not in name: continue
         prof = tempfile.mkdtemp()
+        size = "1440,900"
+        if "@" in name: name, wh = name.split("@"); size = wh.replace("x", ",")
         path = os.path.join(out, name + ".png")
         cmd = [CHROME, "--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
-               "--window-size=1440,900", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
+               f"--window-size={size}", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
                "--virtual-time-budget=30000", f"--screenshot={path}", base + q]
         subprocess.run(cmd, capture_output=True, timeout=300)
         shutil.rmtree(prof, ignore_errors=True)

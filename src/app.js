@@ -1,19 +1,39 @@
-import { ModelStore, centroidOf } from './model.js';
+// Generative Planting · Site setup — the spatial input module of the tool.
+// One spatial canvas (Axo or Plan), one layers panel, one design selector. Detroit is a site preset, not the product.
+//
+// Two axes that never mix:
+//   design = which planting you look at: Reference (read-only reconstruction) | Working design (editable)
+//   view   = how you look at it: Axo | Plan · show Everything | Site only | Terrain · one layer alone (solo, in plan)
+//            · exploded stack (optional explanation)
+import { ModelStore } from './model.js';
 import { Picker } from './picker.js';
 import { Plan2D } from './plan2d.js';
-import { TOK, speciesPlanColor, speciesFlower, STATUS_LABEL, RAMPS } from './style.js';
+import { TOK, speciesPlanColor, RAMPS } from './style.js';
 import { GROUPS, GROUP, LAYER_NAME, groupVisible, groupLocked, setGroup } from './layers.js';
 import { getRaster } from './paint.js';
+import { renderInspector, renderAbout } from './inspector.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const params = new URLSearchParams(location.search);
 const DEV = params.get('dev') === '1';
+const EMBED = params.get('embed') === '1';
+const FALLBACK_PRESET = { id: 'detroit', name: 'Oudolf Garden Detroit', location: 'Belle Isle, Detroit, Michigan', base: 'data/detroit/' };
+
+async function loadPreset() {
+  let list = [FALLBACK_PRESET];
+  try { const r = await fetch('data/presets.json'); if (r.ok) { const j = await r.json(); if (Array.isArray(j.presets) && j.presets.length) list = j.presets; } } catch { /* fall back */ }
+  const want = params.get('site');
+  return { preset: list.find((p) => p.id === want) || list[0], presets: list };
+}
 
 async function main() {
-  const store = await ModelStore.load('data/detroit/');
+  const { preset, presets } = await loadPreset();
+  const store = await ModelStore.load(preset.base);
   const picker = new Picker(store);
   const app = $('#app');
+  if (EMBED) app.classList.add('embed');
+  $('#siteName').textContent = preset.name;
   const plan = new Plan2D($('#c2d'), store, picker);
   let scene = null;
   try {
@@ -21,213 +41,230 @@ async function main() {
     scene = new Scene3D($('#c3d'), store, picker, { labelRoot: $('#labels3d'), preserve: params.has('shot'), quality: params.get('q') || 'high', vex: params.get('vex') === '1' ? 1 : 1.6 });
   } catch (err) { console.error('3D unavailable', err); }
 
-  // ================================================================ state
-  // view  = how you look (World 3D / Plan / Layers overview)
-  // mode  = which design state you look at (Reference / Canvas / Terrain)
-  // iso   = isolated plan of one layer group (+ overlays); plateFocus = focused group in the Layers overview
-  const st = { view: 'plan', mode: 'reference', iso: null, plateFocus: null, layersSnapshot: null, legendOpen: false };
-  const ctx = { store, plan, scene, picker, st };
+  const st = { view: scene ? '3d' : 'plan', explode: false, design: 'reference', filter: 'all', solo: null, soloFrom: null, autoOn: [], plateFocus: null, panel: false, inspectorOpen: false };
+  const ctx = { store, plan, scene, picker, st, dev: DEV };
+  const bus = new EventTarget();
+  const emit = (type, detail) => { bus.dispatchEvent(new CustomEvent(type, { detail })); if (EMBED && window.parent !== window) { try { window.parent.postMessage({ gp: 'event', type, detail: JSON.parse(JSON.stringify(detail ?? null)) }, '*'); } catch { /* not serialisable */ } } };
 
-  // ---------------------------------------------------------------- views
-  function setView(v, { keepIso = false } = {}) {
-    if (v !== 'plan' && v !== '3d' && v !== 'layers') v = 'plan';
-    if ((v === '3d' || v === 'layers') && !scene) v = 'plan';
-    if (!keepIso && st.iso) exitIso(false);
-    st.view = v; app.dataset.view = v;
-    document.querySelectorAll('.views button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+  // ================================================================ canvas: Axo | Plan are two observations of one canvas
+  function applyCanvas() {
+    const v = st.explode ? 'layers' : st.view;
+    app.dataset.view = v;
+    document.querySelectorAll('.obs button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.v === st.view && !st.explode)));
     plan.setActive(v === 'plan');
-    if (scene) { scene.setActive(v !== 'plan'); if (v !== 'plan') scene.setLayersView(v === 'layers'); } // in Plan the 3D view keeps its pose for the way back
-    if (v === 'plan' && !plan._fitted) { plan.fit(); plan._fitted = true; }
-    if (v !== 'layers') { st.plateFocus = null; $('#platecard').hidden = true; }
-    else renderPlateLabels();
-    updateCrumbs(); renderLegend(); syncUrl();
+    if (scene) { scene.setActive(v !== 'plan'); if (v !== 'plan') scene.setLayersView(st.explode); }
+    $('#compass').hidden = v !== '3d';
+    $('#coords').hidden = v !== 'plan';
+    $('#btnExplode').setAttribute('aria-pressed', String(st.explode));
+    renderPlateLabels(); renderStatus(); renderPanel(); syncUrl();
+    emit('view', api.viewState());
   }
-  document.querySelectorAll('.views button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v)));
-  $('#btnFit').addEventListener('click', () => fit());
-  const fit = () => { if (st.view === 'plan') plan.fit(); else scene.home(); };
+  // the same place and scale carry over between Axo and Plan
+  function setObs(v, { keepSolo = false } = {}) {
+    if (v === 'axo') v = '3d';
+    if (v !== '3d' && v !== 'plan') v = 'plan';
+    if (v === '3d' && !scene) v = 'plan';
+    if (st.solo && !keepSolo && v === '3d') exitSolo({ silent: true });
+    if (st.explode && v === 'plan' && !keepSolo) st.explode = false;
+    const from = st.explode ? 'layers' : st.view;
+    if (from === '3d' && v === 'plan' && scene) { const c = scene.viewCenter(); plan.resize(); Object.assign(plan.view, { cx: c.x, cy: c.y, scale: Math.max(1.2, Math.min(400, c.ppm)) }); plan._fitted = true; }
+    if (from === 'plan' && v === '3d' && scene && plan._fitted) { scene.setLayersView(false); scene.setViewCenter(plan.view.cx, plan.view.cy, plan.view.scale); }
+    st.view = v;
+    if (v === 'plan' && !plan._fitted) { plan.resize(); plan.fit(); plan._fitted = true; }
+    applyCanvas();
+  }
+  document.querySelectorAll('.obs button').forEach((b) => b.addEventListener('click', () => { if (st.explode) setExplode(false); setObs(b.dataset.v); }));
+  const fit = () => { if (st.view === 'plan' && !st.explode) plan.fit(); else if (scene) scene.home(); };
+  $('#btnFit').addEventListener('click', fit);
   window.addEventListener('resize', () => { plan.resize(); if (scene) scene.resize(); if (st.view === 'plan') plan.request(); });
+  if (scene) scene.onLabels = () => { placePlateLabels(); const a = scene.northAngle(); $('#compass').style.transform = `rotate(${(a * 180 / Math.PI).toFixed(1)}deg)`; };
 
-  // ---------------------------------------------------------------- modes (design states)
-  function setMode(m, { silent = false } = {}) {
-    if (m === 'canvas' && !store.draft) { if (!silent) openDraftDialog(); return false; }
-    st.mode = m; app.dataset.mode = m;
-    document.querySelectorAll('.modes button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.m === m)));
-    if (m === 'reference') { if (store.scenario !== 'reference') store.setScenario('reference'); }
-    if (m === 'canvas') { if (store.scenario !== 'working') store.setScenario('working'); }
-    store.setViewState({ mode: m, hidePlanting: m === 'reference' ? store.view.hidePlanting : false });
-    renderStatus(); renderLegend(); syncUrl();
+  // ================================================================ design: Reference | Working design
+  function setDesign(d, { silent = false } = {}) {
+    if (d === 'working' && !store.draft) { if (!silent) openDraftDialog(); return false; }
+    st.design = d; app.dataset.design = d;
+    const want = d === 'working' ? 'working' : 'reference';
+    if (store.scenario !== want) store.setScenario(want);
+    renderDesign(); renderStatus(); renderPanel(); syncUrl();
+    emit('design', { design: d, draft: store.draftInfo() });
     return true;
   }
-  document.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
-
-  // ---------------------------------------------------------------- status line (state is always named, never colour only)
-  function renderStatus() {
-    const n = $('#note'); const d = store.draftInfo();
-    if (st.mode === 'terrain') {
-      n.innerHTML = `<b>Terrain</b> · USGS 3DEP 1 m<span class="long"> · contours every 0.25 m are interpolated, not a finer survey</span> · 3D relief ×${scene ? scene.VEX : 1.6} <button class="lnk" data-a="vex">${scene && scene.VEX === 1 ? 'Show ×1.6' : 'True scale'}</button>`;
-    } else if (st.mode === 'canvas' && d) {
-      n.innerHTML = `<b>Canvas</b> · working design (${d.from === 'blank' ? 'blank planting' : 'copy of reference'}) · ${d.changes} change${d.changes === 1 ? '' : 's'} · ${d.saved ? 'kept in this browser' : 'not saved'} <button class="lnk" data-a="reset">Reset</button><button class="lnk" data-a="export">Export</button><button class="lnk" data-a="new">New…</button>`;
-    } else {
-      n.innerHTML = `<b>Reference</b> · Schematic reconstruction · not a survey<span class="long"> · bed outlines as built (OSM), planting inside beds generated from Oudolf's legends</span> <button class="lnk" data-a="hide" aria-pressed="${store.view.hidePlanting}">${store.view.hidePlanting ? 'Show planting' : 'Hide planting'}</button>`;
-    }
-    n.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => statusAction(b.dataset.a)));
+  function renderDesign() {
+    const has = !!store.draft;
+    document.querySelectorAll('.design .seg button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.d === st.design && (b.dataset.d === 'reference' || has))));
+    const w = $('#btnWorking'); w.textContent = has ? 'Working design' : 'New design';
+    w.title = has ? 'Your editable planting design' : 'Start a working design from the reference or from empty beds';
+    w.classList.toggle('new', !has);
+    $('#btnDesignMenu').hidden = !has;
   }
-  function statusAction(a) {
-    if (a === 'hide') { store.setViewState({ hidePlanting: !store.view.hidePlanting }); renderStatus(); }
-    else if (a === 'reset') { if (confirm('Reset the working design to where it started? Your changes in this draft are removed; the reference is not affected.')) { store.resetDraft(); setMode('canvas'); } }
+  document.querySelectorAll('.design .seg button').forEach((b) => b.addEventListener('click', () => setDesign(b.dataset.d)));
+  const menu = $('#designMenu');
+  const closeMenu = () => { menu.hidden = true; $('#btnDesignMenu').setAttribute('aria-expanded', 'false'); };
+  $('#btnDesignMenu').addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; $('#btnDesignMenu').setAttribute('aria-expanded', String(!menu.hidden)); if (!menu.hidden) menu.querySelector('button').focus(); });
+  document.addEventListener('click', (e) => { if (!menu.hidden && !e.target.closest('#designMenu')) closeMenu(); });
+  menu.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    closeMenu(); const a = b.dataset.a;
+    if (a === 'reset') { if (confirm('Undo every change in this working design? It goes back to how it started. The reference is not affected.')) { store.resetDraft(); setDesign('working'); } }
     else if (a === 'export') exportDraft();
     else if (a === 'new') openDraftDialog();
-    else if (a === 'vex') { const u = new URL(location.href); if (scene && scene.VEX === 1) u.searchParams.delete('vex'); else u.searchParams.set('vex', '1'); location.href = u.toString(); }
-  }
+    else if (a === 'discard') { if (confirm('Delete the working design? This cannot be undone unless you exported it. The reference is not affected.')) { store.discardDraft(); setDesign('reference'); } }
+  }));
   function exportDraft() {
     const data = store.exportDraft(); if (!data) return;
     const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'working-design.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${preset.id}-working-design.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
-  store.on('model', () => { renderStatus(); renderLegend(); if (st.view === 'layers') renderPlateCard(); });
-  store.on('draft', () => renderStatus());
 
-  // ---------------------------------------------------------------- draft dialog: preview the scope BEFORE anything is cleared
+  // start dialog: two equal choices, each starts at once; extra scope only on request; consequences in beds, not counts
   function openDraftDialog() {
     const dlg = $('#draftdlg'); const P = store.caseCfg.planting || {};
     const def = store.defaultBlankScope(); const opt = P.blankOptional || {};
     const dirty = store.draft && store.draft.ops.length;
-    const render = () => {
-      const scope = [...def, ...[...dlg.querySelectorAll('input[data-u]:checked')].map((i) => i.dataset.u)];
-      const pv = store.blankScopePreview(scope);
-      dlg.querySelector('.pv').innerHTML = `Clears <b>${pv.clears.placements.toLocaleString()}</b> placements and <b>${pv.clears.instances.toLocaleString()}</b> plant proxies in <b>${scope.length}</b> planting units. Keeps terrain, paths, walls, bed outlines and codes, existing trees, lawn${pv.keeps.otherUnits.length ? ` and ${pv.keeps.otherUnits.length} other units` : ''}. The reference is never changed.`;
-      return scope;
-    };
-    dlg.innerHTML = `<div class="dlg-in"><h3 id="dlgTitle">Start a planting design</h3>
-      <p class="sub">A working design shares the site with the reference. Choose where it starts.</p>
-      <label class="opt"><input type="radio" name="from" value="blank" checked> <span><b>Blank planting canvas</b><br><span class="muted">Empty A, B and C beds (15). The bed framework stays as a constraint.</span></span></label>
-      <div class="extra">${Object.entries(opt).map(([u, n]) => `<label><input type="checkbox" data-u="${esc(u)}"> also clear ${esc(n)}</label>`).join('')}</div>
-      <div class="pv"></div>
-      <label class="opt"><input type="radio" name="from" value="reference"> <span><b>Copy of the reference</b><br><span class="muted">Start from the schematic reconstruction and change it.</span></span></label>
-      ${dirty ? `<p class="warn">The current working design has ${store.draft.ops.length} change(s). Starting a new one replaces it. <button class="lnk" data-a="exp">Export it first</button></p>` : ''}
-      <div class="row"><button class="btn" data-a="cancel">Cancel</button><button class="btn primary" data-a="go">Start design</button></div></div>`;
-    dlg.hidden = false; render();
-    dlg.querySelectorAll('input[data-u]').forEach((i) => i.addEventListener('change', render));
-    dlg.querySelectorAll('input[name=from]').forEach((i) => i.addEventListener('change', () => dlg.querySelector('.extra').classList.toggle('off', i.value === 'reference' && i.checked)));
+    dlg.innerHTML = `<div class="dlg-in"><h3 id="dlgTitle">Start a working design</h3>
+      <p class="sub">The reference stays as it is. Your design is kept in this browser and can be exported.</p>
+      <div class="choices">
+        <button class="choice" data-a="copy"><b>From the reference planting</b><span>Copy the reconstructed planting and change it.</span></button>
+        <button class="choice" data-a="blank"><b>Blank beds</b><span>Empty the ${def.length} main beds. Bed outlines, paths, existing trees, lawn, Rain Garden and meadows stay.</span></button>
+      </div>
+      <details class="extra"><summary>Also empty…</summary><div class="opts">${Object.entries(opt).map(([u, n]) => `<label><input type="checkbox" data-u="${esc(u)}"> ${esc(n)}</label>`).join('')}</div></details>
+      ${dirty ? `<p class="warn">This replaces your current working design (${store.draft.ops.length} change${store.draft.ops.length === 1 ? '' : 's'}). <button class="lnk" data-a="exp">Export it first</button></p>` : ''}
+      <p class="err" role="alert" hidden></p>
+      <div class="row"><button class="btn" data-a="cancel">Cancel</button></div></div>`;
+    dlg.hidden = false;
     const exp = dlg.querySelector('[data-a=exp]'); if (exp) exp.onclick = exportDraft;
-    dlg.querySelector('[data-a=cancel]').onclick = () => { dlg.hidden = true; };
-    dlg.querySelector('[data-a=go]').onclick = () => {
-      const from = dlg.querySelector('input[name=from]:checked').value;
-      const r = store.createDraft({ from, scope: from === 'blank' ? render() : undefined });
-      dlg.hidden = true; if (r.ok) setMode('canvas'); else alert(r.error);
+    dlg.querySelector('[data-a=cancel]').onclick = () => { dlg.hidden = true; renderDesign(); };
+    const go = (from) => {
+      const scope = from === 'blank' ? [...def, ...[...dlg.querySelectorAll('input[data-u]:checked')].map((i) => i.dataset.u)] : undefined;
+      const r = store.createDraft({ from: from === 'blank' ? 'blank' : 'reference', scope });
+      if (!r.ok) { const e = dlg.querySelector('.err'); e.textContent = `Could not start the design: ${r.error}`; e.hidden = false; return; }
+      dlg.hidden = true; setDesign('working');
     };
-    dlg.querySelector('[data-a=go]').focus();
+    dlg.querySelector('[data-a=copy]').onclick = () => go('copy');
+    dlg.querySelector('[data-a=blank]').onclick = () => go('blank');
+    dlg.querySelector('[data-a=copy]').focus();
   }
 
-  // ---------------------------------------------------------------- layers overview (plates) + isolated plan
-  const plateLabels = $('#platelabels');
-  function renderPlateLabels() {
-    plateLabels.innerHTML = '';
+  // ================================================================ show filter (view state, not a design)
+  function setFilter(f) {
+    if (!['all', 'site', 'terrain'].includes(f)) f = 'all';
+    st.filter = f;
+    store.setViewState({ mode: f === 'terrain' ? 'terrain' : 'normal', hidePlanting: f === 'site' });
+    renderPanel(); renderStatus(); syncUrl(); emit('view', api.viewState());
+  }
+  document.querySelectorAll('.filters button').forEach((b) => b.addEventListener('click', () => setFilter(b.dataset.f)));
+
+  // ================================================================ status (always says which design, and how certain)
+  function renderStatus() {
+    const n = $('#note'); const d = store.draftInfo();
+    let t = st.design === 'working' && d ? `Working design, ${d.from === 'blank' ? 'started from blank beds' : 'started from the reference'}: ${d.changes} change${d.changes === 1 ? '' : 's'}, kept in this browser.` : 'Reference: schematic reconstruction, not a survey.';
+    if (st.filter === 'terrain') t += ' Showing terrain only.'; else if (st.filter === 'site') t += ' Planting hidden.';
+    n.textContent = t;
+  }
+  store.on('model', () => { renderStatus(); renderDesign(); if (st.panel) renderPanel(); });
+  store.on('draft', () => { renderStatus(); renderDesign(); });
+
+  // ================================================================ layers panel: visibility, solo (2D), overlays, key, exploded
+  const panelEl = $('#layers');
+  function setPanel(open) {
+    st.panel = open; panelEl.hidden = !open; $('#btnLayers').setAttribute('aria-pressed', String(open)); app.classList.toggle('panel-open', open);
+    if (open) renderPanel();
+    if (st.view === 'plan') { plan.resize(); plan.request(); }
+    if (st.explode && scene) scene.home(); // re-frame the stack beside the panel
+    syncUrl();
+  }
+  $('#btnLayers').addEventListener('click', () => setPanel(!st.panel));
+  $('#btnLayersClose').addEventListener('click', () => setPanel(false));
+  $('#btnExplode').addEventListener('click', () => setExplode(!st.explode));
+  const ICON = {
+    eye: '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M1.8 10s3-5.4 8.2-5.4 8.2 5.4 8.2 5.4-3 5.4-8.2 5.4S1.8 10 1.8 10Z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="10" r="2.3" fill="currentColor"/></svg>',
+    eyeOff: '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M1.8 10s3-5.4 8.2-5.4 8.2 5.4 8.2 5.4-3 5.4-8.2 5.4S1.8 10 1.8 10Z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3 17 17 3" stroke="currentColor" stroke-width="1.3"/></svg>',
+    solo: '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M3.5 6.5h13M3.5 10h13M3.5 13.5h13" stroke="currentColor" stroke-width="1.2" opacity=".35"/><path d="M3.5 10h13" stroke="currentColor" stroke-width="2.2"/></svg>',
+    lock: '<svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>',
+    chev: '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  };
+  const expanded = new Set();
+  function renderPanel() {
+    if (!st.panel) return;
+    document.querySelectorAll('.filters button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.f === st.filter)));
+    const root = $('#ltree'); root.innerHTML = '';
     for (const g of GROUPS) {
-      const b = document.createElement('button'); b.className = 'plabel' + (g.physical ? '' : ' virtual'); b.dataset.g = g.id; b.setAttribute('role', 'listitem');
-      b.innerHTML = `<span class="n">${esc(g.name)}</span>${g.physical ? '' : '<span class="k">plan only</span>'}`;
-      b.addEventListener('click', () => focusPlate(st.plateFocus === g.id ? null : g.id));
-      b.addEventListener('dblclick', () => openIso(g.id));
-      b.addEventListener('mouseenter', () => b.classList.add('hov')); b.addEventListener('mouseleave', () => b.classList.remove('hov'));
-      plateLabels.appendChild(b);
+      const vis = groupVisible(store, g.id), solo = st.solo && st.solo.group === g.id, other = st.solo && !solo;
+      const ov = other ? st.solo.overlays[g.id] || 0 : 0;
+      const row = document.createElement('div'); row.className = 'lrow group' + (solo ? ' solo' : '') + (other && !ov ? ' dim' : ''); row.dataset.group = g.id; row.setAttribute('role', 'listitem');
+      row.innerHTML = `<button class="chev" aria-expanded="${expanded.has(g.id)}" aria-label="Show the parts of ${esc(g.name)}">${ICON.chev}</button><span class="name" title="${esc(g.blurb)}">${esc(g.name)}</span>` +
+        (other ? `<label class="ovr" title="Show under ${esc(GROUP[st.solo.group].name)} for reference"><input type="checkbox" data-ov ${ov > 0 ? 'checked' : ''} aria-label="Trace ${esc(g.name)} under the solo layer"><span>Trace</span></label>`
+          : solo ? '<span class="tag">alone</span>' : `<button class="tg eye ${vis ? '' : 'off'}" aria-pressed="${vis}" aria-label="Show ${esc(g.name)}" title="${vis ? 'Visible' : 'Hidden'}">${vis ? ICON.eye : ICON.eyeOff}</button>`) +
+        `<button class="tg solo" aria-pressed="${!!solo}" aria-label="Show ${esc(g.name)} alone in plan" title="${solo ? 'Back to all layers' : 'Show alone in plan'}">${ICON.solo}</button>`;
+      root.appendChild(row);
+      row.querySelector('.chev').onclick = () => { expanded.has(g.id) ? expanded.delete(g.id) : expanded.add(g.id); renderPanel(); };
+      row.querySelector('.solo').onclick = () => (solo ? exitSolo() : openSolo(g.id));
+      const eye = row.querySelector('.eye'); if (eye) eye.onclick = () => { setGroup(store, g.id, { visible: !vis }); markTouched(g.id); renderPanel(); };
+      const cb = row.querySelector('[data-ov]'); if (cb) cb.onchange = () => { st.solo.overlays[g.id] = cb.checked ? 0.5 : 0; plan.setIsolation(st.solo); renderPanel(); syncUrl(); };
+      if (ov > 0) {
+        const r = document.createElement('div'); r.className = 'lrow opac';
+        r.innerHTML = `<span></span><input type="range" min="10" max="100" step="5" value="${Math.round(ov * 100)}" aria-label="${esc(g.name)} trace opacity"><span class="num">${Math.round(ov * 100)}%</span>`;
+        root.appendChild(r);
+        const rg = r.querySelector('input'); rg.oninput = () => { st.solo.overlays[g.id] = rg.value / 100; r.querySelector('.num').textContent = rg.value + '%'; plan.request(); syncUrl(); };
+      }
+      if (!expanded.has(g.id)) continue;
+      for (const l of g.layers) {
+        const L = store.layers.get(l); if (!L) continue;
+        const s = store.layerState[l]; const na = L.status === 'unavailable';
+        const r = document.createElement('div'); r.className = 'lrow child' + (store.layerVisible(l) ? '' : ' dim'); r.dataset.layer = l;
+        r.innerHTML = `<span></span><span class="name">${esc(LAYER_NAME[l] || L.name)}</span>` +
+          (na ? '<span class="na" title="No data: shown as unknown, never as zero">no data</span>' :
+            `<button class="tg eye ${s.visible ? '' : 'off'}" aria-pressed="${s.visible}" aria-label="Show ${esc(LAYER_NAME[l] || L.name)}">${s.visible ? ICON.eye : ICON.eyeOff}</button><button class="tg lock ${s.locked ? 'on' : ''}" aria-pressed="${s.locked}" aria-label="Lock ${esc(LAYER_NAME[l] || L.name)}" title="${s.locked ? 'Locked: cannot be selected' : 'Can be selected'}">${ICON.lock}</button>`);
+        root.appendChild(r);
+        const e = r.querySelector('.eye'); if (e) e.onclick = () => {
+          const on = !s.visible; const otherR = { 'analysis.slope': 'analysis.pathdist', 'analysis.pathdist': 'analysis.slope' }[l]; // one analysis raster at a time
+          if (on && otherR) store.setLayer(otherR, { visible: false });
+          store.setLayer(l, { visible: on }); markTouched(l); renderPanel();
+        };
+        const k = r.querySelector('.lock'); if (k) k.onclick = () => { store.setLayer(l, { locked: !s.locked }); renderPanel(); };
+      }
     }
-    placePlateLabels();
+    renderKey();
   }
-  function placePlateLabels() {
-    if (!scene || st.view !== 'layers') return;
-    for (const el of plateLabels.children) {
-      const [x, y] = scene.plateAnchor(el.dataset.g);
-      el.style.transform = `translate(${Math.min(x + 10, scene.w - el.offsetWidth - 12).toFixed(0)}px, ${y.toFixed(0)}px) translate(0, -50%)`;
-      el.classList.toggle('on', st.plateFocus === el.dataset.g); el.classList.toggle('dim', !!st.plateFocus && st.plateFocus !== el.dataset.g);
-    }
+  store.on('layers', (e) => { if (e && e.external && st.panel) renderPanel(); });
+
+  // ---- solo: one layer group alone in plan (+ trace overlays). Layers the app had to switch on are switched back on exit.
+  const markTouched = (id) => { st.autoOn = st.autoOn.filter((l) => l !== id && !(GROUP[id] && GROUP[id].layers.includes(l))); };
+  function openSolo(gid, { overlays = {}, fromUrl = false } = {}) {
+    if (!GROUP[gid]) return false;
+    if (!st.solo) { st.soloFrom = fromUrl ? 'plan' : st.explode ? 'layers' : st.view; st.autoOn = []; }
+    const turnOn = (l) => { if (!store.layerState[l].visible) { store.setLayer(l, { visible: true }); st.autoOn.push(l); } };
+    if (gid === 'analysis') { if (!store.layerState['analysis.slope'].visible && !store.layerState['analysis.pathdist'].visible) turnOn('analysis.slope'); turnOn('analysis'); }
+    else if (!groupVisible(store, gid)) for (const l of GROUP[gid].layers) if (store.layers.has(l) && store.layers.get(l).status !== 'unavailable' && l !== 'topo.contours') turnOn(l);
+    st.solo = { group: gid, overlays: { ...overlays } };
+    plan.setIsolation(st.solo); store.select(null);
+    if (!st.panel) setPanel(true);
+    if (st.explode) { st.explode = false; }
+    setObs('plan', { keepSolo: true });
+    if (!plan._soloFitted) { plan.fit(); plan._soloFitted = true; }
+    renderSoloChip(); emit('solo', { group: gid });
+    return true;
   }
-  if (scene) {
-    scene.onLabels = placePlateLabels;
-    scene.onPlateClick = (g) => focusPlate(g === st.plateFocus ? st.plateFocus : g);
-    scene.onPlateOpen = (g) => openIso(g);
-    scene.onPlateHover = (g) => { for (const el of plateLabels.children) el.classList.toggle('hov', el.dataset.g === g); };
+  function exitSolo({ silent = false } = {}) {
+    if (!st.solo) return;
+    for (const l of st.autoOn) store.setLayer(l, { visible: false });
+    st.autoOn = []; st.solo = null; plan.setIsolation(null); renderSoloChip();
+    if (!silent) {
+      if (st.soloFrom === 'layers') { st.explode = true; st.view = '3d'; applyCanvas(); if (st.plateFocus) focusPlate(st.plateFocus); }
+      else if (st.soloFrom === '3d') setObs('3d');
+      else applyCanvas();
+    } else renderPanel();
+    emit('solo', { group: null });
   }
-  function focusPlate(gid) {
-    st.plateFocus = gid; if (scene) scene.setPlateFocus(gid && GROUP[gid].physical ? gid : null);
-    placePlateLabels(); renderPlateCard(); updateCrumbs(); syncUrl();
-  }
-  function groupStats(gid) {
-    const s = store; const L = new Set(GROUP[gid].layers); let objects = 0, placements = 0, plants = 0;
-    for (const o of s.model.objects) if (L.has(s.layerOf(o))) objects++;
-    if (gid === 'composition') placements = s.model.placements.length;
-    if (gid === 'representation' || gid === 'siteveg') for (let i = 0; i < s.inst.n; i++) if (s.inst.alive[i] && L.has(s.instanceLayer(i))) plants++;
-    return { objects, placements, plants };
-  }
-  function renderPlateCard() {
-    const card = $('#platecard'); const gid = st.plateFocus;
-    if (st.view !== 'layers' || !gid) { card.hidden = true; return; }
-    const g = GROUP[gid]; const n = groupStats(gid);
-    const unavailable = g.layers.filter((l) => store.layers.get(l)?.status === 'unavailable');
-    const facts = [n.objects ? `${n.objects} objects` : '', n.placements ? `${n.placements.toLocaleString()} placements` : '', n.plants ? `${n.plants.toLocaleString()} plant proxies` : ''].filter(Boolean).join(' · ');
-    card.innerHTML = `<div class="pc-k">Layer group · ${store.scenario === 'working' ? 'working design' : 'reference'}</div><h3>${esc(g.name)}</h3>
-      <p>${esc(g.blurb)}</p>${facts ? `<p class="muted">${facts}</p>` : ''}${unavailable.length ? `<p class="muted">No data: ${unavailable.map((l) => esc(LAYER_NAME[l])).join(', ')}</p>` : ''}
-      <div class="row"><button class="btn primary" data-a="open">Open in Plan <span class="kbd">↵</span></button><button class="btn" data-a="clear">All layers</button></div>`;
-    card.hidden = false;
-    card.querySelector('[data-a=open]').onclick = () => openIso(gid);
-    card.querySelector('[data-a=clear]').onclick = () => focusPlate(null);
-  }
-  function openIso(gid, { overlays = {}, fromUrl = false } = {}) {
-    if (!st.layersSnapshot) st.layersSnapshot = JSON.parse(JSON.stringify(store.layerState));
-    if (!st.iso) st.isoFrom = fromUrl ? (st.isoFrom || 'layers') : st.view; // switching layer inside the isolated plan keeps where Back returns to
-    st.iso = { group: gid, overlays: { ...overlays } };
-    if (gid === 'analysis') { // one derived raster at a time: slope by default
-      if (!store.layerState['analysis.pathdist'].visible || store.layerState['analysis.slope'].visible) { store.setLayer('analysis.slope', { visible: true }); store.setLayer('analysis.pathdist', { visible: false }); }
-      store.setLayer('analysis', { visible: true });
-    } else if (!groupVisible(store, gid)) setGroup(store, gid, { visible: true });
-    plan.setIsolation(st.iso);
-    store.select(null);
-    setView('plan', { keepIso: true });
-    st.legendOpen = true; renderLegend(); updateCrumbs(); syncUrl();
-    if (!plan._isoFitted) { plan.fit(); plan._isoFitted = true; }
-  }
-  function exitIso(goBack = true) {
-    if (!st.iso) return;
-    const from = st.isoFrom || 'layers';
-    st.iso = null; plan.setIsolation(null);
-    if (st.layersSnapshot) { for (const [k, v] of Object.entries(st.layersSnapshot)) Object.assign(store.layerState[k], v); st.layersSnapshot = null; store.emit('layers', { external: true }); }
-    if (goBack) setView(from === 'plan' ? 'plan' : from === '3d' ? '3d' : 'layers');
-    st.legendOpen = false; renderLegend(); updateCrumbs(); syncUrl();
-    if (goBack && from === 'layers' && st.plateFocus) focusPlate(st.plateFocus);
-  }
-  function updateCrumbs() {
-    const c = $('#crumbs');
-    const parts = [];
-    if (st.iso) parts.push(['garden', 'Garden'], ['layers', 'Layers'], [null, GROUP[st.iso.group].name]);
-    else if (st.view === 'layers') parts.push(['garden', 'Garden'], [null, st.plateFocus ? `Layers · ${GROUP[st.plateFocus].name}` : 'Layers']);
-    if (!parts.length) { c.hidden = true; c.innerHTML = ''; return; }
-    c.hidden = false;
-    c.innerHTML = `<button class="back" data-a="back" title="Back (Esc)" aria-label="Back"><svg viewBox="0 0 16 16" width="13" height="13"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Back</button>` +
-      parts.map(([k, t], i) => (k ? `<button class="crumb" data-a="${k}">${esc(t)}</button>` : `<span class="crumb cur" aria-current="page">${esc(t)}</span>`) + (i < parts.length - 1 ? '<span class="sep">/</span>' : '')).join('') +
-      (st.iso ? `<button class="crumb fitb" data-a="fit">Fit</button>` : '');
-    c.querySelectorAll('button').forEach((b) => b.onclick = () => {
-      const a = b.dataset.a;
-      if (a === 'back') goBack();
-      else if (a === 'garden') { exitIso(false); setView(scene ? '3d' : 'plan'); }
-      else if (a === 'layers') { if (st.iso) exitIso(true); else focusPlate(null); if (st.view !== 'layers') setView('layers'); }
-      else if (a === 'fit') plan.fit();
-    });
-  }
-  function goBack() {
-    if (st.iso) { exitIso(true); return; }
-    if (st.view === 'layers') { if (st.plateFocus) focusPlate(null); else setView('3d'); }
+  function renderSoloChip() {
+    let c = $('#solochip');
+    if (!st.solo) { if (c) c.remove(); return; }
+    if (!c) { c = document.createElement('div'); c.id = 'solochip'; c.className = 'solochip'; app.appendChild(c); }
+    c.innerHTML = `<span>${esc(GROUP[st.solo.group].name)} alone, in plan</span><button class="lnk" data-a="back">Show all layers</button>`;
+    c.querySelector('button').onclick = () => exitSolo();
   }
 
-  // ---------------------------------------------------------------- legend (depends on layer group, zoom, view, mode)
+  // ---- key (legend): the soloed layer's key, or the key of what is on screen
   const legendEl = $('#legend');
-  function renderLegend() {
-    const show = st.legendOpen || st.iso || st.mode === 'terrain';
-    if (!show || st.view === 'layers') { legendEl.hidden = true; return; }
-    const gid = st.iso ? st.iso.group : st.mode === 'terrain' ? 'terrain' : null;
-    const wasHidden = legendEl.hidden; legendEl.hidden = false;
-    if (wasHidden && window.innerWidth < 760) legendEl.classList.add('min'); // phones: the model first, legend on demand
-    legendEl.innerHTML = gid ? groupLegend(gid) : worldLegend();
-    wireLegend();
-  }
   const sw = (c, cls = '') => `<span class="sw ${cls}" style="--c:${c}"></span>`;
   const rampCss = (stops) => `linear-gradient(90deg, ${stops.join(',')})`;
   function speciesInView(kind) {
@@ -237,188 +274,240 @@ async function main() {
     } else {
       for (const p of s.model.placements) { if ((p.role || '').startsWith('bulb') || p.role === 'matrix' || p.role === 'meadow') continue; const b = s.placementBox(p); if (b[2] < vb[0] || b[0] > vb[2] || b[3] < vb[1] || b[1] > vb[3]) continue; for (const id of p.speciesIds) tally.set(id, (tally.get(id) || 0) + (p.areaM2 || 0.3)); }
     }
-    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7).map(([id, n]) => ({ sp: s.getObject(id), n }));
+    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id, n]) => ({ sp: s.getObject(id), n }));
   }
-  function spRows(list, unit) { return list.length ? `<ul class="lg-sp">${list.map(({ sp, n }) => `<li>${sw(speciesPlanColor(sp), 'dot')}<span><i>${esc(sp.scientificName)}</i>${sp.cultivar ? ` ‘${esc(sp.cultivar)}’` : ''}</span><span class="num">${unit === 'm2' ? n.toFixed(0) + ' m²' : n}</span></li>`).join('')}</ul>` : '<p class="muted">No planting in view.</p>'; }
-  function sublayerRows(gid) {
-    return `<ul class="lg-sub">${GROUP[gid].layers.filter((l) => store.layers.has(l)).map((l) => {
-      const L = store.layers.get(l); const na = L.status === 'unavailable'; const on = store.layerState[l].visible;
-      return `<li>${na ? '<span class="na">no data</span>' : `<button class="eye ${on ? '' : 'off'}" data-l="${l}" aria-pressed="${on}" aria-label="Show ${esc(LAYER_NAME[l])}">${on ? '●' : '○'}</button>`}<span class="${na ? 'muted' : ''}">${esc(LAYER_NAME[l] || L.name)}</span></li>`;
-    }).join('')}</ul>`;
-  }
-  function overlayRows(gid) {
-    return `<div class="lg-ov"><div class="lg-h">Reference overlays</div>${GROUPS.filter((g) => g.id !== gid).map((g) => {
-      const op = st.iso && st.iso.overlays[g.id] || 0;
-      return `<label class="ovr"><input type="checkbox" data-ov="${g.id}" ${op > 0 ? 'checked' : ''}><span>${esc(g.short)}</span><input type="range" min="10" max="100" step="5" value="${Math.round((op || 0.5) * 100)}" data-op="${g.id}" aria-label="${esc(g.short)} overlay opacity" ${op > 0 ? '' : 'disabled'}></label>`;
-    }).join('')}<p class="muted small">Overlays are for reference only: they are not selectable and do not change locks.</p></div>`;
-  }
-  function groupLegend(gid) {
-    const g = GROUP[gid]; let body = '';
-    const srcs = g.sources.map((id) => store.getObject(id)).filter(Boolean).map((s) => esc(s.title.split(' (')[0])).join(' · ');
+  const spRows = (list, unit) => (list.length ? `<ul class="lg-sp">${list.map(({ sp, n }) => `<li>${sw(speciesPlanColor(sp), 'dot')}<span><i>${esc(sp.scientificName)}</i>${sp.cultivar ? ` ‘${esc(sp.cultivar)}’` : ''}</span><span class="num">${unit === 'm2' ? n.toFixed(0) + ' m²' : n}</span></li>`).join('')}</ul>` : '<p class="muted small">No planting in view.</p>');
+  function groupKey(gid) {
+    const g = GROUP[gid];
+    const srcs = g.sources.map((id) => store.getObject(id)).filter(Boolean).map((s) => esc(s.title.split(' (')[0])).join('; ');
+    let body = '';
     if (gid === 'terrain') {
       const R = getRaster(store, 'elevation');
-      body = `<div class="ramp" style="background:${rampCss(RAMPS.elevation)}"></div><div class="ramp-l"><span>${R.lo.toFixed(1)}</span><span>m NAVD88</span><span>${R.hi.toFixed(1)}</span></div>
-        <ul class="lg-keys"><li>${sw('#6E5F43', 'line')}Contour 1 m (major)</li><li>${sw('#6E5F43', 'line thin')}0.25 m, interpolated from the 1 m grid</li><li>${sw(TOK.inkDeep, 'line dashdot')}Garden boundary</li>${st.mode === 'terrain' ? `<li><input type="checkbox" data-tout ${store.view.terrainOutline !== false ? 'checked' : ''} aria-label="Show bed outlines"><span>Bed outlines (reference, for orientation)</span></li>` : ''}</ul>
-        <p class="muted small">Resolution 1 m; vertical accuracy ~0.1 m. Relief ${store.terrain.meta.zMin.toFixed(2)}–${store.terrain.meta.zMax.toFixed(2)} m over the whole extent. Hillshade relief ×3 for legibility only.</p>`;
+      body = `<div class="ramp" style="background:${rampCss(RAMPS.elevation)}"></div><div class="ramp-l"><span>${R.lo.toFixed(1)} m</span><span>${R.hi.toFixed(1)} m NAVD88</span></div>
+        <ul class="lg-keys"><li>${sw('#6E5F43', 'line')}Contour every 1 m</li><li>${sw('#6E5F43', 'line thin')}Every 0.25 m, interpolated from the 1 m grid</li><li>${sw(TOK.inkDeep, 'line dashdot')}Garden boundary</li>${st.filter === 'terrain' ? `<li><input type="checkbox" data-tout ${store.view.terrainOutline !== false ? 'checked' : ''} aria-label="Show bed outlines"><span>Bed outlines, for orientation</span></li>` : ''}</ul>
+        <p class="muted small">USGS 3DEP, 1 m cells, about 0.1 m vertical accuracy. 3D relief is drawn ×${scene ? scene.VEX : 1.6}. <button class="lnk" data-a="vex">${scene && scene.VEX === 1 ? 'Exaggerate ×1.6' : 'Show true vertical scale'}</button></p>`;
     } else if (gid === 'infrastructure') {
-      body = `<ul class="lg-keys"><li>${sw(TOK.path, 'box')}Gravel path / sidewalk</li><li>${sw(TOK.lawnDeep, 'box dashed')}Grass walk</li><li>${sw(TOK.stone, 'line thick')}Limestone wall</li><li>${sw(TOK.stone, 'box')}Carillon, memorial</li><li>${sw(TOK.building, 'box hatch')}Building (context)</li><li>${sw(TOK.water, 'box')}Water</li><li>${sw(TOK.context, 'box')}Road, parking</li></ul>`;
+      body = `<ul class="lg-keys"><li>${sw(TOK.path, 'box')}Gravel path, sidewalk</li><li>${sw(TOK.lawnDeep, 'box dashed')}Grass walk</li><li>${sw(TOK.stone, 'line thick')}Limestone wall</li><li>${sw(TOK.stone, 'box')}Carillon, memorial</li><li>${sw(TOK.building, 'box hatch')}Building nearby</li><li>${sw(TOK.water, 'box')}Water</li><li>${sw(TOK.context, 'box')}Road, parking</li></ul>`;
     } else if (gid === 'siteveg') {
-      const n = groupStats('siteveg').plants;
-      body = `<ul class="lg-keys"><li>${sw(TOK.midVeg, 'disc dashed')}Existing tree crown (${n}), digitised from NAIP; species and height unknown</li><li>${sw(TOK.lawn, 'box')}Mown lawn</li></ul><p class="muted small">Kept by default in every design; this is an assumption, not proof that a tree is protected.</p>`;
+      body = `<ul class="lg-keys"><li>${sw(TOK.midVeg, 'disc dashed')}Existing tree crown, digitised from aerial imagery; species unknown</li><li>${sw(TOK.lawn, 'box')}Mown lawn</li></ul><p class="muted small">Kept in every design by default. That is an assumption, not proof a tree is protected.</p>`;
     } else if (gid === 'framework') {
-      const by = { A: 0, B: 0, C: 0 }; store.beds.forEach((b) => { if (by[b.props.style] != null) by[b.props.style]++; });
-      body = `<ul class="lg-keys"><li>${sw(TOK.steel, 'line')}Steel edging = bed outline (OSM, ±0.5 m)</li><li>${sw(TOK.ink, 'line dashed')}Meadow / district boundary</li>${store.scenario === 'working' ? `<li>${sw(TOK.ink, 'box hatch')}Open bed in this working design</li>` : ''}</ul>
-        <p class="muted small">Codes from Oudolf's 2020 bulb plans: ${by.A} A (block), ${by.B} B (matrix), ${by.C} C (grouping) beds; A3 and B3 are split north/south.</p>`;
+      body = `<ul class="lg-keys"><li>${sw(TOK.steel, 'line')}Bed outline (steel edging), ±0.5 m</li><li>${sw(TOK.ink, 'line dashed')}Meadow or garden-area boundary</li>${store.scenario === 'working' ? `<li>${sw(TOK.ink, 'box hatch')}Empty bed, open for planting</li>` : ''}</ul><p class="muted small">Bed codes from Oudolf's 2020 bulb plans: A block, B matrix, C grouping.</p>`;
     } else if (gid === 'composition') {
-      body = `<ul class="lg-keys"><li>${sw('#B9A8C8', 'box')}Block / group (species colour)</li><li>${sw(TOK.meadow, 'box stipple')}Matrix (continuous base)</li><li>${sw('#9D7FA8', 'ring')}Emergent / individual</li><li>${sw('#8B7A55', 'box dotted')}Bulb drift, independent of the perennials</li><li>${sw(TOK.darkVeg, 'ring cross')}Woody plant position</li>${store.scenario === 'working' ? `<li>${sw(TOK.draft, 'box dotted')}Draft placement</li>` : ''}</ul>
-        <div class="lg-h">Species in view (by area)</div>${spRows(speciesInView('placements'), 'm2')}<p class="muted small">Species and roles: Oudolf legends 2019/2020. Patch shapes and positions are schematic.</p>`;
+      body = `<ul class="lg-keys"><li>${sw('#B9A8C8', 'box')}Block or group, in species colour</li><li>${sw(TOK.meadow, 'box stipple')}Matrix, the continuous base</li><li>${sw('#9D7FA8', 'ring')}Emergent or individual</li><li>${sw('#8B7A55', 'box dotted')}Bulbs, independent of the perennials</li><li>${sw(TOK.darkVeg, 'ring cross')}Woody plant position</li>${store.scenario === 'working' ? `<li>${sw(TOK.draft, 'box dotted')}Changed in this design</li>` : ''}</ul>
+        <h4>In view, by area</h4>${spRows(speciesInView('placements'), 'm2')}<p class="muted small">Species and roles from the legends; positions are schematic.</p>`;
     } else if (gid === 'representation') {
-      body = `<ul class="lg-keys"><li>${sw('#B59CBB', 'halo')}Forb: core + translucent spread</li><li>${sw('#8E9A6E', 'rays')}Grass / sedge</li><li>${sw('#7A6B57', 'dot small')}Bulb</li><li>${sw(TOK.darkVeg, 'disc')}Designed tree / shrub</li></ul>
-        <div class="lg-h">Proxies in view</div>${spRows(speciesInView('instances'), 'n')}<p class="muted small">Proxies, not plants: ≈0.42 per perennial, 0.12 per bulb, 1 per woody plant.</p>`;
+      body = `<ul class="lg-keys"><li>${sw('#B59CBB', 'halo')}Forb: flower core and spread</li><li>${sw('#8E9A6E', 'rays')}Grass or sedge</li><li>${sw('#7A6B57', 'dot small')}Bulb</li><li>${sw(TOK.darkVeg, 'disc')}Designed tree or shrub</li></ul>
+        <h4>In view</h4>${spRows(speciesInView('instances'), 'n')}<p class="muted small">One symbol stands for about 2–3 perennials or 8 bulbs.</p>`;
     } else if (gid === 'analysis') {
-      body = `<div class="lg-h">Slope (3DEP, ±1 m)</div><div class="ramp" style="background:${rampCss(RAMPS.slope)}"></div><div class="ramp-l"><span>0°</span><span>6°</span><span>≥12°</span></div>
-        <div class="lg-h">Distance to path (OSM)</div><div class="ramp" style="background:${rampCss(RAMPS.pathdist)}"></div><div class="ramp-l"><span>0</span><span>4 m</span><span>≥8 m</span></div>
-        <p class="muted small">Sun / shade, soil moisture and pH: no data. Nothing is drawn for them, and queries return null + unknown.</p>`;
+      body = `<h4>Slope, from the terrain</h4><div class="ramp" style="background:${rampCss(RAMPS.slope)}"></div><div class="ramp-l"><span>0°</span><span>6°</span><span>12°+</span></div>
+        <h4>Distance to the nearest path</h4><div class="ramp" style="background:${rampCss(RAMPS.pathdist)}"></div><div class="ramp-l"><span>0</span><span>4 m</span><span>8 m+</span></div>
+        <h4>Not available</h4><ul class="lg-keys"><li><span class="na">no data</span>Sun / shade</li><li><span class="na">no data</span>Soil moisture</li><li><span class="na">no data</span>Soil pH</li></ul>
+        <p class="muted small">Nothing is drawn for these; queries return them as unknown. Switch between slope and distance in the layer's parts.</p>`;
     }
-    return `<div class="lg-head"><div><div class="lg-k">Layer</div><div class="lg-t">${esc(g.name)}</div></div><button class="ins-x" data-a="close" aria-label="Close legend">×</button></div>${body}${st.iso ? sublayerRows(gid) + overlayRows(gid) : ''}<p class="src small">Sources: ${srcs}</p>`;
+    return `<h3>${esc(g.name)}</h3>${body}<p class="src small">Sources: ${srcs}</p>`;
   }
-  function worldLegend() {
-    const sc = plan.view.scale;
-    const near = st.view === 'plan' && sc > 6;
-    return `<div class="lg-head"><div><div class="lg-k">Legend · ${st.mode === 'canvas' ? 'working design' : 'reference'}</div><div class="lg-t">${near ? 'Planting in view' : 'Garden'}</div></div><button class="ins-x" data-a="close" aria-label="Close legend">×</button></div>` +
-      (near ? spRows(speciesInView('placements'), 'm2') : `<ul class="lg-keys"><li>${sw('#B9A8C8', 'box')}A · Block: blocks + emergents</li><li>${sw(TOK.meadow, 'box stipple')}B · Matrix: Sporobolus base + groups</li><li>${sw('#A7B08F', 'box')}C · Grouping: groups + individuals</li><li>${sw(TOK.midVeg, 'disc dashed')}Existing tree</li><li>${sw(TOK.path, 'box')}Path</li></ul>`) +
-      '<p class="muted small">Schematic reconstruction · not a survey.</p>';
+  function viewKey() {
+    if (st.filter === 'terrain') return groupKey('terrain');
+    const near = st.view === 'plan' && plan.view.scale > 6;
+    return `<h3>Key</h3>` + (near ? `<h4>Planting in view, by area</h4>${spRows(speciesInView('placements'), 'm2')}` :
+      `<ul class="lg-keys"><li>${sw('#B9A8C8', 'box')}A beds, block: blocks and emergents</li><li>${sw(TOK.meadow, 'box stipple')}B beds, matrix: grass base and groups</li><li>${sw('#A7B08F', 'box')}C beds, grouping: groups and individuals</li><li>${sw(TOK.midVeg, 'disc dashed')}Existing tree</li><li>${sw(TOK.path, 'box')}Path</li></ul>`);
   }
-  function wireLegend() {
-    legendEl.querySelector('[data-a=close]')?.addEventListener('click', () => { if (st.iso || st.mode === 'terrain') { legendEl.classList.toggle('min'); return; } st.legendOpen = false; renderLegend(); });
-    legendEl.querySelector('.lg-head')?.addEventListener('click', (e) => { if (legendEl.classList.contains('min') && !e.target.closest('button')) legendEl.classList.remove('min'); });
-    legendEl.querySelector('[data-tout]')?.addEventListener('change', (e) => { store.setViewState({ terrainOutline: e.target.checked }); });
-    legendEl.querySelectorAll('.eye').forEach((b) => b.addEventListener('click', () => {
-      const l = b.dataset.l; const on = !store.layerState[l].visible;
-      const other = { 'analysis.slope': 'analysis.pathdist', 'analysis.pathdist': 'analysis.slope' }[l]; // analysis rasters are exclusive
-      if (on && other) store.setLayer(other, { visible: false });
-      store.setLayer(l, { visible: on, external: true }); renderLegend();
-    }));
-    legendEl.querySelectorAll('input[data-ov]').forEach((i) => i.addEventListener('change', () => { const g = i.dataset.ov; const r = legendEl.querySelector(`input[data-op="${g}"]`); st.iso.overlays[g] = i.checked ? r.value / 100 : 0; r.disabled = !i.checked; plan.setIsolation(st.iso); syncUrl(); }));
-    legendEl.querySelectorAll('input[data-op]').forEach((r) => r.addEventListener('input', () => { st.iso.overlays[r.dataset.op] = r.value / 100; plan.request(); syncUrl(); }));
+  function renderKey() {
+    legendEl.hidden = false;
+    legendEl.innerHTML = st.solo ? groupKey(st.solo.group) : viewKey();
+    legendEl.querySelector('[data-tout]')?.addEventListener('change', (e) => store.setViewState({ terrainOutline: e.target.checked }));
+    legendEl.querySelector('[data-a=vex]')?.addEventListener('click', () => { const u = new URL(location.href); if (scene && scene.VEX === 1) u.searchParams.delete('vex'); else u.searchParams.set('vex', '1'); location.href = u.toString(); });
   }
-  let lgT = 0; const legendSoon = () => { clearTimeout(lgT); lgT = setTimeout(() => { if (!legendEl.hidden && legendEl.querySelector('.lg-sp')) renderLegend(); }, 180); };
-  $('#c2d').addEventListener('wheel', legendSoon, { passive: true }); $('#c2d').addEventListener('pointerup', legendSoon);
+  let kT = 0; const keySoon = () => { clearTimeout(kT); kT = setTimeout(() => { if (st.panel && legendEl.querySelector('.lg-sp, .muted')) renderKey(); }, 200); };
+  $('#c2d').addEventListener('wheel', keySoon, { passive: true }); $('#c2d').addEventListener('pointerup', keySoon);
 
-  // ---------------------------------------------------------------- coordinates + hover tag
+  // ---- exploded: an optional explanation of how the layers stack (3D)
+  function setExplode(on) {
+    if (!scene) return false;
+    if (on && st.solo) exitSolo({ silent: true });
+    st.explode = on; if (!on) st.plateFocus = null;
+    if (on && st.view === 'plan') st.view = '3d';
+    if (scene) scene.setPlateFocus(null);
+    applyCanvas();
+    return true;
+  }
+  const plateLabels = $('#platelabels');
+  function renderPlateLabels() {
+    plateLabels.innerHTML = '';
+    if (!st.explode) return;
+    for (const g of GROUPS) {
+      const d = document.createElement('div'); d.className = 'plabel' + (g.physical ? '' : ' virtual') + (st.plateFocus === g.id ? ' on' : st.plateFocus ? ' dim' : ''); d.dataset.g = g.id; d.setAttribute('role', 'listitem');
+      d.innerHTML = `<button class="n" data-a="focus">${esc(g.name)}${g.physical ? '' : ' <span class="k">plan only</span>'}</button>` + (st.plateFocus === g.id || !g.physical ? `<button class="go" data-a="solo">Show alone in plan</button>` : '');
+      d.querySelector('[data-a=focus]').onclick = () => (g.physical ? focusPlate(st.plateFocus === g.id ? null : g.id) : openSolo(g.id));
+      const s = d.querySelector('[data-a=solo]'); if (s) s.onclick = () => openSolo(g.id);
+      d.addEventListener('dblclick', () => openSolo(g.id));
+      plateLabels.appendChild(d);
+    }
+    placePlateLabels();
+  }
+  function placePlateLabels() {
+    if (!scene || !st.explode) return;
+    for (const el of plateLabels.children) {
+      const [x, y] = scene.plateAnchor(el.dataset.g);
+      el.style.transform = `translate(${Math.min(x + 10, scene.w - el.offsetWidth - 12).toFixed(0)}px, ${y.toFixed(0)}px) translate(0, -50%)`;
+    }
+  }
+  function focusPlate(gid) {
+    st.plateFocus = gid; if (scene) scene.setPlateFocus(gid && GROUP[gid].physical ? gid : null);
+    renderPlateLabels(); syncUrl();
+  }
+  if (scene) {
+    scene.onPlateClick = (g) => focusPlate(g === st.plateFocus ? null : g);
+    scene.onPlateOpen = (g) => openSolo(g);
+    scene.onPlateHover = (g) => { for (const el of plateLabels.children) el.classList.toggle('hov', el.dataset.g === g); };
+  }
+
+  // ================================================================ selection card, hover, coordinates
+  store.on('selection', (sel) => { renderInspector(store, sel, ctx); emit('selection', sel); });
+  store.on('model', () => renderInspector(store, store.selection, ctx));
   const coords = $('#coords');
-  const showXY = (x, y) => { const z = store.sampleElevation(x, y); coords.textContent = `x ${x.toFixed(2)}  y ${y.toFixed(2)}  z ${z == null ? '—' : z.toFixed(2)} m`; };
-  plan.onCursor = showXY; if (scene) scene.onCursor = showXY;
+  const showXY = (x, y) => { const z = store.sampleElevation(x, y); coords.textContent = `x ${x.toFixed(1)}  y ${y.toFixed(1)}  z ${z == null ? '—' : z.toFixed(2)} m`; };
+  plan.onCursor = showXY;
   const tag = $('#hovertag'); let mx = 0, my = 0;
   app.addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; if (!tag.hidden) tag.style.transform = `translate(${mx + 14}px, ${my + 16}px)`; });
   store.on('hover', (h) => {
     if (!h) { tag.hidden = true; return; }
     const o = store.getObject(h.id); if (!o) { tag.hidden = true; return; }
     const k = store.kindOf(h.id); let txt;
-    if (k === 'instance') { const sp = store.getObject(o.speciesId); txt = `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}<span class="k">${o.placementId ? 'plant proxy' : 'existing tree'}</span>`; }
-    else if (k === 'placement') { const sp = o.speciesIds[0] ? store.getObject(o.speciesIds[0]) : null; txt = `${sp ? `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}` : 'species not published'}<span class="k">${esc(o.role)}${o.status === 'draft' ? ' · draft' : ''}</span>`; }
+    if (k === 'instance') { const sp = store.getObject(o.speciesId); txt = `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}<span class="k">${o.placementId ? 'plant' : 'existing tree'}</span>`; }
+    else if (k === 'placement') { const sp = o.speciesIds[0] ? store.getObject(o.speciesIds[0]) : null; txt = `${sp ? `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}` : 'species not published'}<span class="k">${esc(o.role)}${o.status === 'draft' ? ', changed' : ''}</span>`; }
     else if (o.type === 'bed') txt = `${esc(o.name)}<span class="k">${esc(o.props.styleName)}</span>`;
     else txt = `${esc(o.name || o.id)}<span class="k">${esc(o.type)}</span>`;
     tag.innerHTML = txt; tag.hidden = false; tag.style.transform = `translate(${mx + 14}px, ${my + 16}px)`;
   });
+  $('#btnSite').addEventListener('click', () => { const a = $('#about'); if (a.hidden) { renderAbout(store, preset); a.hidden = false; } else a.hidden = true; });
 
-  // ---------------------------------------------------------------- layer index
-  buildLayerTree(store, { openIso: (g) => { if (st.view === 'layers' || st.iso) openIso(g); else openIso(g); } });
-  $('#ltoggle').addEventListener('click', () => { const L = $('#layers'); L.classList.toggle('collapsed'); $('#ltoggle').setAttribute('aria-expanded', String(!L.classList.contains('collapsed'))); try { localStorage.setItem('gp.layersOpen', L.classList.contains('collapsed') ? '0' : '1'); } catch {} });
-  let lopen = false; try { lopen = localStorage.getItem('gp.layersOpen') === '1'; } catch {}
-  if (lopen && window.innerWidth >= 760) { $('#layers').classList.remove('collapsed'); $('#ltoggle').setAttribute('aria-expanded', 'true'); }
-
-  // ---------------------------------------------------------------- inspector
-  store.on('selection', (sel) => renderInspector(store, sel, ctx));
-  store.on('model', () => renderInspector(store, store.selection, ctx));
-  $('#btnAbout').addEventListener('click', () => { const a = $('#about'); if (a.hidden) { renderAbout(store); a.hidden = false; $('#inspector').hidden = true; } else a.hidden = true; });
-
-  // ---------------------------------------------------------------- keys
+  // ================================================================ keys: Esc steps back one level at a time
+  function goBack() {
+    if (!$('#draftdlg').hidden) { $('#draftdlg').hidden = true; return true; }
+    if (!menu.hidden) { closeMenu(); return true; }
+    if (!$('#about').hidden) { $('#about').hidden = true; return true; }
+    if (store.selection) { store.select(null); return true; }
+    if (st.solo) { exitSolo(); return true; }
+    if (st.explode) { if (st.plateFocus) focusPlate(null); else setExplode(false); return true; }
+    if (st.panel) { setPanel(false); return true; }
+    return false;
+  }
   window.addEventListener('keydown', (e) => {
     if (e.target.closest && e.target.closest('input, textarea, select')) return;
-    if (!$('#draftdlg').hidden) { if (e.key === 'Escape') $('#draftdlg').hidden = true; return; }
-    if (e.key === 'Escape') {
-      if (!$('#about').hidden) { $('#about').hidden = true; return; }
-      if (store.selection) { store.select(null); return; }
-      goBack();
-    } else if (e.key === 'Enter' && st.view === 'layers' && st.plateFocus && !(e.target.closest && e.target.closest('button'))) { openIso(st.plateFocus); }
+    if (e.key === 'Escape') { goBack(); return; }
+    if (!$('#draftdlg').hidden) return;
+    if (e.key === 'Enter' && st.explode && st.plateFocus && !(e.target.closest && e.target.closest('button'))) openSolo(st.plateFocus);
     else if (e.key === 'f' || e.key === 'F') fit();
     else if (e.key === 'Backspace' || e.key === 'ArrowUp') { if (store.selection) { e.preventDefault(); picker.up(); } }
-    else if (e.key === '1' && scene) setView('3d'); else if (e.key === '2') setView('plan'); else if (e.key === '3' && scene) setView('layers');
-    else if ((e.key === 'e' || e.key === 'E') && scene) setView(st.view === 'layers' ? '3d' : 'layers');
-    else if (e.key === 'l' || e.key === 'L') { st.legendOpen = !st.legendOpen; renderLegend(); }
+    else if (e.key === '1' && scene) { if (st.explode) setExplode(false); setObs('3d'); }
+    else if (e.key === '2') setObs('plan');
+    else if (e.key === '3' && scene) setExplode(true);
+    else if ((e.key === 'e' || e.key === 'E') && scene) setExplode(!st.explode);
+    else if (e.key === 'l' || e.key === 'L') setPanel(!st.panel);
   });
 
-  // ---------------------------------------------------------------- URL state (screenshots, links)
+  // ================================================================ URL state
   function syncUrl() {
     if (st._noSync) return;
-    const u = new URL(location.href);
-    u.searchParams.set('view', st.view);
-    st.mode !== 'reference' ? u.searchParams.set('mode', st.mode) : u.searchParams.delete('mode');
-    const layer = st.iso ? st.iso.group : st.view === 'layers' ? st.plateFocus : null;
-    layer ? u.searchParams.set('layer', layer) : u.searchParams.delete('layer');
-    const ov = st.iso ? Object.entries(st.iso.overlays).filter(([, v]) => v > 0).map(([k, v]) => `${k}:${(+v).toFixed(2)}`).join(',') : '';
-    ov ? u.searchParams.set('overlay', ov) : u.searchParams.delete('overlay');
-    for (const k of ['explode', 'draft', 'then']) u.searchParams.delete(k);
+    const u = new URL(location.href); const q = u.searchParams;
+    q.set('view', st.explode ? 'layers' : st.view === '3d' ? 'axo' : 'plan');
+    st.design === 'working' ? q.set('design', 'working') : q.delete('design');
+    st.filter !== 'all' ? q.set('filter', st.filter) : q.delete('filter');
+    st.solo ? q.set('solo', st.solo.group) : q.delete('solo');
+    const ov = st.solo ? Object.entries(st.solo.overlays).filter(([, v]) => v > 0).map(([k, v]) => `${k}:${(+v).toFixed(2)}`).join(',') : '';
+    ov ? q.set('overlay', ov) : q.delete('overlay');
+    st.explode && st.plateFocus ? q.set('layer', st.plateFocus) : q.delete('layer');
+    st.panel ? q.set('panel', '1') : q.delete('panel');
+    for (const k of ['explode', 'draft', 'then', 'mode']) q.delete(k);
     history.replaceState(null, '', u);
   }
 
-  // ---------------------------------------------------------------- AI-facing API (read / query / draft; no renderer access needed)
-  window.GP = {
-    version: store.model.project.version, api: '0.4',
+  // ================================================================ API: same calls in the page (window.GP) and, embedded, over postMessage
+  const api = {
+    version: store.model.project.version, api: '0.5', component: 'site-setup',
     get model() { return store.model.project; },
+    site: () => ({ ...preset }), sites: () => presets.map((p) => ({ ...p })),
     getObject: (id) => store.getObject(id), getBedAt: (x, y) => store.getBedAt(x, y),
     queryObjects: (g, f) => store.queryObjects(g, f), query: (g, f) => store.query(g, f), queryInstances: (g, f) => store.queryInstances(g, f),
     sampleConditions: (x, y) => store.sampleConditions(x, y), getPlantingContext: (id) => store.getPlantingContext(id),
     plantableAt: (x, y) => store.plantableAt(x, y), speciesTally: (f) => store.speciesTally(f), instancesOfPlacement: (id) => store.instancesOfPlacement(id).map((i) => 'pi.' + i),
-    scenario: () => store.scenario, setScenario: (s) => { const ok = s === 'reference' ? setMode('reference', { silent: true }) : s === 'working' ? setMode('canvas', { silent: true }) : false; return !!ok; },
-    mode: () => st.mode, setMode: (m) => setMode(m, { silent: true }),
-    createDraft: (o) => { const r = store.createDraft(o); if (r.ok) setMode('canvas', { silent: true }); return r; },
+    // design
+    design: () => st.design, setDesign: (d) => setDesign(d === 'working' || d === 'canvas' ? 'working' : 'reference', { silent: true }),
+    scenario: () => store.scenario, setScenario: (s) => setDesign(s === 'working' ? 'working' : 'reference', { silent: true }),
+    createDraft: (o) => { const r = store.createDraft(o); if (r.ok) setDesign('working', { silent: true }); return r; },
     blankScopePreview: (scope) => store.blankScopePreview(scope), draftInfo: () => store.draftInfo(), draftSummary: () => store.draftSummary(),
-    applyPatch: (ops, o) => { const r = store.applyPatch(ops, o); if (r.ok && !r.dryRun && st.mode !== 'canvas') setMode('canvas', { silent: true }); return r; },
-    resetDraft: () => { const r = store.resetDraft(); if (!store.draft) setMode('reference', { silent: true }); return r; },
-    discardDraft: () => { const r = store.discardDraft(); setMode('reference', { silent: true }); return r; },
+    applyPatch: (ops, o) => { const r = store.applyPatch(ops, o); if (r.ok && !r.dryRun && st.design !== 'working') setDesign('working', { silent: true }); return r; },
+    resetDraft: () => { const r = store.resetDraft(); if (!store.draft) setDesign('reference', { silent: true }); return r; },
+    discardDraft: () => { const r = store.discardDraft(); setDesign('reference', { silent: true }); return r; },
     setEditLock: (id, on) => store.setEditLock(id, on),
-    exportModel: (o) => store.exportModel(o), exportDraft: () => store.exportDraft(), importDraft: (o) => { const r = store.importDraft(o); if (r.ok) setMode('canvas', { silent: true }); return r; },
+    exportModel: (o) => store.exportModel(o), exportDraft: () => store.exportDraft(), importDraft: (o) => { const r = store.importDraft(o); if (r.ok) setDesign('working', { silent: true }); return r; },
     diffDraft: () => store.diffDraft(),
-    select: (id) => store.select(id ? { id } : null), selection: () => store.selection,
-    layers: () => Object.fromEntries(Object.entries(store.layerState).map(([k, v]) => [k, { ...v }])),
+    // view
+    viewState: () => ({ view: st.explode ? 'layers' : st.view === '3d' ? 'axo' : 'plan', design: st.design, filter: st.filter, solo: st.solo ? { ...st.solo, overlays: { ...st.solo.overlays } } : null, panel: st.panel, axoHome: scene ? scene.isHome() : null }),
+    view: () => (st.explode ? 'layers' : st.view),
+    setView: (v) => { if (v === 'layers') return setExplode(true); if (st.explode) setExplode(false); setObs(v); return true; },
+    setViewFilter: (f) => setFilter(f), viewFilter: () => st.filter,
+    setExploded: (on) => setExplode(!!on), setPanel: (on) => setPanel(!!on), fit,
+    solo: (gid, o) => openSolo(gid, o || {}), openLayer: (gid, o) => openSolo(gid, o || {}), closeLayer: () => exitSolo(), exitSolo: () => exitSolo(),
+    focusLayer: (gid) => { setExplode(true); focusPlate(gid); return true; }, back: goBack,
+    isolation: () => (st.solo ? { group: st.solo.group, overlays: { ...st.solo.overlays } } : null),
+    setOverlay: (gid, op) => { if (!st.solo || !GROUP[gid]) return false; st.solo.overlays[gid] = op; plan.setIsolation(st.solo); renderPanel(); syncUrl(); return true; },
     layerGroups: () => GROUPS.map((g) => ({ id: g.id, name: g.name, layers: g.layers.slice(), visible: groupVisible(store, g.id), locked: groupLocked(store, g.id) })),
+    layers: () => Object.fromEntries(Object.entries(store.layerState).map(([k, v]) => [k, { ...v }])),
     setLayer: (id, p) => store.setLayer(id, { ...p, external: true }), setLayerGroup: (gid, p) => setGroup(store, gid, { ...p, external: true }),
-    view: () => st.view, setView, openLayer: (gid, o) => openIso(gid, o || {}), closeLayer: () => exitIso(true), focusLayer: (gid) => { if (st.view !== 'layers') setView('layers'); focusPlate(gid); }, back: goBack,
-    isolation: () => (st.iso ? { group: st.iso.group, overlays: { ...st.iso.overlays } } : null), setOverlay: (gid, op) => { if (!st.iso) return false; st.iso.overlays[gid] = op; plan.setIsolation(st.iso); renderLegend(); return true; },
+    select: (id) => store.select(id ? { id } : null), selection: () => store.selection,
+    on: (type, fn) => { const h = (e) => fn(e.detail); bus.addEventListener(type, h); return () => bus.removeEventListener(type, h); },
+    // compatibility with Phase 01.1 (Reference / Canvas / Terrain were one switch)
+    mode: () => (st.filter === 'terrain' ? 'terrain' : st.design === 'working' ? 'canvas' : 'reference'),
+    setMode: (m) => (m === 'terrain' ? (setFilter('terrain'), true) : (setFilter('all'), setDesign(m === 'canvas' ? 'working' : 'reference', { silent: true }))),
     _store: store, _plan: plan, _scene: scene, _ui: st,
   };
+  window.GP = api;
+  // embedded in a workflow: the parent calls the same API by message; only plain-data methods are exposed
+  const BRIDGE = new Set(['site', 'sites', 'getObject', 'getBedAt', 'queryObjects', 'query', 'sampleConditions', 'getPlantingContext', 'plantableAt', 'speciesTally', 'instancesOfPlacement',
+    'design', 'setDesign', 'createDraft', 'blankScopePreview', 'draftInfo', 'draftSummary', 'applyPatch', 'resetDraft', 'discardDraft', 'exportDraft', 'importDraft', 'diffDraft',
+    'viewState', 'setView', 'setViewFilter', 'setExploded', 'setPanel', 'fit', 'solo', 'exitSolo', 'setOverlay', 'layerGroups', 'setLayerGroup', 'select', 'selection']);
+  window.addEventListener('message', (e) => {
+    const m = e.data; if (!m || m.gp !== 'call' || e.source !== window.parent || window.parent === window) return;
+    let reply;
+    try { if (!BRIDGE.has(m.method)) throw new Error('not available: ' + m.method); reply = { gp: 'result', id: m.id, ok: true, value: JSON.parse(JSON.stringify(api[m.method](...(Array.isArray(m.args) ? m.args : [])) ?? null)) }; }
+    catch (err) { reply = { gp: 'result', id: m.id, ok: false, error: String(err.message || err) }; }
+    e.source.postMessage(reply, e.origin === 'null' ? '*' : e.origin);
+  });
 
-  // ---------------------------------------------------------------- initial state
+  // ================================================================ initial state (URL; Phase 01.1 URLs still work)
   const restored = store.restorePersisted();
   st._noSync = true;
-  setView(params.get('view') === '3d' && scene ? '3d' : params.get('view') === 'layers' && scene ? 'layers' : params.get('view') === 'plan' ? 'plan' : scene ? '3d' : 'plan');
+  const pv = params.get('view'); const pm = params.get('mode');
   for (const tok of (params.get('layers') || '').split(',').filter(Boolean)) { const id = tok.replace(/^[+-]/, ''); if (store.layerState[id]) store.setLayer(id, { visible: !tok.startsWith('-'), external: true }); }
   const dq = params.get('draft');
   if (dq === 'blank' || dq === 'copy') store.createDraft({ from: dq === 'blank' ? 'blank' : 'reference', activate: false });
   if (dq === 'demo') demoDraft(store);
-  const m = params.get('mode'); if (m === 'canvas' || m === 'terrain') setMode(m, { silent: true }); else setMode('reference', { silent: true });
-  if (params.get('then') === 'reference') setMode('reference', { silent: true });
-  if (params.get('lopen') === '1') { $('#layers').classList.remove('collapsed'); $('#ltoggle').setAttribute('aria-expanded', 'true'); }
-  if (params.get('explode') === '1' && scene) setView('layers');
-  const lay = params.get('layer');
-  if (lay && GROUP[lay]) {
-    if (st.view === 'layers') focusPlate(lay);
-    else { const ov = {}; for (const t of (params.get('overlay') || '').split(',').filter(Boolean)) { const [g, v] = t.split(':'); if (GROUP[g]) ov[g] = Math.max(0.05, Math.min(1, +v || 0.5)); } openIso(lay, { overlays: ov, fromUrl: true }); }
-  }
+  const wantWorking = params.get('design') === 'working' || pm === 'canvas';
+  setDesign(wantWorking && store.draft ? 'working' : 'reference', { silent: true });
+  if (params.get('then') === 'reference') setDesign('reference', { silent: true });
+  setFilter(params.get('filter') || (pm === 'terrain' ? 'terrain' : 'all'));
+  setObs(pv === 'plan' || !scene ? 'plan' : '3d');
+  if (params.get('panel') === '1' || params.get('lopen') === '1' || params.get('legend') === '1') setPanel(true);
+  if ((pv === 'layers' || params.get('explode') === '1') && scene) setExplode(true);
+  const solo = params.get('solo') || (pv === 'plan' && params.get('layer'));
+  if (solo && GROUP[solo]) { const ov = {}; for (const t of (params.get('overlay') || '').split(',').filter(Boolean)) { const [g, v] = t.split(':'); if (GROUP[g]) ov[g] = Math.max(0.05, Math.min(1, +v || 0.5)); } openSolo(solo, { overlays: ov, fromUrl: true }); }
+  else if (st.explode && params.get('layer') && GROUP[params.get('layer')]) focusPlate(params.get('layer'));
   if (params.get('sel')) { const at = (params.get('at') || '').split(',').map(Number); store.select({ id: params.get('sel'), ...(at.length === 2 && at.every(isFinite) ? { at } : {}) }); }
+  if (params.get('details') === '1') { st.inspectorOpen = true; renderInspector(store, store.selection, ctx); }
   if (params.get('focus') === '1' && store.selection) {
     if (st.view === 'plan') { plan.focus(store.selection.id); if (params.get('z')) { plan.view.scale *= +params.get('z'); plan.request(); } }
     else if (scene) scene.focus(store.selection.id, +(params.get('z') || 1), true);
   }
-  if (params.get('legend') === '1') { st.legendOpen = true; renderLegend(); }
-  if (params.get('about') === '1') $('#btnAbout').click();
+  if (params.get('about') === '1') $('#btnSite').click();
+  if (params.get('newdesign') === '1') openDraftDialog();
   st._noSync = false; syncUrl();
-  renderStatus(); renderLegend();
-  if (restored && st.mode === 'reference') $('#note').insertAdjacentHTML('beforeend', ' <span class="pill">working design restored · open Canvas</span>');
+  renderDesign(); renderStatus();
+  if (restored && st.design === 'reference') $('#btnWorking').title = 'Your working design from last time is kept. Open it.';
   $('#loading').classList.add('done');
   document.documentElement.dataset.ready = '1';
+  emit('ready', { site: preset.id, api: api.api });
 }
 
 // a reproducible demo change for screenshots (?draft=demo): one real B1 group replaced in a copy of the reference
@@ -428,197 +517,7 @@ function demoDraft(store) {
   if (g) { const r = store.applyPatch([{ op: 'replaceSpecies', target: g.id, speciesIds: ['sp.achillea-moonshine'] }]); if (!r.ok) console.warn('demo draft refused', r.errors); }
 }
 
-// ======================================================================= layer index (seven groups)
-const EYE = '<svg viewBox="0 0 20 20" width="15" height="15"><path d="M1.8 10s3-5.4 8.2-5.4 8.2 5.4 8.2 5.4-3 5.4-8.2 5.4S1.8 10 1.8 10Z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="10" r="2.3" fill="currentColor"/></svg>';
-const EYE_OFF = '<svg viewBox="0 0 20 20" width="15" height="15"><path d="M1.8 10s3-5.4 8.2-5.4 8.2 5.4 8.2 5.4-3 5.4-8.2 5.4S1.8 10 1.8 10Z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3 17 17 3" stroke="currentColor" stroke-width="1.3"/></svg>';
-const LOCK = '<svg viewBox="0 0 20 20" width="13" height="13"><rect x="4.5" y="9" width="11" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
-const CHEV = '<svg viewBox="0 0 12 12" width="11" height="11"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
-const OPEN = '<svg viewBox="0 0 16 16" width="13" height="13"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M6 10l4-4M7 6h3v3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
-function buildLayerTree(store, { openIso }) {
-  const root = document.getElementById('ltree');
-  const open = new Set();
-  const render = () => {
-    root.innerHTML = '';
-    for (const g of GROUPS) {
-      const vis = groupVisible(store, g.id), lk = groupLocked(store, g.id);
-      const row = document.createElement('div'); row.className = 'lrow group'; row.dataset.group = g.id;
-      row.innerHTML = `<button class="chev" aria-expanded="${open.has(g.id)}" aria-label="Expand ${esc(g.name)}">${CHEV}</button><span class="name" title="${esc(g.blurb)}">${esc(g.name)}</span>` +
-        `<button class="tg go" title="Open ${esc(g.name)} in Plan" aria-label="Open ${esc(g.name)} in Plan">${OPEN}</button>` +
-        `<button class="tg eye ${vis ? '' : 'off'}" aria-pressed="${vis}" aria-label="Show ${esc(g.name)}" title="Visible">${vis ? EYE : EYE_OFF}</button>` +
-        `<button class="tg lock ${lk ? 'on' : ''}" aria-pressed="${lk}" aria-label="Lock ${esc(g.name)}" title="${lk ? 'Locked: not selectable' : 'Unlocked'}">${LOCK}</button>`;
-      root.appendChild(row);
-      row.querySelector('.chev').onclick = () => { open.has(g.id) ? open.delete(g.id) : open.add(g.id); render(); };
-      row.querySelector('.go').onclick = () => openIso(g.id);
-      row.querySelector('.eye').onclick = () => { setGroup(store, g.id, { visible: !vis }); render(); };
-      row.querySelector('.lock').onclick = () => { setGroup(store, g.id, { locked: !lk }); render(); };
-      if (!open.has(g.id)) continue;
-      for (const l of g.layers) {
-        const L = store.layers.get(l); if (!L) continue;
-        const s = store.layerState[l]; const na = L.status === 'unavailable';
-        const r = document.createElement('div'); r.className = 'lrow child' + (store.layerVisible(l) ? '' : ' dim'); r.dataset.layer = l;
-        r.innerHTML = `<span></span><span class="name" title="${esc(L.name)}">${esc(LAYER_NAME[l] || L.name)}</span><span></span>` +
-          (na ? '<span class="na" title="No data available — unknown, not zero">no data</span>' :
-            `<button class="tg eye ${s.visible ? '' : 'off'}" aria-pressed="${s.visible}" aria-label="Show ${esc(LAYER_NAME[l] || L.name)}">${s.visible ? EYE : EYE_OFF}</button><button class="tg lock ${s.locked ? 'on' : ''}" aria-pressed="${s.locked}" aria-label="Lock ${esc(LAYER_NAME[l] || L.name)}">${LOCK}</button>`);
-        root.appendChild(r);
-        const e = r.querySelector('.eye'); if (e) e.onclick = () => { store.setLayer(l, { visible: !s.visible }); render(); };
-        const k = r.querySelector('.lock'); if (k) k.onclick = () => { store.setLayer(l, { locked: !s.locked }); render(); };
-      }
-    }
-  };
-  render();
-  store.on('layers', (e) => { if (e && e.external) render(); });
-  store.on('model', render);
-}
-
-// ======================================================================= inspector
-function badge(status, dataKind) {
-  let h = '';
-  if (status) h += `<span class="badge ${esc(status)}" title="Evidence status">${esc(STATUS_LABEL[status] || status)}</span>`;
-  if (dataKind) h += `<span class="badge kind" title="dataKind">${esc(dataKind)}</span>`;
-  return h;
-}
-function spName(sp) { return `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ` ‘${esc(sp.cultivar)}’` : ''}`; }
-function fmt(n, d = 1) { return n == null ? '<span class="unk">unknown</span>' : (+n).toLocaleString('en-US', { maximumFractionDigits: d }); }
-const ROLE_LABEL = { block: 'block', emergent: 'emergent', matrix: 'matrix', group: 'group', individual: 'individual / small group', scatter: 'scatter', 'bulb-drift': 'bulb drift', 'bulb-cluster': 'bulb cluster', 'bulb-scatter': 'bulb scatter', 'bulb-line': 'bulb line', tree: 'tree', shrub: 'shrub', hedgerow: 'hedgerow', meadow: 'meadow mix' };
-
-function renderInspector(store, sel, ctx) {
-  const el = document.getElementById('inspector');
-  if (!sel) { el.hidden = true; el.innerHTML = ''; return; }
-  document.getElementById('about').hidden = true;
-  const o = store.getObject(sel.id);
-  if (!o) { el.hidden = true; return; }
-  const kind = store.kindOf(sel.id);
-  const crumbs = [];
-  let title = '', sub = '', body = '', status = o.status, dk = o.dataKind;
-  const scen = store.scenario === 'working' ? '<span class="badge draftb" title="You are looking at the working design">Working design</span>' : '<span class="badge refb" title="Read-only reference">Reference</span>';
-  const crumbFor = (id) => { const r = store.getObject(id); return r ? { id, label: r.name || r.id.replace('bed.', 'Bed ') } : null; };
-  if (sel.point) {
-    title = 'Point on the site'; sub = `x ${sel.at ? sel.at[0] : '—'} · y ${sel.at ? sel.at[1] : '—'}`; status = null; dk = null;
-  } else if (kind === 'instance') {
-    const sp = store.getObject(o.speciesId); const pl = o.placementId ? store.getObject(o.placementId) : null;
-    if (o.bedId) { const b = store.getObject(o.bedId); crumbs.push(crumbFor(b.parent), crumbFor(b.id)); }
-    if (pl) crumbs.push({ id: pl.id, label: pl.legendCode ? `${ROLE_LABEL[pl.role] || pl.role} ${pl.legendCode}` : ROLE_LABEL[pl.role] || pl.role });
-    title = sp.scientificName + (sp.cultivar ? ` ‘${sp.cultivar}’` : '');
-    sub = `${pl ? 'Plant proxy' : 'Existing tree (site vegetation)'} · ${o.id} · ${sp.plantType}`;
-    body += sec('Plant', kv([
-      ['Species', spName(sp)], ['Plant type', esc(sp.plantType)], ['Form proxy', `${esc(sp.formProxy)} <span class="unk">(inferred)</span>`],
-      ['Display height', `${fmt(sp.nominalHeightM * o.scale, 2)} m <span class="unk">nominal, not measured</span>`],
-      ['Position', `<span class="mono">${o.position[0]}, ${o.position[1]}</span>`], ['Elevation', `${fmt(o.elevation, 2)} m`], ['Position source', esc(o.positionSource)],
-    ]) + `<p class="note">${esc(o.note)}</p>` + aliasNote(sp));
-    if (pl) body += sec('Placement', kv([['Placement', `<span class="mono">${esc(pl.id)}</span>`], ['Role in recipe', esc(ROLE_LABEL[pl.role] || pl.role)], ['Legend code', esc(pl.legendCode || '—')], ['Recipe', esc(pl.recipeId || '—')]]));
-  } else if (kind === 'placement') {
-    const b = o.bedId ? store.getObject(o.bedId) : null;
-    if (b) crumbs.push(crumbFor(b.parent), crumbFor(b.id));
-    const sps = (o.speciesIds || []).map((s) => store.getObject(s));
-    const rows = store.instancesOfPlacement(o.id);
-    title = sps.length ? sps.map((s) => s.scientificName + (s.cultivar ? ` ‘${s.cultivar}’` : '')).join(' + ') : 'Species not published';
-    sub = `${o.kind === 'area' ? 'Patch' : o.kind === 'point' ? 'Symbol' : 'Scatter'} · ${ROLE_LABEL[o.role] || o.role}${o.legendCode ? ' · legend “' + o.legendCode + '”' : ''}`;
-    body += sec('Placement', kv([
-      ['Id', `<span class="mono">${esc(o.id)}</span>`], ['Geometry', esc(o.kind) + (o.geometryRef ? ` (= ${esc(o.geometryRef)})` : '')],
-      ['Area', o.areaM2 != null ? `${fmt(o.areaM2)} m²` : '—'], ['Recipe', esc(o.recipeId || '—')],
-      ['Real plants (est.)', o.countEstimatedReal != null ? fmt(o.countEstimatedReal, 0) : '<span class="unk">not published</span>'],
-      ['Visual proxies', `${rows.length.toLocaleString()} <span class="unk">live in this scenario</span>`], ['Position source', esc(o.positionSource)],
-      ...(o.replaced ? [['Replaced', `${o.replaced.speciesIds.map((id) => { const r = store.getObject(id); return r ? spName(r) : esc(id); }).join(' + ')}${o.replaced.legendCode ? ` (legend “${esc(o.replaced.legendCode)}”)` : ''} <span class="unk">in this working design</span>`]] : []),
-    ]) + `<p class="note">${esc(o.countBasis || '')}${o.note ? ' ' + esc(o.note) : ''}${o.bloomNote ? ' ' + esc(o.bloomNote) : ''}</p>`);
-    if (sps.length) body += sec('Species', `<ul class="splist">${sps.map((s) => `<li><span class="swatch" style="background:${speciesPlanColor(s)}"></span><span>${spName(s)}</span><span class="role">${esc(s.plantType)}</span></li>`).join('')}</ul>`);
-    if (DEV && store.scenario === 'working') body += devEditor(store, o);
-  } else {
-    if (o.parent) { const p = store.getObject(o.parent); if (p && p.parent) crumbs.push(crumbFor(p.parent)); if (p) crumbs.push(crumbFor(p.id)); }
-    title = o.name || o.id; sub = `${o.type}${o.props && o.props.styleName ? ' · ' + o.props.styleName : ''} · ${o.id}`;
-    const P = o.props || {};
-    const rows = [];
-    if (o.type === 'bed') {
-      rows.push(['Planting style', `${esc(P.styleName)}${P.style && 'ABC'.includes(P.style) ? ` (${P.style})` : ''}`]);
-      rows.push(['Original code', P.originalCode ? `<b>${esc(P.originalCode)}</b>` : '<span class="unk">none published</span>']);
-      if (P.column) rows.push(['Position', `column ${P.column} of 8 (W→E), ${P.row === 'N' ? 'north' : 'south'} row`]);
-      rows.push(['Area', `${fmt(P.areaM2)} m²`]);
-      if (P.osm) rows.push(['Outline', `OSM ${esc(P.osm)}`]);
-    } else {
-      for (const [k, v] of Object.entries(P)) { if (v == null || typeof v === 'object' || k === 'note' || k === 'codeNote') continue; rows.push([k.replace(/([A-Z])/g, ' $1').toLowerCase(), esc(v)]); }
-    }
-    body += sec(o.type === 'bed' ? 'Bed (framework)' : 'Object', kv(rows) + (P.codeNote ? `<p class="note">${esc(P.codeNote)}</p>` : '') + (P.note ? `<p class="note">${esc(P.note)}</p>` : ''));
-    if (o.type === 'bed' && P.style !== 'M') {
-      const ctxp = store.getPlantingContext(o.id);
-      const pls = store.placementsByBed.get(o.id) || [];
-      const bySp = new Map();
-      for (const p of pls) for (const s of p.speciesIds || []) { const k = s + '|' + p.role; bySp.set(k, (bySp.get(k) || 0) + 1); }
-      const items = [...bySp.entries()].map(([k, n]) => { const [s, role] = k.split('|'); return { sp: store.getObject(s), role, n }; }).sort((a, b) => roleOrder(a.role) - roleOrder(b.role) || b.n - a.n);
-      const stt = store.model.project.officialStatistics.mainGardenByStyle[P.style];
-      if (stt && store.scenario === 'reference') body += sec('Official counts — whole style', kv([['Style total', `${fmt(stt.plants, 0)} plants · ${stt.varieties} varieties`], ['Forbs / grasses', `${fmt(stt.forbs, 0)} / ${fmt(stt.grasses, 0)}`], ['Bulbs', fmt(stt.bulbs, 0)], ['As of', 'March 2023']]) + '<p class="note">Counts are published per style, not per bed.</p>');
-      body += sec(`${store.scenario === 'working' ? 'Working design' : 'Reference recipe'} in this bed · ${ctxp.placementCount} placements · ${ctxp.instanceCount.toLocaleString()} proxies`, (items.length ? `<ul class="splist">${items.slice(0, 60).map((it) => `<li><span class="swatch" style="background:${speciesPlanColor(it.sp)}"></span><span>${spName(it.sp)}</span><span class="role">${esc(ROLE_LABEL[it.role] || it.role)}${it.n > 1 ? ' ×' + it.n : ''}</span></li>`).join('')}</ul>` : '<p class="note">Empty in this working design — open for planting.</p>') +
-        (store.scenario === 'reference' ? '<p class="note">Species and roles: legends of this style (2019 plans, 2020 bulb plans). Positions are generated, not traced.</p>' : ''));
-    }
-  }
-  if (sel.at) {
-    const c = store.sampleConditions(sel.at[0], sel.at[1]);
-    const v = (k, d = 2) => (c[k].value == null ? `<span class="unk">${c[k].status === 'unknown' ? 'unknown — no data' : 'n/a'}</span>` : `${fmt(c[k].value, d)} ${esc(c[k].units)} <span class="unk">${c[k].status}</span>`);
-    const pa = c.constraints.plantable;
-    body += sec('Conditions at this point', kv([['Elevation', v('field.elevation')], ['Slope', v('field.slope', 1)], ['To nearest path', v('field.distance-to-path')], ['Sun / shade', v('field.sun')], ['Soil moisture', v('field.moisture')], ['Soil pH', v('field.ph')], ['Plantable', pa.value ? `yes · ${esc(pa.unitId)}${pa.editLocked ? ' (edit-locked)' : ''}` : `no <span class="unk">${esc(pa.reason)}</span>`], ['Planting here', `${c.placements.length} placement${c.placements.length === 1 ? '' : 's'} overlap`]]));
-  }
-  const srcs = (kind === 'instance' ? (store.getObject(o.placementId)?.sourceRefs || ['S-NAIP']) : o.sourceRefs || []).map((s) => store.getObject(s)).filter(Boolean);
-  if (srcs.length) body += sec('Sources', `<ul class="src">${srcs.map((s) => `<li>${s.url && /^https?:/.test(s.url) ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}</li>`).join('')}</ul>`);
-  const cr = crumbs.filter(Boolean).map((c) => `<button data-id="${esc(c.id)}">${esc(c.label)}</button>`).join('<span class="sep">›</span>');
-  el.innerHTML = `<div class="ins-h"><button class="ins-x" aria-label="Close">×</button>${cr ? `<div class="crumbs">${cr}</div>` : ''}<div class="ins-title">${esc(title)}</div><div class="ins-sub">${esc(sub)}</div><div class="badges">${scen}${badge(status, dk)}</div></div>${body}
-    <div class="actions"><button class="btn" data-act="focus">Zoom to</button><button class="btn" data-act="json">Copy JSON</button>${kind !== 'object' || o.type !== 'site' ? '<button class="btn" data-act="up">Select parent</button>' : ''}</div>`;
-  el.hidden = false;
-  el.querySelector('.ins-x').onclick = () => store.select(null);
-  el.querySelectorAll('.crumbs button').forEach((b) => (b.onclick = () => store.select({ id: b.dataset.id })));
-  el.querySelector('[data-act="focus"]').onclick = () => (ctx.st.view === 'plan' ? ctx.plan.focus(sel.id) : ctx.scene.focus(sel.id));
-  el.querySelector('[data-act="json"]').onclick = async (e) => {
-    const rec = kind === 'object' && o.type === 'bed' ? { ...o, plantingContext: store.getPlantingContext(o.id) } : o;
-    try { await navigator.clipboard.writeText(JSON.stringify(rec, null, 2)); e.target.textContent = 'Copied'; } catch { e.target.textContent = 'Copy failed'; }
-  };
-  const up = el.querySelector('[data-act="up"]'); if (up) up.onclick = () => ctx.picker.up();
-  el.querySelectorAll('[data-dev]').forEach((b) => b.addEventListener('click', () => devAction(store, o, b.dataset.dev, el)));
-}
-// developer test entry (?dev=1, working design only): exercises the same validated patch API an AI client would use
-function devEditor(store, o) {
-  const same = store.model.species.filter((s) => s.plantType !== 'tree' && s.plantType !== 'bulb').sort((a, b) => a.scientificName.localeCompare(b.scientificName));
-  return sec('Developer test · patch API', `<label class="small">Replace species <select data-sel>${same.map((s) => `<option value="${s.id}" ${o.speciesIds[0] === s.id ? 'selected' : ''}>${esc(s.scientificName)}${s.cultivar ? ' ‘' + esc(s.cultivar) + '’' : ''}</option>`).join('')}</select></label>
-    <div class="row"><button class="btn" data-dev="replace">Apply</button><button class="btn" data-dev="remove">Remove placement</button></div><p class="note" data-out></p>`);
-}
-function devAction(store, o, a, el) {
-  const out = el.querySelector('[data-out]');
-  const r = a === 'replace' ? store.applyPatch([{ op: 'replaceSpecies', target: o.id, speciesIds: [el.querySelector('[data-sel]').value] }]) : store.applyPatch([{ op: 'remove', target: o.id }]);
-  if (out) out.textContent = r.ok ? `ok · ${JSON.stringify(r.changes)}` : r.errors.map((e) => e.message).join('; ');
-}
-// a different cultivar in a later list is a possible substitution / version change, never silently the same plant
-function aliasNote(sp) {
-  if (!sp.aliases || !sp.aliases.length) return '';
-  const syn = sp.aliases.filter((a) => !/\(2026 list\)/.test(a)), sub = sp.aliases.filter((a) => /\(2026 list\)/.test(a));
-  return (syn.length ? `<p class="note">Same plant, other spelling: ${syn.map(esc).join('; ')}</p>` : '') +
-    (sub.length ? `<p class="note">The Feb 2026 plant list has <b>${sub.map((a) => esc(a.replace(' (2026 list)', ''))).join('; ')}</b> instead — a different cultivar (possible substitution or version change), not a synonym. The model keeps the 2019/2020 plan name.</p>` : '');
-}
-function roleOrder(r) { return ['matrix', 'block', 'group', 'emergent', 'individual', 'scatter', 'bulb-drift', 'bulb-cluster', 'bulb-scatter', 'bulb-line'].indexOf(r) + 1 || 99; }
-function sec(h, inner) { return `<div class="sec"><h4>${esc(h)}</h4>${inner}</div>`; }
-function kv(rows) { return `<dl class="kv">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')}</dl>`; }
-
-function renderAbout(store) {
-  const P = store.baseline.project; const el = document.getElementById('about');
-  const st = P.officialStatistics;
-  const beds = store.beds.filter((b) => 'ABC'.includes(b.props.style));
-  el.innerHTML = `<button class="ins-x" aria-label="Close" style="position:absolute;right:10px;top:10px">×</button>
-  <h3>Detroit · Spatial Laboratory</h3>
-  <p>A computable model of Oudolf Garden Detroit (Main Garden, Rain Garden, Bird Border, Native Meadows, Belle Isle), built as the spatial input for future AI-assisted planting research. One model drives the plan, the 3D model and the layer overview.</p>
-  <p><b>Three design states share one site.</b> <i>Reference</i> is a frozen schematic reconstruction (never edited). <i>Canvas</i> is your working design — a copy of the reference or a blank planting inside the bed framework. <i>Terrain</i> is a view of the ground only; nothing is deleted.</p>
-  <table><tr><th>Evidence</th><th>Status</th></tr>
-  <tr><td>15 main beds + 2 triangles + Rain Garden outlines (OSM, checked against USGS NAIP)</td><td><span class="badge documented">Documented</span></td></tr>
-  <tr><td>Bed codes A1–A4, B1–B5, C1–C4 (Oudolf 2020 bulb plans), style per bed (2019 key maps)</td><td><span class="badge documented">Documented</span></td></tr>
-  <tr><td>Species per style and their legend role (block / matrix / group / emergent / bulbs)</td><td><span class="badge documented">Documented</span></td></tr>
-  <tr><td>Patch shapes, symbol and plant positions inside beds</td><td><span class="badge schematic">Schematic</span></td></tr>
-  <tr><td>Meadow outlines, Bird Border alignment, cobble swale route</td><td><span class="badge schematic">Schematic</span></td></tr>
-  <tr><td>Terrain (USGS 3DEP 1 m); 3D relief shown ×1.6 unless “true scale”</td><td><span class="badge documented">Documented</span></td></tr>
-  <tr><td>Existing trees (crowns digitised from NAIP; species unknown)</td><td><span class="badge reconstructed">Reconstructed</span></td></tr>
-  <tr><td>Sun, soil moisture, pH</td><td><span class="badge unknown">Unknown</span></td></tr></table>
-  <p><b>Epoch.</b> ${esc(P.reconstructionEpoch.description)}</p>
-  <p><b>Official counts</b> (March 2023): Main Garden ${st.site['Main Garden'].plants.toLocaleString()} plants, ${st.site['Main Garden'].varieties} varieties. The reference holds ${store.refInstCount.toLocaleString()} visual plant proxies (${beds.length} main beds).</p>
-  <p><b>Coordinates.</b> ${esc(P.coordinateSystem.id)} — metres, x east, y north, origin ${P.coordinateSystem.origin.lat}, ${P.coordinateSystem.origin.lon}; elevation NAVD88.</p>
-  <p><b>Credits.</b> ${P.attribution.map(esc).join(' · ')}. Planting design © Piet Oudolf; this model cites the published plans and lists but does not reproduce the drawings. Visual language informed by landscape research drawings (UBC SALA, <i>Landscape as Laboratory</i>, 2024); nothing is copied from them.</p>
-  <p class="note">For agents: <span class="mono">window.GP</span> — getObject, query / queryObjects (exact geometry), sampleConditions, plantableAt, getPlantingContext, createDraft, applyPatch (validated, atomic), resetDraft, exportDraft / importDraft, layerGroups, openLayer. Data: <a href="data/detroit/model.json">model.json</a>, <a href="data/detroit/case.json">case.json</a>. Contract: <a href="docs/MODEL_CONTRACT.md">MODEL_CONTRACT.md</a>.</p>`;
-  el.querySelector('.ins-x').onclick = () => (el.hidden = true);
-}
-
 main().catch((e) => {
   console.error(e);
-  const l = document.getElementById('loading'); l.innerHTML = `<span>Could not load the model: ${esc(e.message)}</span>`;
+  const l = document.getElementById('loading'); l.innerHTML = `<span>The site could not be loaded: ${esc(e.message)}. Check the connection and reload.</span>`;
 });
