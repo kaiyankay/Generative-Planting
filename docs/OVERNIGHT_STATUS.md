@@ -6,7 +6,7 @@ _Checkpoint file. A resumed session reads this first, then `git log`, then the c
 |---|---|
 | Current gate | **G5 release done once; G3 visual refinement continuing** |
 | Branch | `main` (repo was empty at start, so main carries the first version; no force pushes) |
-| Last pushed commit | see `git log -1` (first push `55e5b23`) |
+| Last pushed commit | see `git log -1` |
 | Pages | enabled via API: source `main` / root, legacy build — https://kaiyankay.github.io/Generative-Planting/ |
 | Last model tests | `python3 -I tools/test_model.py` → 23/23 |
 | Last browser tests | `python3 -I tools/run_browser_tests.py` → 40/40 (headless Chrome, base path `/Generative-Planting/`); 40/40 in the desktop browser pane (Intel Iris Plus 650) |

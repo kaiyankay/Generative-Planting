@@ -76,7 +76,7 @@ export class Scene3D {
     this.cam.updateProjectionMatrix();
     this._dirty = true; this._lodDone = false; this._lastMove = performance.now();
   }
-  focus(id) {
+  focus(id, mul = 1, instant = false) {
     const o = this.s.getObject(id); if (!o) return;
     let g = o.geometry || (o.geometryRef ? this.s.getObject(o.geometryRef).geometry : null);
     if (o.type === 'plantInstance') g = { type: 'Point', coordinates: o.position };
@@ -85,7 +85,20 @@ export class Scene3D {
     const size = Math.max(6, b[2] - b[0], b[3] - b[1]);
     const t = this.W(c[0], c[1]);
     const off = this.cam.position.clone().sub(this.controls.target);
-    this._tween(t, (this.cam.top - this.cam.bottom) / (size * 2.1), off);
+    const zoom = Math.max(this.controls.minZoom, Math.min(this.controls.maxZoom, mul * (this.cam.top - this.cam.bottom) / (size * 2.1)));
+    // keep the object in the free space left of the inspector panel
+    const ins = document.getElementById('inspector');
+    const panel = ins && !ins.hidden && this.w > 760 ? ins.getBoundingClientRect().width + 16 : 0;
+    if (panel) {
+      const ppm = (this.h / (this.cam.top - this.cam.bottom)) * zoom;
+      const right = new THREE.Vector3().setFromMatrixColumn(this.cam.matrixWorld, 0).normalize();
+      t.addScaledVector(right, (panel / 2) / ppm);
+    }
+    if (instant) {
+      this.controls.target.copy(t); this.cam.position.copy(t).add(off); this.cam.zoom = zoom; this.cam.updateProjectionMatrix();
+      this.controls.update(); this.cam.updateMatrixWorld(); this._updateLOD(true); this._needsLabels = true; this._dirty = true; return;
+    }
+    this._tween(t, zoom, off);
   }
   _tween(target, zoom, off) {
     const t0 = performance.now(), T0 = this.controls.target.clone(), Z0 = this.cam.zoom;
@@ -125,6 +138,7 @@ export class Scene3D {
     const T = (x, y) => [(x - BOARD.x0) * sx, (BOARD.y1 - y) * sx];
     ctx.fillStyle = PAL.lawn; ctx.fillRect(0, 0, W, H);
     paintGround(ctx, this.s, T, { scale: sx, forTexture: true });
+    this._paintUnderstorey(ctx, T, sx);
     // mown-lawn grain + gravel speckle (deterministic)
     let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     ctx.globalAlpha = 0.06; ctx.fillStyle = '#5f6e45';
@@ -142,6 +156,35 @@ export class Scene3D {
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
     return tex;
+  }
+
+  // ground layer under the plants: low foliage tinted by the patch species, so gaps read as leaf shade, not bare mulch
+  _paintUnderstorey(ctx, T, sx) {
+    const s = this.s; if (!['veg.forbs', 'veg.grasses'].some((l) => s.layerVisible(l))) return;
+    const dark = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = (v) => Math.round(v * k).toString(16).padStart(2, '0'); return '#' + f((n >> 16) & 255) + f((n >> 8) & 255) + f(n & 255); };
+    for (const b of s.beds) {
+      const st = b.props.style;
+      ctx.beginPath(); tracePoly(ctx, b.geometry, T);
+      ctx.fillStyle = st === 'M' ? '#9A9A68' : st === 'B' || st === 'T' ? '#5F6A3C' : '#4F5C37'; ctx.fill('evenodd');
+    }
+    for (const p of s.model.placements) {
+      if (p.kind !== 'area' || !p.geometry || (p.role || '').startsWith('bulb')) continue;
+      const sp = s.getObject(p.speciesIds[0]); if (!sp) continue;
+      ctx.beginPath(); tracePoly(ctx, p.geometry, T); ctx.globalAlpha = 0.45; ctx.fillStyle = dark(sp.displayLeaf || '#5f7a45', 0.8); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    // leaf-litter grain
+    let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    ctx.save();
+    for (const b of s.beds) { ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.clip('evenodd'); }
+    ctx.restore();
+    for (const b of s.beds) {
+      ctx.save(); ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.clip('evenodd');
+      const bb = bboxOf(b.geometry); const [x0, y0] = T(bb[0], bb[3]); const [x1, y1] = T(bb[2], bb[1]);
+      const n = Math.round((x1 - x0) * (y1 - y0) / 30);
+      for (let i = 0; i < n; i++) { ctx.fillStyle = rnd() < 0.5 ? 'rgba(30,38,20,0.35)' : 'rgba(150,160,100,0.25)'; ctx.fillRect(x0 + rnd() * (x1 - x0), y0 + rnd() * (y1 - y0), 2, 2); }
+      ctx.restore();
+    }
+    void sx;
   }
 
   _terrain() {
@@ -277,15 +320,7 @@ export class Scene3D {
       const mat = new THREE.MeshLambertMaterial({ color: isTower ? 0xd9cdb4 : 0xe7e2d8 });
       const m = new THREE.Mesh(g, mat); m.position.y = base - 0.3; m.castShadow = true; m.receiveShadow = true;
       m.userData.layer = o.layer; this.built.add(m);
-      if (isTower) { // crown + pinnacles (massing, not a survey)
-        const g2 = new THREE.ExtrudeGeometry(shapes, { depth: 0.6, bevelEnabled: false }); g2.rotateX(-Math.PI / 2);
-        const crown = new THREE.Mesh(g2, new THREE.MeshLambertMaterial({ color: 0xc8bb9f })); crown.position.y = base - 0.3 + hgt - 3; crown.castShadow = true; crown.userData.layer = o.layer; this.built.add(crown);
-        const ring = o.geometry.coordinates[0];
-        for (let i = 0; i < ring.length - 1; i++) {
-          const p = ring[i]; const pin = new THREE.Mesh(new THREE.ConeGeometry(0.45, 3.4, 4), new THREE.MeshLambertMaterial({ color: 0xd9cdb4 }));
-          pin.position.set(p[0], base - 0.3 + hgt - 2.4 + 1.7, -p[1]); pin.castShadow = true; pin.userData.layer = o.layer; this.built.add(pin);
-        }
-      }
+      if (isTower) this._towerDetail(o, base - 0.3, hgt);
     }
     // monument + benches
     for (const o of s.model.objects) {
@@ -300,6 +335,40 @@ export class Scene3D {
       const shapes = this._shape(bw.geometry); const g = new THREE.ExtrudeGeometry(shapes, { depth: 0.12, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
       const c = centroidOf(bw.geometry); const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0xa88760 }));
       m.position.y = hY(c[0], c[1]) + 0.35; m.castShadow = true; m.receiveShadow = true; m.userData.layer = 'built.structures'; this.built.add(m);
+    }
+  }
+
+  // Carillon massing detail (illustrative neo-gothic articulation; height from OSM, details not surveyed)
+  _towerDetail(o, y0, H) {
+    const ring = o.geometry.coordinates[0].slice(0, -1);
+    const cx = ring.reduce((a, p) => a + p[0], 0) / ring.length, cy = ring.reduce((a, p) => a + p[1], 0) / ring.length;
+    const stone = new THREE.MeshLambertMaterial({ color: 0xd8ccb2 }), dark = new THREE.MeshLambertMaterial({ color: 0x4a4740 }), trim = new THREE.MeshLambertMaterial({ color: 0xc4b698 });
+    const add = (m) => { m.castShadow = true; m.receiveShadow = true; m.userData.layer = o.layer; this.built.add(m); return m; };
+    const scaled = (k) => ring.map((p) => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]);
+    const prism = (pts, yb, h, mat) => { const sh = new THREE.Shape(pts.map((q) => new THREE.Vector2(q[0], q[1]))); const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); const m = new THREE.Mesh(g, mat); m.position.y = yb; return add(m); };
+    prism(scaled(1.22), y0, 1.4, trim);              // plinth
+    prism(scaled(1.08), y0 + H - 3.4, 0.7, trim);    // belfry cornice
+    prism(scaled(1.1), y0 + H - 3.0, 0.5, trim);     // parapet
+    for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length];
+      const ex = b[0] - a[0], ey = b[1] - a[1]; const L = Math.hypot(ex, ey); const ux = ex / L, uy = ey / L;
+      let nx = uy, ny = -ux; if ((a[0] + ex / 2 - cx) * nx + (a[1] + ey / 2 - cy) * ny < 0) { nx = -nx; ny = -ny; }
+      const ang = Math.atan2(-ny, nx); // face orientation in three space
+      // corner buttresses, stepping in twice
+      for (const [h0, h1, d] of [[0, 0.45, 0.75], [0.45, 0.8, 0.5]]) {
+        const bx = new THREE.Mesh(new THREE.BoxGeometry(1.0, (h1 - h0) * (H - 3.4), 1.0 + d), stone);
+        bx.position.set(a[0] + nx * d * 0.35, y0 + (h0 + h1) / 2 * (H - 3.4), -(a[1] + ny * d * 0.35)); bx.rotation.y = ang; add(bx);
+      }
+      // belfry lancets + long vertical window strip
+      for (const k of [-1.3, 0, 1.3]) {
+        const px = a[0] + ux * (L / 2 + k) + nx * 0.06, py = a[1] + uy * (L / 2 + k) + ny * 0.06;
+        const lan = new THREE.Mesh(new THREE.BoxGeometry(0.7, 5.2, 0.14), dark); lan.position.set(px, y0 + H - 7, -py); lan.rotation.y = ang; add(lan);
+        const arch = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.8, 4), dark); arch.position.set(px, y0 + H - 4.0, -py); arch.rotation.y = ang + Math.PI / 4; arch.scale.z = 0.25; add(arch);
+      }
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.5, H * 0.42, 0.12), dark);
+      win.position.set(a[0] + ux * L / 2 + nx * 0.05, y0 + H * 0.36, -(a[1] + uy * L / 2 + ny * 0.05)); win.rotation.y = ang; add(win);
+      // corner pinnacles
+      const pin = new THREE.Mesh(new THREE.ConeGeometry(0.42, 3.0, 4), stone); pin.position.set(a[0], y0 + H - 2.5 + 1.5, -a[1]); pin.rotation.y = Math.PI / 4; add(pin);
     }
   }
 
@@ -347,59 +416,78 @@ export class Scene3D {
       this._fill(far, list);
       this.plantMeshes.push(far);
       if (!woody && layer !== 'veg.bulbs') {
-        const near = make(formGeometry(form, 'near'), list.length, layer, form, 'near');
+        const near = make(formGeometry(form, 'near'), list.length * 2, layer, form, 'near');
         near.count = 0; near.userData.all = list; near.visible = false;
         this.plantMeshes.push(near); this.nearMeshes.push(near);
       }
     }
     this.lodNear = false;
   }
-  _fill(mesh, idxs) {
+  _fill(mesh, idxs, twin = false) {
     const g = mesh.geometry; const L = g.attributes.iLeaf.array, F = g.attributes.iFlower.array, D = g.attributes.iDim.array; const M = mesh.instanceMatrix.array;
+    if (twin) { // near LOD: each proxy gets a jittered companion (same species, same placement) -> ~0.85 visuals per real plant
+      const out = [];
+      for (const i of idxs) { out.push(i, -1 - i); }
+      idxs = out;
+    }
     const n = Math.min(idxs.length, M.length / 16);
+    const tmp = this._tmpM ||= new THREE.Matrix4(); const rot = this._tmpR ||= new THREE.Matrix4();
     for (let j = 0; j < n; j++) {
-      const i = idxs[j];
-      M.set(this.iMat.subarray(i * 16, i * 16 + 16), j * 16);
+      let i = idxs[j];
+      if (i < 0) {
+        i = -1 - i;
+        const h = ((i * 2654435761) >>> 0) / 4294967296, h2 = ((i * 2246822519) >>> 0) / 4294967296;
+        tmp.fromArray(this.iMat, i * 16); const sx = Math.hypot(tmp.elements[0], tmp.elements[1], tmp.elements[2]);
+        const d = sx * 0.42, a = h * 6.283;
+        rot.makeRotationY(1.7 + h2 * 2.5); tmp.multiply(rot); tmp.scale(new THREE.Vector3(0.88, 0.9 + h2 * 0.2, 0.88));
+        tmp.elements[12] += Math.cos(a) * d; tmp.elements[14] += Math.sin(a) * d;
+        tmp.toArray(M, j * 16);
+      } else M.set(this.iMat.subarray(i * 16, i * 16 + 16), j * 16);
       L[j * 3] = this.iLeaf[i * 3]; L[j * 3 + 1] = this.iLeaf[i * 3 + 1]; L[j * 3 + 2] = this.iLeaf[i * 3 + 2];
       F[j * 3] = this.iFlower[i * 3]; F[j * 3 + 1] = this.iFlower[i * 3 + 1]; F[j * 3 + 2] = this.iFlower[i * 3 + 2];
       D[j] = this.iDim[i];
     }
-    mesh.count = n; mesh.userData.list = idxs.slice(0, n);
+    mesh.count = n; mesh.userData.list = idxs.slice(0, n).map((i) => (i < 0 ? -1 - i : i));
     mesh.instanceMatrix.needsUpdate = true; g.attributes.iLeaf.needsUpdate = true; g.attributes.iFlower.needsUpdate = true; g.attributes.iDim.needsUpdate = true;
   }
   // near LOD: detailed forms only for the plants inside the current view
   _updateLOD(force = false) {
     const ppm = this._pxPerM();
-    const want = ppm > 14;
-    if (!want && !this.lodNear && !force) return;
-    if (!want) {
-      this.lodNear = false;
-      for (const m of this.plantMeshes) if (m.userData.lod === 'far') m.visible = this.s.layerVisible(m.userData.layer);
-      for (const m of this.nearMeshes) m.visible = false;
-      this._dirty = true; return;
+    let near = ppm > 10, box = null;
+    if (near) {
+      this.cam.updateMatrixWorld();
+      const pts = [];
+      for (const [sx, sy] of [[-1.1, -1.1], [1.1, -1.1], [1.1, 1.1], [-1.1, 1.1]]) {
+        const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(sx, sy), this.cam);
+        const t = (this.controls.target.y - rc.ray.origin.y) / rc.ray.direction.y;
+        const p = rc.ray.origin.clone().addScaledVector(rc.ray.direction, t); pts.push([p.x, -p.z]);
+      }
+      box = [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
+      // detail budget: at most ~1400 herbaceous proxies (x2 twins, ~250 triangles each) in view
+      let cnt = 0; const s = this.s;
+      for (const m of this.nearMeshes) for (const i of m.userData.all) { const x = s.ix(i), y = s.iy(i); if (x >= box[0] && x <= box[2] && y >= box[1] && y <= box[3]) cnt++; }
+      this._nearCount = cnt;
+      if (cnt > 2400) near = false;
     }
-    // ground footprint of the screen (with margin)
-    const pts = [];
-    for (const [sx, sy] of [[-1.25, -1.25], [1.25, -1.25], [1.25, 1.25], [-1.25, 1.25]]) {
-      const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(sx, sy), this.cam);
-      const t = (this.controls.target.y - rc.ray.origin.y) / rc.ray.direction.y;
-      const p = rc.ray.origin.clone().addScaledVector(rc.ray.direction, t); pts.push([p.x, -p.z]);
-    }
-    const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
-    const y0 = Math.min(...pts.map((p) => p[1])), y1 = Math.max(...pts.map((p) => p[1]));
-    const area = (x1 - x0) * (y1 - y0);
-    if (area > 2600) { // still too wide for detail: stay far
-      if (this.lodNear) { this.lodNear = false; this._updateLOD(true); }
+    if (!near) {
+      if (this.lodNear || force) {
+        this.lodNear = false;
+        for (const m of this.plantMeshes) {
+          if (m.userData.lod === 'far') m.visible = this.s.layerVisible(m.userData.layer);
+          if (m.userData.lod === 'near') m.visible = false;
+        }
+        this._dirty = true;
+      }
       return;
     }
     this.lodNear = true;
     const s = this.s;
     for (const m of this.nearMeshes) {
-      const sel = m.userData.all.filter((i) => { const x = s.ix(i), y = s.iy(i); return x >= x0 && x <= x1 && y >= y0 && y <= y1; });
-      this._fill(m, sel);
-      m.visible = this.s.layerVisible(m.userData.layer);
+      const sel = m.userData.all.filter((i) => { const x = s.ix(i), y = s.iy(i); return x >= box[0] && x <= box[2] && y >= box[1] && y <= box[3]; });
+      this._fill(m, sel, true);
+      m.visible = s.layerVisible(m.userData.layer);
     }
-    for (const m of this.plantMeshes) if (m.userData.lod === 'far') m.visible = this.s.layerVisible(m.userData.layer) && m.userData.layer === 'veg.bulbs';
+    for (const m of this.plantMeshes) if (m.userData.lod === 'far') m.visible = s.layerVisible(m.userData.layer) && m.userData.layer === 'veg.bulbs';
     this._dirty = true;
   }
 
@@ -453,7 +541,7 @@ export class Scene3D {
     }
     for (let i = 0; i < this.iDim.length; i++) {
       let d = 0;
-      if (focusBed) { const p = s.placementByIndex[s.ipl(i)]; d = p && p.bedId === focusBed ? 0 : 0.8; }
+      if (focusBed) { const p = s.placementByIndex[s.ipl(i)]; d = p && p.bedId === focusBed ? 0 : 0.7; }
       this.iDim[i] = d;
     }
     for (const mesh of this.plantMeshes) {
@@ -487,6 +575,7 @@ export class Scene3D {
     const sx = cv.width / (BOARD.x1 - BOARD.x0); const T = (x, y) => [(x - BOARD.x0) * sx, (BOARD.y1 - y) * sx];
     ctx.fillStyle = s.layerVisible('veg.lawn') ? PAL.lawn : '#E7E2D4'; ctx.fillRect(0, 0, cv.width, cv.height);
     paintGround(ctx, s, T, { scale: sx, forTexture: true });
+    this._paintUnderstorey(ctx, T, sx);
     let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     ctx.globalAlpha = 0.06; ctx.fillStyle = '#5f6e45'; for (let i = 0; i < 90000; i++) ctx.fillRect(rnd() * cv.width, rnd() * cv.height, 2, 2); ctx.globalAlpha = 1;
     if (s.layerVisible('analysis.slope') || s.layerVisible('analysis.pathdist')) {

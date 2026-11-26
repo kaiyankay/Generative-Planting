@@ -70,7 +70,7 @@
   {
    "name": "instance count matches header",
    "ok": true,
-   "detail": "20752 vs 20752"
+   "detail": "20788 vs 20788"
   },
   {
    "name": "every plant instance lies inside its bed / district",
@@ -110,7 +110,7 @@
   {
    "name": "rebuild is deterministic (instances.bin)",
    "ok": true,
-   "detail": "01630a042d5e vs 01630a042d5e"
+   "detail": "1bf31385f064 vs 1bf31385f064"
   },
   {
    "name": "rebuild is deterministic (model.json)",
@@ -120,15 +120,15 @@
  ],
  "coverage": {
   "objects": 87,
-  "placements": 2005,
-  "instances": 20752,
+  "placements": 2041,
+  "instances": 20788,
   "species": 248,
   "byStyle": {
    "C": 466,
    "B": 637,
    "A": 749,
    "T": 4,
-   "RG": 102,
+   "RG": 138,
    "M": 2
   },
   "byStatus": {

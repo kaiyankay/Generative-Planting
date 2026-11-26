@@ -39,6 +39,20 @@ async function main() {
   const showXY = (x, y) => { const z = store.sampleElevation(x, y); coords.textContent = `x ${x.toFixed(2)}  y ${y.toFixed(2)}  z ${z == null ? '—' : z.toFixed(2)} m`; };
   plan.onCursor = showXY; if (scene) scene.onCursor = showXY;
 
+  // ---------------------------------------------------------------- hover tag (what a click would select)
+  const tag = $('#hovertag'); let mx = 0, my = 0;
+  app.addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; if (!tag.hidden) tag.style.transform = `translate(${mx + 14}px, ${my + 16}px)`; });
+  store.on('hover', (h) => {
+    if (!h) { tag.hidden = true; return; }
+    const o = store.getObject(h.id); if (!o) { tag.hidden = true; return; }
+    const k = store.kindOf(h.id); let txt;
+    if (k === 'instance') { const sp = store.getObject(o.speciesId); txt = `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}<span class="k">plant</span>`; }
+    else if (k === 'placement') { const sp = o.speciesIds[0] ? store.getObject(o.speciesIds[0]) : null; txt = `${sp ? `<i>${esc(sp.scientificName)}</i>${sp.cultivar ? ' ‘' + esc(sp.cultivar) + '’' : ''}` : 'species not published'}<span class="k">${esc(o.role)}</span>`; }
+    else if (o.type === 'bed') txt = `${esc(o.name)}<span class="k">${esc(o.props.styleName)}</span>`;
+    else txt = `${esc(o.name || o.id)}<span class="k">${esc(o.type)}</span>`;
+    tag.innerHTML = txt; tag.hidden = false; tag.style.transform = `translate(${mx + 14}px, ${my + 16}px)`;
+  });
+
   // ---------------------------------------------------------------- layers
   buildLayerTree(store);
   $('#ltoggle').addEventListener('click', () => { const L = $('#layers'); L.classList.toggle('collapsed'); $('#ltoggle').setAttribute('aria-expanded', String(!L.classList.contains('collapsed'))); });
@@ -78,8 +92,21 @@ async function main() {
   };
 
   setView(view);
+  // reproducible states (screenshots, links): ?layers=+topo.contours,-veg.trees&sel=bed.A1&focus=1&z=2&lopen=1&about=1
+  for (const tok of (params.get('layers') || '').split(',').filter(Boolean)) {
+    const id = tok.replace(/^[+-]/, ''); if (store.layerState[id]) store.setLayer(id, { visible: !tok.startsWith('-'), external: true });
+  }
+  if (params.get('lopen') === '1') { $('#layers').classList.remove('collapsed'); $('#ltoggle').setAttribute('aria-expanded', 'true'); }
+  if (params.get('sel')) {
+    const at = (params.get('at') || '').split(',').map(Number);
+    store.select({ id: params.get('sel'), ...(at.length === 2 && at.every(isFinite) ? { at } : {}) });
+  }
+  if (params.get('focus') === '1' && store.selection) {
+    if (view === 'plan') { plan.focus(store.selection.id); if (params.get('z')) { plan.view.scale *= +params.get('z'); plan.request(); } }
+    else if (scene) scene.focus(store.selection.id, +(params.get('z') || 1), true);
+  }
+  if (params.get('about') === '1') $('#btnAbout').click();
   $('#loading').classList.add('done');
-  if (params.get('sel')) { store.select({ id: params.get('sel') }); }
   document.documentElement.dataset.ready = '1';
 }
 

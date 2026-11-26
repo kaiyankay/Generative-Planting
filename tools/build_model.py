@@ -811,7 +811,7 @@ def main():
     for s, n in tree_counts.items():
         seq += [s] * n
     rng("rgseq").shuffle(seq)
-    tp = poisson(rgi.buffer(-0.4), 2.0, rng("rgtrees"), max_pts=len(seq))
+    tp = poisson(rgi.buffer(-0.4), 1.45, rng("rgtrees"), max_pts=len(seq))
     rmeta = {"bedId": "bed.RG", "recipeId": "mix.RG", "positionSource": "generated-schematic", "status": "schematic",
              "dataKind": "hypothetical", "sourceRefs": ["S-OGD-RAIN", "S-MODEL"]}
     woody_pts = []
@@ -890,7 +890,7 @@ def main():
             cr = rng("drift", key, int(math.floor(x / 7)), int(math.floor(y / 7)))
             dom_g = [cr.choice(grass_sids) for _ in range(2)]
             dom_f = [cr.choice(forb_sids) for _ in range(2)]
-            gshare = 0.35 + 0.4 * cr.random()
+            gshare = 0.6 + 0.3 * cr.random()
             u = rnd.random()
             if u < 0.012 and shrub_sids:
                 s = rnd.choice(shrub_sids)

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Oudolf Garden Detroit — Spatial Model</title>
 <meta name="description" content="AI-ready spatial model of Piet Oudolf's garden on Belle Isle, Detroit: shared 2D plan and 3D diorama, layered and queryable.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%276%27 fill=%27%236F8A4C%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="src/app.css">
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
@@ -15,6 +16,7 @@
   <canvas id="c3d" aria-label="3D model"></canvas>
   <canvas id="c2d" aria-label="Plan"></canvas>
   <div id="labels3d" aria-hidden="true"></div>
+  <div id="hovertag" aria-hidden="true" hidden></div>
 
   <header class="top">
     <div class="brand">

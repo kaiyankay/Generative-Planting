@@ -373,7 +373,8 @@ function buildRaster(s, kind) {
     if (v == null || !isFinite(v)) { img.data[k + 3] = 0; continue; }
     let t = kind === 'slope' ? Math.min(1, v / 12) : Math.min(1, v / 8);
     const c = kind === 'slope' ? ramp(['#F4EEC8', '#E9B86B', '#C2552B', '#6E2A3C'], t) : ramp(['#2F6F7A', '#86B6B0', '#F3EFE5'], t);
-    img.data[k] = c[0]; img.data[k + 1] = c[1]; img.data[k + 2] = c[2]; img.data[k + 3] = kind === 'pathdist' && t >= 1 ? 0 : 220;
+    img.data[k] = c[0]; img.data[k + 1] = c[1]; img.data[k + 2] = c[2];
+    img.data[k + 3] = kind === 'pathdist' ? (t >= 1 ? 0 : 210) : Math.round(230 * Math.min(1, t * 2.5));
   }
   cx.putImageData(img, 0, 0);
   return { canvas: cv, x0, x1, y0, y1 };

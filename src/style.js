@@ -12,7 +12,7 @@ export const PAL = {
   parking: '#DEDAD1',
   water: '#AFC4C2',
   waterDeep: '#93AEAD',
-  soil: '#665B45',
+  soil: '#54493A',
   soilLight: '#8A7457',
   steel: '#3A3631',
   limestone: '#C9BC9E',

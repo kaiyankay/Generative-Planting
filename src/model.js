@@ -350,7 +350,7 @@ export class ModelStore extends Emitter {
     while (l) { if (this.layerState[l.id].locked) return true; l = l.parent ? this.layers.get(l.parent) : null; }
     return false;
   }
-  setLayer(id, patch) { Object.assign(this.layerState[id], patch); this.emit('layers', { id, ...patch }); }
+  setLayer(id, patch) { const { external, ...p } = patch; Object.assign(this.layerState[id], p); this.emit('layers', { id, ...patch }); }
   select(sel) {
     const same = JSON.stringify(sel) === JSON.stringify(this.selection);
     if (same) return;
