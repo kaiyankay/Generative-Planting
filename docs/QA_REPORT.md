@@ -7,7 +7,7 @@
 | Model contract | `python3 -I tools/test_model.py` | **23 / 23 pass** | `docs/qa/model_tests.json` |
 | Browser, local, production base path `/Generative-Planting/`, headless Chrome (SwiftShader) | `python3 -I tools/run_browser_tests.py` | **40 / 40 pass** | `docs/qa/browser_tests.json` |
 | Browser, desktop browser pane (Intel Iris Plus 650 GPU) | open `tests.html` | **40 / 40 pass**, app load 625 ms | — |
-| Browser, **live GitHub Pages** | `python3 -I tools/run_browser_tests.py --url https://kaiyankay.github.io/Generative-Planting/tests.html --out docs/qa/browser_tests_live.json` | see §5 | `docs/qa/browser_tests_live.json` |
+| Browser, **live GitHub Pages** | `python3 -I tools/run_browser_tests.py --url https://kaiyankay.github.io/Generative-Planting/tests.html --out docs/qa/browser_tests_live.json` | **40 / 40 pass** (commit 4102f92) | `docs/qa/browser_tests_live.json` |
 
 What the suites cover (all required checks of the brief):
 
@@ -75,7 +75,8 @@ The app renders only when something changes (idle cost 0) and steps the pixel ra
 
 - Pages enabled through the GitHub API (source `main`, `/`, legacy build), first build from `55e5b23`.
 - Live URL opened in the browser: page title correct, all assets (`src/*.js`, `data/detroit/*`, `vendor/three/*`) returned 200 through relative paths, no console errors, 3D rendered.
-- Final live run of the test page: recorded below after the last push.
+- Commit `4102f92`: Pages build `built`; `tests.html` run against the live URL in headless Chrome → **40 / 40**, including base-path loading and both viewports.
+- Live page opened in the desktop browser (real GPU): clicked bed A2 in 3D → outline, inspector, focus dimming; no console errors.
 
 ## 6. Not done / known issues
 
