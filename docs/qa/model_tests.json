@@ -1,0 +1,140 @@
+{
+ "passed": 23,
+ "total": 23,
+ "results": [
+  {
+   "name": "15 main beds",
+   "ok": true,
+   "detail": "found 15"
+  },
+  {
+   "name": "style split A5 B6 C4",
+   "ok": true,
+   "detail": "{'C': 4, 'B': 6, 'A': 5}"
+  },
+  {
+   "name": "unique bed ids",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "original codes match Oudolf 2020 bulb plans",
+   "ok": true,
+   "detail": "{'C1': 1, 'C2': 1, 'B1': 1, 'B2': 1, 'A1': 1, 'A2': 1, 'B3': 2, 'A3': 2, 'C3': 1, 'C4': 1, 'B4': 1, 'B5': 1, 'A4': 1}"
+  },
+  {
+   "name": "triangles modelled separately, not in the 15",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "all references resolve",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "placement ids unique",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "placement index == position",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "species index unique",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "status/dataKind vocabulary",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "generated placements never claim 'documented' positions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "geometries valid and inside extent",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "main beds do not overlap",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "instance count matches header",
+   "ok": true,
+   "detail": "18721 vs 18721"
+  },
+  {
+   "name": "every plant instance lies inside its bed / district",
+   "ok": true,
+   "detail": "0 outside e.g. []"
+  },
+  {
+   "name": "placement instanceRange == countModelled",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "sun / moisture / pH are unknown, not zero",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "unknown layers flagged unavailable and hidden",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "terrain grid size",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "layer groups present",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "visibility, lock and selectable are independent fields",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "rebuild is deterministic (instances.bin)",
+   "ok": true,
+   "detail": "3a032ab1126a vs 3a032ab1126a"
+  },
+  {
+   "name": "rebuild is deterministic (model.json)",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "coverage": {
+  "objects": 58,
+  "placements": 2005,
+  "instances": 18721,
+  "species": 248,
+  "byStyle": {
+   "C": 466,
+   "B": 637,
+   "A": 749,
+   "T": 4,
+   "RG": 102,
+   "M": 2
+  },
+  "byStatus": {
+   "documented": 39,
+   "reconstructed": 13,
+   "schematic": 6
+  }
+ }
+}

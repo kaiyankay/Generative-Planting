@@ -54,13 +54,13 @@ export class Scene3D {
     this.home();
   }
   home() {
-    const t = this.W(4, -8); t.y = 1.5;
+    const t = this.W(0, -12); t.y = 1.5;
     this.controls.target.copy(t);
-    // view from the north-west, looking south-east over the beds toward the Carillon and Lake Tacoma
-    const dir = new THREE.Vector3(-0.58, 0.72, -0.62).normalize();
+    // from the south, north up like the plan: Carillon and meadows in front, the 15 beds behind
+    const dir = new THREE.Vector3(0.14, 0.74, 0.66).normalize();
     this.cam.position.copy(t).addScaledVector(dir, 400);
     this.cam.up.set(0, 1, 0);
-    this._frameWidth = 122; this.cam.zoom = 1;
+    this._frameWidth = this.w && this.w < 760 ? 120 : 150; this.cam.zoom = 1;
     this.resize();
     this.controls.update();
   }
@@ -452,7 +452,7 @@ export class Scene3D {
     }
     for (let i = 0; i < this.iDim.length; i++) {
       let d = 0;
-      if (focusBed) { const p = s.placementByIndex[s.ipl(i)]; d = p && p.bedId === focusBed ? 0 : 0.5; }
+      if (focusBed) { const p = s.placementByIndex[s.ipl(i)]; d = p && p.bedId === focusBed ? 0 : 0.8; }
       this.iDim[i] = d;
     }
     for (const mesh of this.plantMeshes) {
@@ -591,5 +591,5 @@ export class Scene3D {
   requestRender() { this._dirty = true; }
   // force a synchronous render (tests / screenshots)
   renderNow() { this._updateLOD(true); this.r.render(this.scene, this.cam); this._placeLabels(); }
-  stats() { const i = this.r.info; return { fps: +this.fps.toFixed(1), triangles: i.render.triangles, calls: i.render.calls, instances: this.instSlot.size }; }
+  stats() { const i = this.r.info; return { fps: +this.fps.toFixed(1), triangles: i.render.triangles, calls: i.render.calls, instances: this.iDim.length, dpr: this.r.getPixelRatio() }; }
 }

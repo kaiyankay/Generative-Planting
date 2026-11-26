@@ -43,7 +43,10 @@ async function main() {
   // ---------------------------------------------------------------- layers
   buildLayerTree(store);
   $('#ltoggle').addEventListener('click', () => { const L = $('#layers'); L.classList.toggle('collapsed'); $('#ltoggle').setAttribute('aria-expanded', String(!L.classList.contains('collapsed'))); });
-  if (window.innerWidth < 760) { $('#layers').classList.add('collapsed'); $('#ltoggle').setAttribute('aria-expanded', 'false'); }
+  // the model is the subject: start with the layer tree folded (remembered per viewer)
+  let lopen = false; try { lopen = localStorage.getItem('gp.layersOpen') === '1'; } catch {}
+  if (!lopen || window.innerWidth < 760) { $('#layers').classList.add('collapsed'); $('#ltoggle').setAttribute('aria-expanded', 'false'); }
+  $('#ltoggle').addEventListener('click', () => { try { localStorage.setItem('gp.layersOpen', $('#layers').classList.contains('collapsed') ? '0' : '1'); } catch {} });
 
   // ---------------------------------------------------------------- inspector
   store.on('selection', (sel) => renderInspector(store, sel, { plan, scene, picker, getView: () => view }));

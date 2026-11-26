@@ -33,7 +33,7 @@ button { font: inherit; color: inherit; }
 .seg button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
 .tools { justify-self: end; display: flex; gap: 6px; }
 .icon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--panel); border-radius: 9px; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.icon:hover, .seg button:hover { color: var(--ink); }
+.icon:hover, .seg button[aria-selected="false"]:hover { color: var(--ink); }
 .icon:focus-visible, .seg button:focus-visible, .ltoggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* layers */

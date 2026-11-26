@@ -1,0 +1,211 @@
+{
+ "ok": 40,
+ "total": 40,
+ "loadMs": 400.89999997615814,
+ "results": [
+  {
+   "name": "app loads and exposes window.GP",
+   "ok": true,
+   "detail": "no GP"
+  },
+  {
+   "name": "loaded under base path /Generative-Planting/",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "15 main beds with unique ids",
+   "ok": true,
+   "detail": "15"
+  },
+  {
+   "name": "all assets resolved by relative URL (model, instances, terrain)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "sun / moisture / pH return null + unknown (not 0)",
+   "ok": true,
+   "detail": "{\"value\":null,\"units\":null,\"status\":\"unknown\",\"note\":\"No measured or modelled insolation is available. Returns null (unknown), never 0.\"}"
+  },
+  {
+   "name": "elevation sampled from 3DEP inside extent",
+   "ok": true,
+   "detail": "176.45"
+  },
+  {
+   "name": "elevation outside extent is unknown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "getBedAt(centroid of A1) = bed.A1",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "queryObjects(type bed, style B) = 6",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "getPlantingContext(B1) lists Sporobolus matrix",
+   "ok": true,
+   "detail": "{\"group\":38,\"matrix\":1,\"emergent\":25,\"scatter\":3,\"bulb-scatter\":20,\"bulb-drift\":18,\"bulb-cluster\":13,\"bulb-line\":7}"
+  },
+  {
+   "name": "hide trees: 3D tree meshes hidden",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hide trees: tree data not deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hide trees: grasses still visible",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "show trees again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "group toggle hides children (forbs)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "locked bed layer: click does not select the bed",
+   "ok": true,
+   "detail": "district.main-garden"
+  },
+  {
+   "name": "locked layer stays visible",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "click selects bed A1",
+   "ok": true,
+   "detail": "bed.A1"
+  },
+  {
+   "name": "3D shows the selection outline",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D dims plants outside A1",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "second click drills down to a patch / plant of A1",
+   "ok": true,
+   "detail": "pl.A1.b34"
+  },
+  {
+   "name": "switching to Plan keeps the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "inspector open",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "select parent climbs to the bed",
+   "ok": true,
+   "detail": "bed.A1"
+  },
+  {
+   "name": "Esc clears the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "wheel zooms the plan",
+   "ok": true,
+   "detail": "18.209748912525367 vs 8.863636363636363"
+  },
+  {
+   "name": "drag pans the plan",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "fit resets the plan view",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D home() resets the camera",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "applyPatch changes the draft",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "baseline unchanged after patch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "exportModel() returns the baseline by default",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "resetDraft restores",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D renders triangles",
+   "ok": true,
+   "detail": "{\"fps\":0,\"triangles\":850276,\"calls\":144,\"instances\":18721,\"dpr\":1}"
+  },
+  {
+   "name": "no horizontal overflow at 1440\u00d7900",
+   "ok": true,
+   "detail": "1440"
+  },
+  {
+   "name": "no runtime errors (desktop)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone: app loads",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone: no horizontal overflow (390 px)",
+   "ok": true,
+   "detail": "390 > 390"
+  },
+  {
+   "name": "phone: layer panel fits the width",
+   "ok": true,
+   "detail": "{\"x\":10,\"y\":761.8125,\"width\":91.84375,\"height\":38.1875,\"top\":761.8125,\"right\":101.84375,\"bottom\":800,\"left\":10}"
+  },
+  {
+   "name": "no runtime errors (phone)",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+ "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
+ "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
+ "wallSeconds": 95.5
+}

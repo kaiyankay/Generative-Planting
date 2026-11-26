@@ -136,8 +136,8 @@ function farCap(b, kind) {
   else if (kind === 'globe') { b.blob(0.12, 0.85, 0, 0.1, 1); b.blob(-0.14, 0.8, 0.08, 0.09, 1); }
 }
 const FAR = {
-  grass: (b) => farTuft(b, 5, 0.55, 0.15),
-  'grass-upright': (b) => farTuft(b, 5, 0.2, 0.35),
+  grass: (b) => { b.blob(0, 0.22, 0, 0.3, 0, 0.8); farTuft(b, 6, 0.6, 0.15); },
+  'grass-upright': (b) => { b.blob(0, 0.3, 0, 0.22, 0, 1.2); farTuft(b, 6, 0.25, 0.35); },
   haze: (b) => { farTuft(b, 4, 0.7); b.blob(0, 0.65, 0, 0.38, 1, 0.55); },
   airy: (b) => { farTuft(b, 4, 0.75); for (let i = 0; i < 3; i++) { const a = (i / 3) * 6.283; b.blade(Math.cos(a) * 0.1, Math.sin(a) * 0.1, a, 0.15, 1.0, 0.05, 1, 1); } },
   forb: (b, cap) => { b.blob(0, 0.34, 0, 0.44, 0, 0.8); b.blob(0.16, 0.5, -0.1, 0.24, 0, 0.9); farCap(b, cap); },
@@ -184,8 +184,9 @@ varying vec3 vTint;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vec3 c = mix(iLeaf, iFlower, clamp(part, 0.0, 1.0));
 c *= mix(0.66, 1.06, smoothstep(0.0, 0.9, shade));
-vec3 paper = vec3(0.93, 0.91, 0.86);
-vTint = mix(c, mix(paper, c, 0.25), iDim);`);
+float g = dot(c, vec3(0.3, 0.59, 0.11));
+vec3 quiet = mix(vec3(g) * vec3(0.98, 1.0, 0.94), vec3(0.62, 0.62, 0.56), 0.35);
+vTint = mix(c, quiet, iDim);`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
 varying vec3 vTint;`)

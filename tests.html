@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Model tests — Generative Planting</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font: 13px/1.4 -apple-system, system-ui, sans-serif; background: #F3EFE5; color: #2E3328; margin: 16px; }
+  iframe { border: 1px solid #ccc; background: #fff; }
+  #frames { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+  .pass { color: #3c6b2f; } .fail { color: #b0322a; font-weight: 600; }
+  pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1 style="font-size:18px">In-browser tests: the real app in an iframe, driven through <code>window.GP</code></h1>
+<p id="summary">running…</p>
+<pre id="out"></pre>
+<div id="frames">
+  <iframe id="desk" width="1440" height="900" style="transform:scale(.4);transform-origin:0 0;margin-right:-864px;margin-bottom:-540px"></iframe>
+  <iframe id="phone" width="390" height="844" style="transform:scale(.4);transform-origin:0 0;margin-right:-234px;margin-bottom:-506px"></iframe>
+</div>
+<script type="module">
+const out = document.getElementById('out');
+const res = [];
+const log = (name, ok, detail = '') => { res.push({ name, ok: !!ok, detail: String(detail) }); out.innerHTML += `<span class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}</span> ${name}${ok ? '' : ' — ' + detail}\n`; };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const base = location.pathname.replace(/tests\.html$/, '');
+
+async function boot(frame, url) {
+  const errors = [];
+  frame.src = url;
+  await new Promise((r) => frame.addEventListener('load', r, { once: true }));
+  const w = frame.contentWindow;
+  w.addEventListener('error', (e) => errors.push(e.message));
+  const ce = w.console.error.bind(w.console); w.console.error = (...a) => { errors.push(a.join(' ')); ce(...a); };
+  for (let i = 0; i < 200 && !(w.document.documentElement.dataset.ready === '1'); i++) await sleep(100);
+  return { w, errors, GP: w.GP };
+}
+
+try {
+  const t0 = performance.now();
+  const { w, errors, GP } = await boot(document.getElementById('desk'), base + 'index.html?view=3d');
+  const loadMs = performance.now() - t0;
+  log('app loads and exposes window.GP', !!GP, 'no GP');
+  log('loaded under base path ' + base, w.location.pathname.startsWith(base));
+  const S = GP._store, plan = GP._plan, scene = GP._scene;
+
+  // ---- data
+  const beds = S.beds.filter((b) => 'ABC'.includes(b.props.style));
+  log('15 main beds with unique ids', beds.length === 15 && new Set(beds.map((b) => b.id)).size === 15, beds.length);
+  log('all assets resolved by relative URL (model, instances, terrain)', S.instanceCount > 1000 && S.terrain.data.length > 1000);
+
+  // ---- unknown stays unknown
+  const c = GP.sampleConditions(0, 0);
+  log('sun / moisture / pH return null + unknown (not 0)', ['field.sun', 'field.moisture', 'field.ph'].every((k) => c[k].value === null && c[k].status === 'unknown'), JSON.stringify(c['field.sun']));
+  log('elevation sampled from 3DEP inside extent', typeof c['field.elevation'].value === 'number' && c['field.elevation'].value > 170 && c['field.elevation'].value < 182, c['field.elevation'].value);
+  log('elevation outside extent is unknown', GP.sampleConditions(5000, 5000)['field.elevation'].value === null);
+
+  // ---- spatial query
+  const a1 = GP.getObject('bed.A1');
+  const cen = (() => { const r = a1.geometry.coordinates[0]; let x = 0, y = 0; r.slice(0, -1).forEach((p) => { x += p[0]; y += p[1]; }); return [x / (r.length - 1), y / (r.length - 1)]; })();
+  log('getBedAt(centroid of A1) = bed.A1', GP.getBedAt(cen[0], cen[1])?.id === 'bed.A1');
+  log('queryObjects(type bed, style B) = 6', GP.queryObjects({ bbox: [-500, -500, 500, 500] }, { type: 'bed', style: 'B' }).length === 6);
+  const ctx = GP.getPlantingContext('bed.B1');
+  log('getPlantingContext(B1) lists Sporobolus matrix', ctx.species.some((s) => s.id === 'sp.sporobolus-heterolepis') && ctx.placementsByRole.matrix === 1, JSON.stringify(ctx.placementsByRole));
+
+  // ---- layers: hide trees -> invisible in 3D, data intact, others unaffected
+  const nTrees = S.model.objects.filter((o) => o.type === 'tree').length;
+  const treeMeshes = scene.plantMeshes.filter((m) => m.userData.layer === 'veg.trees');
+  GP.setLayer('veg.trees', { visible: false });
+  log('hide trees: 3D tree meshes hidden', treeMeshes.length > 0 && treeMeshes.every((m) => !m.visible));
+  log('hide trees: tree data not deleted', S.model.objects.filter((o) => o.type === 'tree').length === nTrees && S.instanceCount === GP._store.instanceCount);
+  log('hide trees: grasses still visible', scene.plantMeshes.filter((m) => m.userData.layer === 'veg.grasses' && m.userData.lod !== 'near').every((m) => m.visible));
+  GP.setLayer('veg.trees', { visible: true });
+  log('show trees again', treeMeshes.every((m) => m.visible));
+  GP.setLayer('veg', { visible: false });
+  log('group toggle hides children (forbs)', !S.layerVisible('veg.forbs') && S.layerState['veg.forbs'].visible === true);
+  GP.setLayer('veg', { visible: true });
+
+  // ---- lock: locked beds are not selectable, still visible
+  GP.setLayer('structure.beds', { locked: true });
+  GP.select(null); GP._store.select(null);
+  w.GP._plan; const pk = scene.picker;
+  pk.clickAt(cen[0], cen[1], 8);
+  log('locked bed layer: click does not select the bed', S.selection?.id !== 'bed.A1', S.selection?.id);
+  log('locked layer stays visible', S.layerVisible('structure.beds'));
+  GP.setLayer('structure.beds', { locked: false });
+  GP.select(null);
+
+  // ---- selection sync 2D <-> 3D and drill-down
+  pk.clickAt(cen[0], cen[1], 8);
+  log('click selects bed A1', S.selection?.id === 'bed.A1', S.selection?.id);
+  log('3D shows the selection outline', scene.selGroup.children.length > 0);
+  log('3D dims plants outside A1', scene.iDim.some((d) => d > 0) && scene.iDim.some((d) => d === 0));
+  pk.clickAt(cen[0], cen[1], 8);
+  const sel2 = S.selection?.id || '';
+  log('second click drills down to a patch / plant of A1', sel2.startsWith('pl.A1.') || sel2.startsWith('pi.'), sel2);
+  GP.setView('plan'); await sleep(200);
+  log('switching to Plan keeps the selection', S.selection?.id === sel2);
+  log('inspector open', !w.document.getElementById('inspector').hidden);
+  pk.up(); if (sel2.startsWith('pi.')) pk.up();
+  log('select parent climbs to the bed', S.selection?.id === 'bed.A1', S.selection?.id);
+  w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' }));
+  log('Esc clears the selection', S.selection === null);
+
+  // ---- plan zoom / pan / fit
+  plan.fit(); const v0 = { ...plan.view };
+  const cv = w.document.getElementById('c2d');
+  cv.dispatchEvent(new w.WheelEvent('wheel', { deltaY: -400, clientX: 700, clientY: 450, bubbles: true, cancelable: true }));
+  log('wheel zooms the plan', plan.view.scale > v0.scale * 1.5, plan.view.scale + ' vs ' + v0.scale);
+  cv.dispatchEvent(new w.PointerEvent('pointerdown', { clientX: 700, clientY: 450, pointerId: 1, bubbles: true }));
+  cv.dispatchEvent(new w.PointerEvent('pointermove', { clientX: 600, clientY: 400, pointerId: 1, buttons: 1, bubbles: true }));
+  cv.dispatchEvent(new w.PointerEvent('pointerup', { clientX: 600, clientY: 400, pointerId: 1, bubbles: true }));
+  log('drag pans the plan', Math.abs(plan.view.cx - v0.cx) > 1 || Math.abs(plan.view.cy - v0.cy) > 1);
+  plan.fit();
+  log('fit resets the plan view', Math.abs(plan.view.scale - v0.scale) < 1e-6 && Math.abs(plan.view.cx - v0.cx) < 1e-6);
+
+  // ---- 3D camera reset
+  GP.setView('3d'); await sleep(100);
+  const z0 = scene.cam.zoom, p0 = scene.cam.position.clone();
+  scene.cam.zoom = 3; scene.cam.position.x += 30; scene.cam.updateProjectionMatrix();
+  scene.home();
+  log('3D home() resets the camera', Math.abs(scene.cam.zoom - z0) < 1e-6 && scene.cam.position.distanceTo(p0) < 1e-3);
+
+  // ---- draft never mutates the baseline
+  const pid = 'pl.A1.b01'; const before = JSON.stringify(GP.getObject(pid));
+  GP.applyPatch([{ op: 'set', target: pid, path: 'speciesIds', value: ['sp.sporobolus-heterolepis'] }]);
+  const draftVal = GP.getObject(pid).speciesIds[0];
+  log('applyPatch changes the draft', draftVal === 'sp.sporobolus-heterolepis');
+  log('baseline unchanged after patch', JSON.stringify(S.baseline.placements.find((p) => p.id === pid)) === before);
+  log('exportModel() returns the baseline by default', JSON.parse(GP.exportModel()).placements.find((p) => p.id === pid).speciesIds[0] !== 'sp.sporobolus-heterolepis');
+  GP.resetDraft();
+  log('resetDraft restores', JSON.stringify(GP.getObject(pid)) === before && GP.diffDraft().length === 0);
+
+  // ---- rendering sanity
+  scene.renderNow();
+  const st = scene.stats();
+  log('3D renders triangles', st.triangles > 10000, JSON.stringify(st));
+  log('no horizontal overflow at 1440×900', w.document.documentElement.scrollWidth <= w.innerWidth + 1, w.document.documentElement.scrollWidth);
+  log('no runtime errors (desktop)', errors.length === 0, errors.slice(0, 3).join(' | '));
+
+  // ---- phone viewport
+  const P = await boot(document.getElementById('phone'), base + 'index.html?view=plan');
+  log('phone: app loads', !!P.GP);
+  const d = P.w.document.documentElement;
+  log('phone: no horizontal overflow (390 px)', d.scrollWidth <= P.w.innerWidth + 1, d.scrollWidth + ' > ' + P.w.innerWidth);
+  const lay = P.w.document.getElementById('layers').getBoundingClientRect();
+  log('phone: layer panel fits the width', lay.right <= P.w.innerWidth && lay.left >= 0, JSON.stringify(lay));
+  log('no runtime errors (phone)', P.errors.length === 0, P.errors.slice(0, 3).join(' | '));
+
+  const ok = res.filter((r) => r.ok).length;
+  document.getElementById('summary').textContent = `${ok}/${res.length} passed · app load ${Math.round(loadMs)} ms`;
+  document.body.dataset.done = '1';
+  window.__results = { ok, total: res.length, loadMs, results: res, ua: navigator.userAgent };
+  document.getElementById('summary').dataset.json = JSON.stringify(window.__results);
+} catch (e) {
+  log('test harness error', false, e.stack || e);
+  document.getElementById('summary').textContent = 'harness error';
+  document.body.dataset.done = '1';
+  document.getElementById('summary').dataset.json = JSON.stringify({ ok: 0, total: res.length, error: String(e), results: res });
+}
+</script>
+</body>
+</html>

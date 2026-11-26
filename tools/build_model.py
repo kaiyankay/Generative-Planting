@@ -44,8 +44,11 @@ def geo(g):
     """shapely -> GeoJSON-like dict (local metres)"""
     if g.is_empty:
         return None
-    if isinstance(g, Polygon):
-        g = g.buffer(0) if not g.is_valid else g
+    if g.geom_type in ("Polygon", "MultiPolygon"):
+        import shapely
+        g = shapely.set_precision(g if g.is_valid else g.buffer(0), 0.001)
+        if g.is_empty:
+            return None
     if g.geom_type == "Polygon":
         return {"type": "Polygon", "coordinates": [ring(g.exterior.coords)] + [ring(i.coords) for i in g.interiors]}
     if g.geom_type == "MultiPolygon":
