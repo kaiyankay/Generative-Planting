@@ -76,6 +76,7 @@ The app renders only when something changes (idle cost 0) and steps the pixel ra
 ## 5. Deployment check
 
 - Commit `4ef93db` (exploded view): Pages `built`; live `tests.html` → **42 / 42**.
+- Two later docs-only pushes (`57b3fdd`, `64df84c`) reported a generic "Page build failed"; a manual rebuild via the API succeeded (`64df84c` built). The previous good deployment stays live while a build fails.
 - Pages enabled through the GitHub API (source `main`, `/`, legacy build), first build from `55e5b23`.
 - Live URL opened in the browser: page title correct, all assets (`src/*.js`, `data/detroit/*`, `vendor/three/*`) returned 200 through relative paths, no console errors, 3D rendered.
 - Commit `4102f92`: Pages build `built`; `tests.html` run against the live URL in headless Chrome → **40 / 40**, including base-path loading and both viewports.
