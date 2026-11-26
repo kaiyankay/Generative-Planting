@@ -123,6 +123,13 @@ try {
   scene.home();
   log('3D home() resets the camera', Math.abs(scene.cam.zoom - z0) < 1e-6 && scene.cam.position.distanceTo(p0) < 1e-3);
 
+  // ---- exploded layer view is reversible and does not touch data
+  const camBefore = scene.cam.position.clone();
+  scene.setExploded(true, true);
+  log('exploded: vegetation lifted, structure plane shown', scene.plantMeshes.every((m) => m.position.y > 1) && scene._structPlane.visible);
+  scene.setExploded(false, true);
+  log('exploded off: back to ground and previous camera', scene.plantMeshes.every((m) => m.position.y === 0) && scene.cam.position.distanceTo(camBefore) < 1e-3 && !scene._structPlane.visible);
+
   // ---- draft never mutates the baseline
   const pid = 'pl.A1.b01'; const before = JSON.stringify(GP.getObject(pid));
   GP.applyPatch([{ op: 'set', target: pid, path: 'speciesIds', value: ['sp.sporobolus-heterolepis'] }]);

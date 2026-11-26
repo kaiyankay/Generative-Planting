@@ -8,6 +8,7 @@
 - **3D 默认视图**：从南向北的正交轴测，北在上（与平面图同向）。前景是 Nancy Brown Peace Carillon 和 Native Meadows，后面是 15 个主花床、两个 Triangles、西端的 Rain Garden 和 Bird Border。拖动旋转、右键平移、滚轮缩放；拉近后自动换成精细植物形态（叶丛、茎、穗状/伞形/雏菊状花序、草穗）。
 - **Plan 视图**：Rhino 式正投影平面，矢量边界、床号、比例尺、真北箭头、10 m / 1 m 网格；可缩放平移。A 床是色块马赛克、B 床是 Sporobolus 基质（黄色点纹）上的组团与点状 emergents、C 床是有机组团加单株符号；球根是独立的虚线漂移层。
 - **选择**：点一次选花床，再点进入 patch，再点到单株；两个视图的选择、图层状态完全同步。右侧 Inspector 显示：证据状态（documented / reconstructed / schematic / unknown）、来源链接、官方按风格的数量、该床的 recipe（物种 + 图例角色）、点击位置的高程/坡度/到步道距离，以及日照/土壤湿度/pH = unknown（不是 0）。
+- **分层爆炸视图**（右上角叠层图标或按 E，仅 3D）：地形与构筑 / 种植结构（Oudolf 式色块平面）/ 植被三层拉开，再按一次回到原视角。
 - **图层**（左上角，默认折叠）：Site / Topography（含 0.25 m 等高线）/ Built / Planting structure / Vegetation / Analysis，可独立显示、锁定，组级控制子级。
 
 ## 哪些是真的，哪些是示意

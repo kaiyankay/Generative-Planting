@@ -1,13 +1,14 @@
 // Botanical diorama: orthographic 3D view of the same model.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PAL, paintGround, paintContours, tracePoly } from './style.js';
+import { PAL, paintGround, paintContours, tracePoly, speciesPlanColor, mix } from './style.js';
 import { getRaster } from './plan2d.js';
 import { speciesLayer, bboxOf, centroidOf } from './model.js';
 import { formGeometry, plantMaterial } from './flora.js';
 
 const BOARD = { x0: -125, x1: 115, y0: -118, y1: 72 };
 const VEX = 1.6; // vertical exaggeration of terrain only (stated in the UI)
+const EX = { structure: 11, vegetation: 24 }; // exploded-view lifts (m)
 
 export class Scene3D {
   constructor(canvas, store, picker, opts = {}) {
@@ -247,7 +248,10 @@ export class Scene3D {
   }
 
   _water() {
-    const mat = new THREE.MeshPhongMaterial({ color: 0x8fb0ad, specular: 0xdde8e2, shininess: 60, transparent: true, opacity: 0.92 });
+    this.r.localClippingEnabled = true;
+    const clip = [new THREE.Plane(new THREE.Vector3(1, 0, 0), -BOARD.x0), new THREE.Plane(new THREE.Vector3(-1, 0, 0), BOARD.x1),
+      new THREE.Plane(new THREE.Vector3(0, 0, -1), -BOARD.y0), new THREE.Plane(new THREE.Vector3(0, 0, 1), BOARD.y1)];
+    const mat = new THREE.MeshPhongMaterial({ color: 0x8fb0ad, specular: 0xdde8e2, shininess: 60, transparent: true, opacity: 0.92, clippingPlanes: clip });
     this.water = [];
     for (const id of ['water.lake-tacoma', 'water.carillon-moat']) {
       const o = this.s.getObject(id);
@@ -370,6 +374,67 @@ export class Scene3D {
       // corner pinnacles
       const pin = new THREE.Mesh(new THREE.ConeGeometry(0.42, 3.0, 4), stone); pin.position.set(a[0], y0 + H - 2.5 + 1.5, -a[1]); pin.rotation.y = Math.PI / 4; add(pin);
     }
+  }
+
+  // ---- exploded layer view: Topography & built (0) · Planting structure (+9 m) · Vegetation (+19 m)
+  _structurePlane() {
+    const X0 = -72, X1 = 74, Y0 = -52, Y1 = 42, W = 2048, H = Math.round(W * (Y1 - Y0) / (X1 - X0));
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+    const k = W / (X1 - X0); const T = (x, y) => [(x - X0) * k, (Y1 - y) * k];
+    for (const b of this.s.beds) {
+      if (b.props.style === 'M') continue;
+      ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.fillStyle = b.props.style === 'B' ? mix(PAL.matrix, PAL.paper, 0.1) : '#EFE9DA'; ctx.fill('evenodd');
+    }
+    for (const p of this.s.model.placements) {
+      if (p.kind !== 'area' || !p.geometry || p.role === 'matrix' || (p.role || '').startsWith('bulb')) continue;
+      const sp = this.s.getObject(p.speciesIds[0]); if (!sp) continue;
+      ctx.beginPath(); tracePoly(ctx, p.geometry, T); ctx.fillStyle = speciesPlanColor(sp); ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(46,51,40,.45)'; ctx.stroke();
+    }
+    for (const p of this.s.model.placements) {
+      if (p.kind !== 'point' || !p.geometry || p.role === 'tree' || p.role === 'shrub' || p.role === 'hedgerow') continue;
+      const sp = this.s.getObject(p.speciesIds[0]); const q = T(...p.geometry.coordinates);
+      ctx.beginPath(); ctx.arc(q[0], q[1], 4, 0, 7); ctx.fillStyle = sp.displayFlower || sp.displayLeaf; ctx.fill();
+    }
+    ctx.lineWidth = 3; ctx.strokeStyle = PAL.steel;
+    for (const b of this.s.beds) { if (b.props.style === 'M') continue; ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.stroke(); }
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    const g = new THREE.PlaneGeometry(X1 - X0, Y1 - Y0); g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+    m.position.set((X0 + X1) / 2, this.hY(0, 0) + 0.3, -(Y0 + Y1) / 2); m.visible = false; m.renderOrder = 2;
+    this.scene.add(m); return m;
+  }
+  setExploded(on, instant = false) {
+    if (!this._structPlane) this._structPlane = this._structurePlane();
+    const from = this._ex || 0, to = on ? 1 : 0, t0 = performance.now();
+    this.exploded = on;
+    const base = this.hY(0, 0) + 0.3;
+    // camera: low, side-on view for the stack; restore the previous view afterwards
+    const P0 = this.cam.position.clone(), T0 = this.controls.target.clone(), Z0 = this.cam.zoom;
+    let P1, T1, Z1;
+    if (on) {
+      this._preEx = { p: P0, t: T0, z: Z0 };
+      T1 = this.W(-2, -4); T1.y = EX.structure * 0.6;
+      P1 = T1.clone().addScaledVector(new THREE.Vector3(0.2, 0.36, 0.91).normalize(), 400); Z1 = 1.0;
+    } else if (this._preEx) { P1 = this._preEx.p; T1 = this._preEx.t; Z1 = this._preEx.z; }
+    const step = () => {
+      const k = instant ? 1 : Math.min(1, (performance.now() - t0) / 800); const e = from + (to - from) * (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+      this._ex = e;
+      if (P1) { const c = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; this.cam.position.lerpVectors(P0, P1, c); this.controls.target.lerpVectors(T0, T1, c); this.cam.zoom = Z0 + (Z1 - Z0) * c; this.cam.updateProjectionMatrix(); this.cam.lookAt(this.controls.target); }
+      for (const m of this.plantMeshes) m.position.y = e * EX.vegetation;
+      // the stack shows the Main Garden + Rain Garden only (meadows and park trees are clipped while exploded)
+      const pm = this.plantMeshes[0].material; const want = e > 0.001;
+      if (want !== !!pm.clippingPlanes) {
+        pm.clippingPlanes = want ? [new THREE.Plane(new THREE.Vector3(1, 0, 0), 70), new THREE.Plane(new THREE.Vector3(-1, 0, 0), 70),
+          new THREE.Plane(new THREE.Vector3(0, 0, -1), 47), new THREE.Plane(new THREE.Vector3(0, 0, 1), 40)] : null;
+        pm.needsUpdate = true;
+      }
+      this.selGroup.position.y = this.hovGroup.position.y = e * EX.structure;
+      const sp = this._structPlane; sp.visible = e > 0.01; sp.material.opacity = Math.min(1, e * 1.4) * 0.95; sp.position.y = base + e * EX.structure;
+      if (this.onExplode) this.onExplode(e);
+      this._dirty = true; this._needsLabels = true;
+      if (k < 1) requestAnimationFrame(step); else { this._lastMove = performance.now(); this._lodDone = false; }
+    };
+    step();
   }
 
   _plants() {
@@ -606,7 +671,7 @@ export class Scene3D {
     if (!this.labelEls.length) return;
     const v = new THREE.Vector3();
     for (const L of this.labelEls) {
-      v.copy(L.p).project(this.cam);
+      v.copy(L.p); v.y += (this._ex || 0) * EX.structure; v.project(this.cam);
       const x = (v.x * 0.5 + 0.5) * this.w, y = (-v.y * 0.5 + 0.5) * this.h;
       L.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%)`;
     }

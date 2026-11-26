@@ -29,9 +29,12 @@ Details: [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md).
 - **Layers** (top left): eye = visibility, lock = not selectable. Groups switch their children.
 - The **inspector** shows provenance (status, sources), official counts, the bed's recipe, and conditions at the clicked point.
 - 3D: drag to orbit, right-drag to pan, wheel to zoom; close-ups switch to detailed plant forms.
+- **Exploded layers** (stack icon, or `E`, 3D only): Topography & built · Planting structure · Vegetation pulled apart, like a Rhino/Grasshopper layer stack.
 - For code and agents: `window.GP` (see [docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md)).
 
 ![Plan view](docs/screenshots/02-plan.png)
+
+![Exploded layers](docs/screenshots/10-exploded.png)
 
 ## Build and test
 

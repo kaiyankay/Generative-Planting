@@ -52,11 +52,12 @@ Scoring 1–5 against: recognisability of the real site, edges/composition, plan
 | 1 (first render) | 4.4 M triangles, 1 fps in the pane; beds read as bare brown soil with dark specks; plants black on back faces. Recognisability 3, forms 1, hierarchy 2. | Far/near LOD + render on demand; soft "foliage" normals without back-face flipping; brighter hemisphere light; wider far tufts. |
 | 2 | Garden legible and colourful, but the view from the north-west was upside-down relative to the plan, the east end hid behind the layer panel, Carillon cropped, flower caps read as pastel confetti, meadows as plastic rows. Recognisability 4, composition 2. | South-facing home view (north up like the plan, Carillon and meadows in front); layer panel folded by default; smaller flower caps; meadow drifts (7 m cells), more grass; greener lawn. |
 | 3 | B1's north half empty; trees clumsy; Carillon a plain box; analysis tint muddy. | Fixed the Poisson sampler (it filled from one end when truncated — a real generator bug); Carillon buttresses, lancets, cornice, pinnacles; rounder canopies; 29 NAIP trees; lake islands; contour layer. |
+| 5 (exploded + phone) | High view made the stack overlap; meadow plants and park trees floated over the Carillon; lake surface ran past the diorama edge on phone; bed tags crowded at 375 px. | Exploded view swings to a low side-on camera and back; clips vegetation to Main Garden + Rain Garden while exploded; captions at the east end; water clipped to the board; smaller tags on narrow screens. |
 | 4 (close-ups) | Near forms looked like paper cut-outs; then too sparse; LOD switch left half the beds empty after zooming. | Rewrote near forms (leaf rosettes, stems with node leaves, spikes, domed umbels, daisy heads, grass blades with seed haze); jittered companion per proxy in near LOD; budget-based LOD switch (≤2,400 proxies in view) with a single decision path; foliage understorey painted under the plants; instant focus for URL states. |
 
 Current self-assessment (not a perfect score): recognisability 4, composition 4, plant forms 3.5 (far forms are still generic tufts; near forms are stylised, not species-accurate), hierarchy 4, UI restraint 4, performance 3.5 on a 2017 Intel iGPU.
 
-Screenshots in `docs/screenshots/`: 01-hero, 02-plan, 03-layer-structure, 04-block, 05-matrix, 06-grouping, 07-inspector, 08-layer-toggle (vegetation hidden, contours + slope on), 09-plan-detail. Captured by `tools/screenshots.py` with headless Chrome (SwiftShader) from the same URL states as the live site.
+Screenshots in `docs/screenshots/`: 01-hero, 02-plan, 03-layer-structure, 04-block, 05-matrix, 06-grouping, 07-inspector, 08-layer-toggle (vegetation hidden, contours + slope on), 09-plan-detail, 10-exploded, 11-phone (headless Chrome cannot go narrower than ~500 px; the 375 px check was done in the browser pane). Captured by `tools/screenshots.py` with headless Chrome (SwiftShader) from the same URL states as the live site.
 
 ## 4. Performance (measured, not assumed)
 
@@ -83,5 +84,4 @@ The app renders only when something changes (idle cost 0) and steps the pixel ra
 - Plant arrangements inside beds are schematic, not traced; species-accurate plant morphology is not attempted (form proxies by growth habit).
 - Triangles' species unpublished; meadow layout unpublished; Bird Border alignment inferred.
 - No phenology / season states; bulbs shown as positions only.
-- Exploded layer view (optional) not built.
 - Wall heights unpublished (display height labelled).

@@ -1,7 +1,7 @@
 {
- "ok": 40,
- "total": 40,
- "loadMs": 152,
+ "ok": 42,
+ "total": 42,
+ "loadMs": 166.69999998807907,
  "results": [
   {
    "name": "app loads and exposes window.GP",
@@ -149,6 +149,16 @@
    "detail": ""
   },
   {
+   "name": "exploded: vegetation lifted, structure plane shown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "exploded off: back to ground and previous camera",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "applyPatch changes the draft",
    "ok": true,
    "detail": ""
@@ -207,5 +217,5 @@
  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
  "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
  "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
- "wallSeconds": 247.3
+ "wallSeconds": 251.7
 }

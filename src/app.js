@@ -32,6 +32,24 @@ async function main() {
   }
   document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v)));
   $('#btnFit').addEventListener('click', () => (view === 'plan' ? plan.fit() : scene.home()));
+  // exploded layer view (3D only): captions follow three level anchors at the west end of the garden
+  const exl = $('#exlabels');
+  const toggleExplode = (on = !scene.exploded, instant = false) => { scene.setExploded(on, instant); $('#btnExplode').setAttribute('aria-pressed', String(on)); exl.classList.toggle('on', on); };
+  if (scene) {
+    $('#btnExplode').addEventListener('click', () => toggleExplode());
+    scene.onExplode = () => {};
+    const anchors = { ground: [66, -12, 0], structure: [62, -6, 1], vegetation: [62, -6, 2] };
+    const placeEx = () => {
+      if (!scene.exploded && !(scene._ex > 0)) return;
+      for (const el of exl.children) {
+        const a = anchors[el.dataset.l]; const lift = a[2] === 0 ? 0 : a[2] === 1 ? 11 * scene._ex : 24 * scene._ex;
+        const p = scene.W(a[0], a[1], lift + 1.2).project(scene.cam);
+        const x = Math.min((p.x * 0.5 + 0.5) * scene.w + 8, scene.w - el.offsetWidth - 14);
+        el.style.transform = `translate(${x.toFixed(0)}px, ${((-p.y * 0.5 + 0.5) * scene.h).toFixed(0)}px) translate(0, -50%)`;
+      }
+    };
+    const lp = scene._placeLabels.bind(scene); scene._placeLabels = () => { lp(); placeEx(); };
+  } else $('#btnExplode').hidden = true;
   window.addEventListener('resize', () => { plan.resize(); if (scene) scene.resize(); if (view === 'plan') plan.request(); });
 
   // ---------------------------------------------------------------- coordinates readout
@@ -75,6 +93,7 @@ async function main() {
     else if (e.key === 'f' || e.key === 'F') { view === 'plan' ? plan.fit() : scene.home(); }
     else if (e.key === 'Backspace' || e.key === 'ArrowUp') { if (store.selection) { e.preventDefault(); picker.up(); } }
     else if (e.key === '1' && scene) setView('3d'); else if (e.key === '2') setView('plan');
+    else if ((e.key === 'e' || e.key === 'E') && scene && view === '3d') toggleExplode();
   });
 
   // ---------------------------------------------------------------- AI-facing API (read / query / draft; no renderer access)
@@ -106,6 +125,7 @@ async function main() {
     else if (scene) scene.focus(store.selection.id, +(params.get('z') || 1), true);
   }
   if (params.get('about') === '1') $('#btnAbout').click();
+  if (params.get('explode') === '1' && scene) toggleExplode(true, true);
   $('#loading').classList.add('done');
   document.documentElement.dataset.ready = '1';
 }
