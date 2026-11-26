@@ -77,7 +77,7 @@ async function main() {
   const fit = () => { if (st.view === 'plan' && !st.explode) plan.fit(); else if (scene) scene.home(); };
   $('#btnFit').addEventListener('click', fit);
   window.addEventListener('resize', () => { plan.resize(); if (scene) scene.resize(); if (st.view === 'plan') plan.request(); });
-  if (scene) scene.onLabels = () => { placePlateLabels(); const a = scene.northAngle(); $('#compass').style.transform = `rotate(${(a * 180 / Math.PI).toFixed(1)}deg)`; };
+  if (scene) scene.onLabels = () => { placePlateLabels(); const a = scene.northAngle(); $('#compass svg').style.transform = `rotate(${(a * 180 / Math.PI).toFixed(1)}deg)`; };
 
   // ================================================================ design: Reference | Working design
   function setDesign(d, { silent = false } = {}) {

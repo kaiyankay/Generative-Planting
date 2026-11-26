@@ -102,14 +102,20 @@ def main():
     for name, q in shots:
         if a.only and a.only not in name: continue
         prof = tempfile.mkdtemp()
-        size = "1440,900"
-        if "@" in name: name, wh = name.split("@"); size = wh.replace("x", ",")
+        size = "1440,900"; crop = None
+        if "@" in name:  # exact small viewport: render inside an iframe of that size, then crop
+            name, wh = name.split("@"); cw, ch = (int(v) for v in wh.split("x")); crop = (cw, ch)
+            from urllib.parse import quote
+            q = f"tools/frame.html?w={cw}&h={ch}&src={quote(q, safe='')}"
         path = os.path.join(out, name + ".png")
         cmd = [CHROME, "--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
                f"--window-size={size}", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
                "--virtual-time-budget=30000", f"--screenshot={path}", base + q]
         subprocess.run(cmd, capture_output=True, timeout=300)
         shutil.rmtree(prof, ignore_errors=True)
+        if crop and os.path.exists(path):
+            from PIL import Image
+            Image.open(path).crop((0, 0, crop[0], crop[1])).save(path)
         print(name, os.path.exists(path) and os.path.getsize(path), flush=True)
     if srv: srv.shutdown()
     if tmp: shutil.rmtree(tmp, ignore_errors=True)

@@ -1,4 +1,4 @@
-# Model contract — `generative-planting/spatial-model` v0.3 data · runtime API 0.4 (Phase 01.1)
+# Model contract — `generative-planting/spatial-model` v0.3 data · runtime API 0.5 (Phase 01.2, Site setup component)
 
 One JSON document (`data/detroit/model.json`) plus two binary buffers. The 2D plan, the 3D scene and any AI client read the same data; no view owns geometry.
 
@@ -117,10 +117,38 @@ GP.resetDraft()                                                                 
 
 The renderer is never an input: an AI proposes operations on the model; the views re-render from it.
 
+## Site setup as a component (Phase 01.2)
+
+This viewer is the **Site setup / Spatial input** module of Generative Planting, not a standalone product. A site is a **preset**:
+
+```
+data/presets.json   { presets: [{ id, name, location, base: "data/<site>/", designer?, status }] }
+```
+
+`?site=<id>` picks one (default: the first). Every preset folder has the same files (`model.json`, `instances.bin`, `terrain.bin`, `case.json`).
+
+**Two axes, never mixed.** *Design* — `reference` (read-only reconstruction) | `working` (editable) — is chosen in the bar. *View* — `axo` | `plan`, show filter `all` | `site` | `terrain`, one layer group alone (`solo`, in plan) with trace overlays, optional `layers` (exploded) — is chosen on the canvas. View calls never change data.
+
+**Canonical axonometric.** Orthographic camera 20° east of south, 35° above the horizon (`Scene3D.AXO`), framing the designed garden; the entry view and the target of Fit. Axo and Plan hand the same centre and scale to each other.
+
+**Embedding.** `index.html?embed=1` hides the product and module name (the host workflow shows those) and keeps the site chip, the design selector and the canvas. The host talks to the component only by `postMessage`:
+
+```js
+// host → component (only whitelisted, plain-data methods; anything else returns ok:false)
+frame.contentWindow.postMessage({ gp: 'call', id: 1, method: 'solo', args: ['composition', { overlays: { framework: 0.5 } }] }, '*')
+// component → host
+{ gp: 'result', id: 1, ok: true, value: … }            // or { ok: false, error }
+{ gp: 'event', type: 'ready' | 'view' | 'design' | 'solo' | 'selection', detail: … }
+```
+
+Bridged methods: `site, sites, getObject, getBedAt, queryObjects, query, sampleConditions, getPlantingContext, plantableAt, speciesTally, instancesOfPlacement, design, setDesign, createDraft, blankScopePreview, draftInfo, draftSummary, applyPatch, resetDraft, discardDraft, exportDraft, importDraft, diffDraft, viewState, setView, setViewFilter, setExploded, setPanel, fit, solo, exitSolo, setOverlay, layerGroups, setLayerGroup, select, selection`. In the page, the same object is `window.GP` (plus `on(type, fn)` for events). `tools/embed_check.html` is a QA fixture that exercises the bridge.
+
+Phase 01.1 calls keep working: `setMode('reference'|'canvas'|'terrain')` maps to design + show filter, `setView('layers')` to the exploded view, `openLayer` / `closeLayer` to `solo` / `exitSolo`.
+
 ## URL states
 
-`index.html?view=3d|plan|layers&mode=reference|canvas|terrain&layer=<group>&overlay=<group>:<opacity>,…&sel=<id>&focus=1&z=<zoom>&at=x,y&layers=+topo.contours,-veg.trees&lopen=1&legend=1&about=1&vex=1&dev=1`
-reproduces a view (`layer` with `view=layers` focuses a plate, with `view=plan` opens the isolated layer). Screenshot-only helpers: `draft=blank|copy|demo`, `then=reference`. Layer groups: `terrain, infrastructure, siteveg, framework, composition, representation, analysis`.
+`index.html?site=detroit&view=axo|plan|layers&design=working&filter=site|terrain&solo=<group>&overlay=<group>:<opacity>,…&panel=1&layer=<group>&sel=<id>&focus=1&z=<zoom>&at=x,y&details=1&about=1&layers=+topo.contours,-veg.trees&vex=1&dev=1&embed=1`
+reproduces a view (`layer` with `view=layers` focuses a plate). Screenshot-only helpers: `draft=blank|copy|demo`, `then=reference`, `newdesign=1`. Older URLs (`view=3d`, `mode=canvas|terrain`, `layer=` with `view=plan`) still resolve. Layer groups: `terrain, infrastructure, siteveg, framework, composition, representation, analysis`.
 
 ## Adding a second case
 

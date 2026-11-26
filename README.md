@@ -1,12 +1,12 @@
-# Generative Planting — Detroit · Spatial Laboratory (Phase 01.1)
+# Generative Planting · Site setup
 
 **Live:** https://kaiyankay.github.io/Generative-Planting/
 
-![World view, reference design](docs/screenshots/phase-01-1/01-hero-reference.png)
+![Site setup, canonical axonometric](docs/screenshots/phase-01-2/01-entry-axo.png)
 
-A computable spatial model of **Oudolf Garden Detroit** on Belle Isle — the 15 main beds (Block A, Matrix B, Grouping C), the two Triangles, the Rain Garden, the Bird Border and the Native Meadows, with walks, walls, terrain, the Carillon and existing trees. It is the **spatial input** for later AI-assisted planting research; no AI runs here.
+Generative Planting is an AI-assisted planting design tool. This repository is its **Site setup / Spatial input** module: load a site preset, read its terrain, infrastructure, existing vegetation and bed framework, and start a working planting design from the existing (reference) planting or from empty beds. It is built to be embedded in the full workflow (`?embed=1`, `postMessage` API). No AI runs here.
 
-**One site, separate designs.** The site (terrain, paths, structures, existing trees) and the bed framework are shared. On top sit a frozen **Reference** (the schematic reconstruction of the original planting) and an editable **Canvas** (a working design: a copy of the reference or a blank planting). **Terrain** shows the ground alone. One model drives the 3D **World**, the orthographic **Plan** and the **Layers** overview; an edit to the working design changes the plan symbols, the 3D plants, the instance table, queries and exports together.
+The first site preset is **Oudolf Garden Detroit** on Belle Isle — the 15 main beds (Block A, Matrix B, Grouping C), the two Triangles, the Rain Garden, the Bird Border and the Native Meadows, with walks, walls, terrain, the Carillon and existing trees. More sites are added in `data/presets.json`, not in the code.
 
 ## What is real and what is drawn
 
@@ -24,16 +24,13 @@ Details: [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md).
 
 ## Using it
 
-- **World · Plan · Layers** at the top (keys `1` `2` `3`), **Fit** or `F`. **State: Reference · Canvas · Terrain** at the top right — a separate control: it changes what design you look at, not how.
-- **Layers** view: the model pulled apart into Terrain, Infrastructure, Site Vegetation, Planting Framework, Planting Composition and Plant Representation. Click a plate (or its label) to focus it, then **Open in Plan** (or `Enter`, or double-click) for that layer alone in plan, with its own legend, sources and properties; add other layers as **reference overlays** with an opacity slider. **Back** / `Esc` returns with the camera you had.
-- **Canvas**: the first time, a dialog shows what a blank design would clear (and what stays) before anything happens. *Hide planting* in the status line only hides the reference; it never deletes.
-- **Click** a bed, again for a patch, again for a plant; `Backspace` selects the parent, `Esc` clears. The inspector shows evidence status, sources and conditions at the clicked point.
-- The layer index (left) uses the same seven groups: eye = visible, lock = not selectable, arrow = open in Plan.
-- For code and agents: `window.GP` — exact spatial queries, validated atomic patches, export / import with instance state ([docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md)). `?dev=1` adds a small patch-test box to the inspector in Canvas.
+- The site opens on a fixed **axonometric**. **Axo · Plan** on the canvas toolbar are two ways of looking at the same canvas; the same place and scale carry over. Left-drag pans, wheel zooms, right-drag rotates the axo, **Reset view** (F) returns to the standard angle.
+- **Design** (top right): **Reference** is the original planting, reconstructed and read-only. **New design** starts a **working design** from the reference planting or from blank beds; the reference never changes. The ⋯ menu holds undo all, export, start new and delete.
+- **Layers** (toolbar, L): seven groups, each with visibility and **show alone in plan**. While one layer is alone, the others become **Trace** overlays with an opacity slider. *Show: Everything · Site only · Terrain* filters the view (it is not a design). **Exploded view** at the bottom of the panel explains how the layers stack.
+- Click a bed, a patch, a plant: a small card says what it is, which design, and how certain. **Details** opens the record, sources and ids. Esc steps back one level at a time.
+- For code and the wider workflow: `window.GP`, or `postMessage` when embedded ([docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md)).
 
-![Plan](docs/screenshots/phase-01-1/02-plan-reference.png)
-
-![Layers overview](docs/screenshots/phase-01-1/03-layer-overview.png)
+![Plan, one layer alone with trace overlays](docs/screenshots/phase-01-2/04-solo-with-trace.png)
 
 ## Build and test
 
@@ -53,6 +50,7 @@ Python needs `shapely`, `numpy`, `Pillow`. The browser tests need Google Chrome.
 
 ## Documents
 
+- [docs/PHASE_01_2_UX_AUDIT.md](docs/PHASE_01_2_UX_AUDIT.md) — Phase 01.2 UX/UI audit and component simplification (Chinese)
 - [docs/PHASE_01_1_HANDOFF.md](docs/PHASE_01_1_HANDOFF.md) — Phase 01.1 handoff (Chinese)
 - [docs/PHASE_01_1_QA.md](docs/PHASE_01_1_QA.md) — tests, screenshots, performance, deployment check
 - [docs/PHASE_01_1_ACCURACY.md](docs/PHASE_01_1_ACCURACY.md) — per-bed evidence, drawing vs model, synonym vs substitution

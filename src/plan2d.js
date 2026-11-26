@@ -47,7 +47,11 @@ export class Plan2D {
   }
   // keep fitted content clear of the panels that are open (legend left, inspector right)
   padFor() {
-    const p = { ...this.pad }; if (this.w < 760) return p;
+    const p = { ...this.pad };
+    if (this.w < 760) { // phones: panels are bottom sheets, so fit into the space above them
+      for (const id of ['layers', 'inspector']) { const e = document.getElementById(id); if (e && !e.hidden) p.b = Math.max(p.b, this.h - e.getBoundingClientRect().top + 10); }
+      p.t = Math.max(p.t, 56); return p;
+    }
     const lg = document.getElementById('layers'); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16);
     const ins = document.getElementById('inspector'); if (ins && !ins.hidden) p.r = Math.max(p.r, this.w - ins.getBoundingClientRect().left + 16);
     return p;
