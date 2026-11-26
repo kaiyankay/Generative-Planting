@@ -1,30 +1,71 @@
-"""Capture the documented screenshot set with headless Chrome (same URL states as the live app).
+"""Capture documented screenshot sets with headless Chrome (same URL states as the live app).
 
-python3 -I tools/screenshots.py [--base http://127.0.0.1:8791/Generative-Planting/]
-Writes docs/screenshots/NN-name.png at 1440x900. WebGL runs on SwiftShader (software), so
-anti-aliasing and timing differ slightly from a GPU browser; content is the same model.
+python3 -I tools/screenshots.py [--set phase01|phase011|before] [--only NAME] [--out DIR] [--base URL]
+
+Phase 01 set   -> docs/screenshots/NN-name.png (kept for history)
+Phase 01.1 set -> docs/screenshots/phase-01-1/NN-name.png
+`before` set   -> docs/screenshots/phase-01-1/before/ (same cameras as the after set, run on the old code)
+All at 1440x900, device scale 1. WebGL runs on SwiftShader (software), so anti-aliasing and timing differ
+slightly from a GPU browser; content is the same model.
 """
 import argparse, functools, os, subprocess, sys, tempfile, threading, shutil
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-SHOTS = [
-    ("01-hero", "index.html?view=3d&shot=1"),
-    ("02-plan", "index.html?view=plan"),
-    ("03-layer-structure", "index.html?view=3d&shot=1&lopen=1&layers=%2Btopo.contours"),
-    ("04-block", "index.html?view=3d&shot=1&sel=bed.A1&focus=1&z=3.4"),
-    ("05-matrix", "index.html?view=3d&shot=1&sel=bed.B1&focus=1&z=3.4"),
-    ("06-grouping", "index.html?view=3d&shot=1&sel=bed.C3&focus=1&z=3.4"),
-    ("07-inspector", "index.html?view=plan&sel=bed.B3N&focus=1&z=1.1&at=-12.5,9"),
-    ("08-layer-toggle", "index.html?view=3d&shot=1&lopen=1&layers=-veg.forbs,-veg.grasses,-veg.bulbs,-veg.shrubs,%2Btopo.contours,%2Banalysis.slope"),
-    ("09-plan-detail", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
-    ("10-exploded", "index.html?view=3d&shot=1&explode=1"),
-]
+SETS = {
+    "phase01": ("docs/screenshots", [
+        ("01-hero", "index.html?view=3d&shot=1"),
+        ("02-plan", "index.html?view=plan"),
+        ("03-layer-structure", "index.html?view=3d&shot=1&lopen=1&layers=%2Btopo.contours"),
+        ("04-block", "index.html?view=3d&shot=1&sel=bed.A1&focus=1&z=3.4"),
+        ("05-matrix", "index.html?view=3d&shot=1&sel=bed.B1&focus=1&z=3.4"),
+        ("06-grouping", "index.html?view=3d&shot=1&sel=bed.C3&focus=1&z=3.4"),
+        ("07-inspector", "index.html?view=plan&sel=bed.B3N&focus=1&z=1.1&at=-12.5,9"),
+        ("08-layer-toggle", "index.html?view=3d&shot=1&lopen=1&layers=-veg.forbs,-veg.grasses,-veg.bulbs,-veg.shrubs,%2Btopo.contours,%2Banalysis.slope"),
+        ("09-plan-detail", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
+        ("10-exploded", "index.html?view=3d&shot=1&explode=1"),
+    ]),
+    # same cameras as the after set, run against the Phase 01 code (old URL vocabulary)
+    "before": ("docs/screenshots/phase-01-1/before", [
+        ("01-hero", "index.html?view=3d&shot=1"),
+        ("02-plan", "index.html?view=plan"),
+        ("03-layers", "index.html?view=3d&shot=1&explode=1"),
+        ("04-terrain", "index.html?view=3d&shot=1&layers=-veg,-structure,-built,%2Btopo.contours"),
+        ("09-b1-plan", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
+        ("09-b1-3d", "index.html?view=3d&shot=1&sel=bed.B1&focus=1&z=3.4"),
+        ("10-closeup", "index.html?view=3d&shot=1&sel=bed.C3&focus=1&z=9"),
+    ]),
+    "phase011": ("docs/screenshots/phase-01-1", [
+        ("01-hero-reference", "index.html?view=3d&shot=1"),
+        ("02-plan-reference", "index.html?view=plan"),
+        ("03-layer-overview", "index.html?view=layers&shot=1"),
+        ("03b-layer-focus", "index.html?view=layers&shot=1&layer=composition"),
+        ("04-terrain-only", "index.html?view=3d&shot=1&mode=terrain"),
+        ("04b-terrain-plan", "index.html?view=plan&mode=terrain"),
+        ("05-infrastructure", "index.html?view=plan&layer=infrastructure"),
+        ("06-framework", "index.html?view=plan&layer=framework"),
+        ("07a-composition-A", "index.html?view=plan&layer=composition&sel=bed.A1&focus=1&z=1.3"),
+        ("07b-composition-B", "index.html?view=plan&layer=composition&sel=bed.B1&focus=1&z=1.3"),
+        ("07c-composition-C", "index.html?view=plan&layer=composition&sel=bed.C3&focus=1&z=1.3"),
+        ("07d-site-vegetation", "index.html?view=plan&layer=siteveg"),
+        ("07e-representation", "index.html?view=plan&layer=representation&sel=bed.B1&focus=1&z=2.2"),
+        ("07f-analysis", "index.html?view=plan&layer=analysis"),
+        ("08-planting-canvas", "index.html?view=3d&shot=1&mode=canvas&draft=blank"),
+        ("08b-planting-canvas-plan", "index.html?view=plan&mode=canvas&draft=blank"),
+        ("10-closeup", "index.html?view=3d&shot=1&sel=bed.C3&focus=1&z=9"),
+        ("11-overlay", "index.html?view=plan&layer=composition&overlay=terrain:0.6,infrastructure:0.5"),
+        ("12-restored-reference", "index.html?view=3d&shot=1&mode=canvas&draft=demo&then=reference"),
+        ("13-plan-b1", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
+        ("14-3d-b1", "index.html?view=3d&shot=1&sel=bed.B1&focus=1&z=3.4"),
+    ]),
+}
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--base"); ap.add_argument("--only")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--base"); ap.add_argument("--only"); ap.add_argument("--set", default="phase011"); ap.add_argument("--out")
+    ap.add_argument("--extra", action="append", default=[], help="NAME=QUERY, shot an extra state")
     a = ap.parse_args()
     srv = tmp = None
     base = a.base
@@ -33,18 +74,19 @@ def main():
         h = functools.partial(SimpleHTTPRequestHandler, directory=tmp); h.log_message = lambda *x, **k: None
         srv = ThreadingHTTPServer(("127.0.0.1", 8792), h); threading.Thread(target=srv.serve_forever, daemon=True).start()
         base = "http://127.0.0.1:8792/Generative-Planting/"
-    out = os.path.join(ROOT, "docs", "screenshots"); os.makedirs(out, exist_ok=True)
-    for name, q in SHOTS:
+    rel, shots = SETS[a.set]
+    shots = list(shots) + [tuple(e.split("=", 1)) for e in a.extra]
+    out = a.out or os.path.join(ROOT, rel); os.makedirs(out, exist_ok=True)
+    for name, q in shots:
         if a.only and a.only not in name: continue
         prof = tempfile.mkdtemp()
         path = os.path.join(out, name + ".png")
-        size = "1440,900"
         cmd = [CHROME, "--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
-               f"--window-size={size}", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
-               "--virtual-time-budget=25000", f"--screenshot={path}", base + q]
-        subprocess.run(cmd, capture_output=True, timeout=240)
+               "--window-size=1440,900", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
+               "--virtual-time-budget=30000", f"--screenshot={path}", base + q]
+        subprocess.run(cmd, capture_output=True, timeout=300)
         shutil.rmtree(prof, ignore_errors=True)
-        print(name, os.path.exists(path) and os.path.getsize(path))
+        print(name, os.path.exists(path) and os.path.getsize(path), flush=True)
     if srv: srv.shutdown()
     if tmp: shutil.rmtree(tmp, ignore_errors=True)
 

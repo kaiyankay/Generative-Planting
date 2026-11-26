@@ -57,6 +57,20 @@ class GB {
     for (let i = 0; i < 5; i++) { const a = off + (i / 5) * 6.283; ring.push([cx + Math.cos(a) * r, cy, cz + Math.sin(a) * r]); }
     for (let i = 0; i < 5; i++) { const a = ring[i], c = ring[(i + 1) % 5]; this.tri(t, c, a, part); this.tri(b, a, c, part); }
   }
+  // smooth ellipsoid (subdivided octahedron, normals from the centre): soft canopy volumes, no facets
+  sphere(cx, cy, cz, r, part = 0, sy = 0.8, sub = 2) {
+    let tris = [[[1, 0, 0], [0, 1, 0], [0, 0, 1]], [[0, 0, 1], [0, 1, 0], [-1, 0, 0]], [[-1, 0, 0], [0, 1, 0], [0, 0, -1]], [[0, 0, -1], [0, 1, 0], [1, 0, 0]],
+      [[0, 0, 1], [0, -1, 0], [1, 0, 0]], [[-1, 0, 0], [0, -1, 0], [0, 0, 1]], [[0, 0, -1], [0, -1, 0], [-1, 0, 0]], [[1, 0, 0], [0, -1, 0], [0, 0, -1]]];
+    const nrm = (v) => { const l = Math.hypot(...v); return v.map((q) => q / l); };
+    for (let k = 0; k < sub; k++) { const nt = []; for (const [a, b, c] of tris) { const ab = nrm(a.map((v, i) => v + b[i])), bc = nrm(b.map((v, i) => v + c[i])), ca = nrm(c.map((v, i) => v + a[i])); nt.push([a, ab, ca], [ab, b, bc], [ca, bc, c], [ab, bc, ca]); } tris = nt; }
+    const wob = this.r() * 6.28;
+    for (const t of tris) for (const v of t) {
+      const k = 1 + 0.07 * Math.sin(v[0] * 5 + wob) * Math.cos(v[2] * 4 + wob);
+      const x = cx + v[0] * r * k, y = cy + v[1] * r * sy * k, z = cz + v[2] * r * k;
+      const n = nrm([v[0], v[1] * 1.15 + 0.25, v[2]]);
+      this.v(x, y, z, part, Math.min(1, Math.max(0, 0.25 + 0.75 * (v[1] * 0.5 + 0.5))), n[0], n[1], n[2]);
+    }
+  }
   cone(cx, cy, cz, r, h, part = 1, n = 5) {
     const tip = [cx, cy + h, cz];
     for (let i = 0; i < n; i++) {
@@ -125,12 +139,12 @@ const FORMS = {
   bulb(b) { for (let i = 0; i < 4; i++) b.blade(0, 0, b.r() * 6.28, 0.35, 0.9, 0.06, 0.35, 2); },
   fern(b) { for (let i = 0; i < 9; i++) { const a = (i / 9) * 6.283 + b.r() * 0.3; b.blade(0, 0, a, 0.75, 0.95, 0.11, 0, 4); } },
   'meadow-forb'(b) { rosette(b, 6, 0.25, 0.05, 0.8, 1.2); for (let i = 0; i < 4; i++) { const [x, y, z] = stemTo(b, b.r() * 6.28, b.r() * 0.25, 0.75 + b.r() * 0.25); nodeLeaves(b, x, y, z, 2, 0.1); b.blob(x, y, z, 0.045, 1, 1.2); } },
-  shrub(b) { for (let i = 0; i < 4; i++) b.stem(0, 0, 0, (b.r() - 0.5) * 0.3, 0.4, (b.r() - 0.5) * 0.3, 0.02, 0); for (let i = 0; i < 34; i++) { const u = b.r(), v = b.r() * 6.283, rr = 0.36 * Math.sqrt(u); b.blob(Math.cos(v) * rr, 0.42 + (1 - u) * 0.38 + (b.r() - 0.5) * 0.1, Math.sin(v) * rr, 0.11, i % 7 === 0 ? 0.6 : 0, 0.8); } },
-  'shrub-vase'(b) { for (let i = 0; i < 5; i++) { const a = b.r() * 6.28; b.stem(0, 0, 0, Math.cos(a) * 0.3, 0.7, Math.sin(a) * 0.3, 0.02, 0); } for (let i = 0; i < 32; i++) { const u = b.r(), v = b.r() * 6.283, rr = 0.15 + 0.3 * Math.sqrt(u); b.blob(Math.cos(v) * rr, 0.55 + (1 - u) * 0.38, Math.sin(v) * rr, 0.11, i % 8 === 0 ? 0.6 : 0, 0.8); } },
+  shrub(b) { for (let i = 0; i < 4; i++) b.stem(0, 0, 0, (b.r() - 0.5) * 0.3, 0.4, (b.r() - 0.5) * 0.3, 0.018, 0); for (const [x, y, z, r, p] of [[0, 0.5, 0, 0.36, 0], [0.18, 0.42, 0.1, 0.24, 0], [-0.17, 0.44, -0.08, 0.25, 0.6], [0.02, 0.66, 0.05, 0.22, 0]]) b.sphere(x, y, z, r, p, 0.85, 2); },
+  'shrub-vase'(b) { for (let i = 0; i < 5; i++) { const a = b.r() * 6.28; b.stem(0, 0, 0, Math.cos(a) * 0.3, 0.7, Math.sin(a) * 0.3, 0.018, 0); } for (const [x, y, z, r, p] of [[0, 0.72, 0, 0.3, 0], [0.22, 0.66, 0.08, 0.2, 0.6], [-0.2, 0.68, -0.1, 0.21, 0], [0.05, 0.86, -0.05, 0.18, 0]]) b.sphere(x, y, z, r, p, 0.75, 2); },
 };
-FORMS.tree = (b) => { b.stem(0, 0, 0, 0, 0.55, 0, 0.03, 0); b.stem(0, 0.3, 0, 0.14, 0.62, 0.05, 0.018, 0); b.stem(0, 0.36, 0, -0.12, 0.6, -0.06, 0.016, 0); for (let i = 0; i < 46; i++) { const u = b.r(), v = b.r() * 6.283, rr = 0.42 * Math.sqrt(u); const x = Math.cos(v) * rr, z = Math.sin(v) * rr; const y = 0.58 + (1 - u) * 0.3 + (b.r() - 0.5) * 0.12; b.blob(x, y, z, 0.1 + b.r() * 0.05, 0, 0.85); } };
-FORMS['tree-small'] = (b) => { b.stem(0, 0, 0, 0, 0.4, 0, 0.03, 0); for (let i = 0; i < 16; i++) { const a = b.r() * 6.28, r = b.r() * 0.38; b.blob(Math.cos(a) * r, 0.45 + b.r() * 0.4, Math.sin(a) * r, 0.17, i % 5 === 0 ? 0.7 : 0, 0.8); } };
-FORMS['tree-multistem'] = (b) => { for (let i = 0; i < 4; i++) { const a = (i / 4) * 6.28 + 0.4; b.stem(0, 0, 0, Math.cos(a) * 0.16, 0.6, Math.sin(a) * 0.16, 0.02, 0.85); } for (let i = 0; i < 18; i++) { const a = b.r() * 6.28, r = b.r() * 0.38; b.blob(Math.cos(a) * r, 0.55 + b.r() * 0.38, Math.sin(a) * r, 0.15, 0, 0.8); } };
+FORMS.tree = (b) => { b.stem(0, 0, 0, 0, 0.5, 0, 0.028, 0); b.stem(0, 0.32, 0, 0.16, 0.6, 0.06, 0.016, 0); b.stem(0, 0.36, 0, -0.14, 0.58, -0.07, 0.015, 0); const c = [[0, 0.7, 0, 0.3], [0.17, 0.62, 0.08, 0.22], [-0.16, 0.63, -0.06, 0.23], [0.05, 0.62, -0.18, 0.2], [-0.06, 0.64, 0.17, 0.2], [0.02, 0.84, 0.02, 0.2]]; for (const [x, y, z, r] of c) b.sphere(x, y, z, r, 0, 0.78, 2); };
+FORMS['tree-small'] = (b) => { b.stem(0, 0, 0, 0, 0.4, 0, 0.026, 0); for (const [x, y, z, r, p] of [[0, 0.66, 0, 0.3, 0], [0.16, 0.58, 0.1, 0.2, 0.55], [-0.15, 0.6, -0.08, 0.2, 0], [0, 0.8, 0.05, 0.18, 0.55]]) b.sphere(x, y, z, r, p, 0.8, 2); };
+FORMS['tree-multistem'] = (b) => { for (let i = 0; i < 4; i++) { const a = (i / 4) * 6.28 + 0.4; b.stem(0, 0, 0, Math.cos(a) * 0.16, 0.62, Math.sin(a) * 0.16, 0.018, 0.85); } for (const [x, y, z, r] of [[0.08, 0.72, 0, 0.24], [-0.12, 0.68, 0.1, 0.22], [0, 0.84, -0.1, 0.2], [0.12, 0.62, -0.14, 0.18]]) b.sphere(x, y, z, r, 0, 0.75, 2); };
 
 // ---- far LOD: 6–24 triangles, tuned to read as coloured tufts from the overview
 function farTuft(b, n, lean, part = 0) { for (let i = 0; i < n; i++) b.blade(0, 0, (i / n) * 6.283 + b.r() * 0.4, lean, 1.0, 0.16, part, 1); }
@@ -147,7 +161,7 @@ const FAR = {
   airy: (b) => { farTuft(b, 4, 0.75); for (let i = 0; i < 3; i++) { const a = (i / 3) * 6.283; b.blade(Math.cos(a) * 0.1, Math.sin(a) * 0.1, a, 0.15, 1.0, 0.05, 1, 1); } },
   forb: (b, cap) => { b.blob(0, 0.34, 0, 0.44, 0, 0.8); b.blob(0.16, 0.5, -0.1, 0.24, 0, 0.9); farCap(b, cap); },
   sword: (b) => { farTuft(b, 5, 0.2); b.disc(0, 0.92, 0, 0.18, 5, 1, 0.3); },
-  woody: (b) => { b.stem(0, 0, 0, 0, 0.5, 0, 0.04, 0); b.blob(0, 0.62, 0, 0.42, 0, 0.9); b.blob(0.18, 0.75, 0.1, 0.3, 0, 0.9); b.blob(-0.2, 0.7, -0.12, 0.3, 0.3, 0.9); },
+  woody: (b) => { b.stem(0, 0, 0, 0, 0.5, 0, 0.03, 0); b.sphere(0, 0.66, 0, 0.36, 0, 0.8, 1); b.sphere(0.16, 0.6, 0.1, 0.24, 0, 0.8, 1); },
   bulb: (b) => { b.quad([-0.5, 0.05, -0.15], [0.5, 0.05, -0.15], [0.5, 0.05, 0.15], [-0.5, 0.05, 0.15], 0.5, false); },
 };
 const FAR_OF = {
@@ -192,9 +206,9 @@ attribute float part; attribute float shade; attribute vec3 iLeaf; attribute vec
 varying vec3 vTint;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vec3 c = mix(iLeaf, iFlower, clamp(part, 0.0, 1.0));
-c *= mix(0.66, 1.06, smoothstep(0.0, 0.9, shade));
+c *= mix(0.74, 1.04, smoothstep(0.0, 0.9, shade));
 float g = dot(c, vec3(0.3, 0.59, 0.11));
-vec3 quiet = mix(vec3(g) * vec3(0.98, 1.0, 0.94), vec3(0.62, 0.62, 0.56), 0.35);
+vec3 quiet = mix(vec3(g) * vec3(0.99, 1.0, 0.95), vec3(0.78, 0.77, 0.72), 0.45);
 vTint = mix(c, quiet, iDim);`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>

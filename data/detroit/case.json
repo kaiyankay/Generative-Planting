@@ -1,0 +1,24 @@
+{
+  "schema": "generative-planting/case-config",
+  "version": "0.1",
+  "caseId": "oudolf-garden-detroit",
+  "product": "Generative Planting",
+  "title": "Detroit · Spatial Laboratory",
+  "subtitle": "Oudolf Garden Detroit, Belle Isle",
+  "pathTypes": ["path"],
+  "nonPlantableLayers": ["built.paths", "built.walks", "site.water", "site.context", "built.structures"],
+  "planting": {
+    "editableBedStyles": ["A", "B", "C", "T", "RG", "M"],
+    "editableDistricts": ["district.bird-border"],
+    "blankDefaultStyles": ["A", "B", "C"],
+    "blankOptional": {
+      "bed.TN": "Triangle north",
+      "bed.TE": "Triangle east",
+      "bed.RG": "Rain Garden",
+      "bed.MW": "West Meadow",
+      "bed.ME": "East Meadow",
+      "district.bird-border": "Bird Border"
+    }
+  },
+  "notes": "Case-specific settings read by the viewer and the model store. Nothing here changes model.json. Path set for distance queries = objects whose type is listed in pathTypes."
+}

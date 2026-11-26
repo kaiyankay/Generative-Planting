@@ -1,50 +1,88 @@
-// One visual language for plan, ground texture and 3D.
+// One visual language for plan, ground texture, exploded plates and 3D.
+// Computational landscape illustration: warm paper, quiet context, subdued greens / ochres / blue-greys,
+// fine ink lines, translucent plant symbols. Species colour, analysis colour and state colour never share a meaning:
+//   species  -> muted flower / foliage hues (speciesPlanColor, speciesLeaf)
+//   analysis -> dedicated ramps (RAMPS) shown with a legend
+//   state    -> line style + text (selection solid + offset dashed ring, hover dashed, draft dotted) — never colour alone
+export const TOK = {
+  paper: '#F5F1E8', paper2: '#EEE9DD', context: '#DED8C9', contextLine: '#CBC3B0',
+  meadow: '#C7C38A', lowVeg: '#AFBE9E', midVeg: '#859779', darkVeg: '#5E7464',
+  ink: '#506B5F', inkDeep: '#33433A', inkSoft: '#80897F',
+  water: '#BACBD0', waterEdge: '#8FA6AE', accent: '#B59CBB',
+  path: '#FAF7EF', pathEdge: '#C9BFA9', lawn: '#D3D6BA', lawnDeep: '#C3C9A6',
+  building: '#E6E0D2', stone: '#D8CFBC', wood: '#B49A74', steel: '#4B4F48',
+  soil: '#B8BC9C', soil3d: '#6E7558',
+  select: '#9A4F2E', hover: '#6F5F86', draft: '#8C6A2E',
+};
+// compatibility alias for older imports
 export const PAL = {
-  paper: '#F3EFE5',
-  ink: '#2E3328',
-  inkSoft: '#6B6F60',
-  lawn: '#CBD4A6',
-  lawnDeep: '#B9C58F',
-  meadow: '#D9D3A8',
-  gravel: '#E9E1CF',
-  concrete: '#E4E1D9',
-  road: '#D9D5CB',
-  parking: '#DEDAD1',
-  water: '#AFC4C2',
-  waterDeep: '#93AEAD',
-  soil: '#54493A',
-  soilLight: '#8A7457',
-  steel: '#3A3631',
-  limestone: '#C9BC9E',
-  building: '#D8D1C4',
-  wood: '#A8875E',
-  select: '#C2552B',
-  hover: '#8A5A9E',
-  matrix: '#E6D79A',
+  paper: TOK.paper, ink: TOK.inkDeep, inkSoft: TOK.inkSoft, lawn: TOK.lawn, lawnDeep: TOK.lawnDeep, meadow: TOK.meadow,
+  gravel: TOK.path, concrete: TOK.path, road: TOK.context, parking: TOK.context, water: TOK.water, waterDeep: TOK.waterEdge,
+  soil: TOK.soil3d, soilLight: TOK.soil, steel: TOK.steel, limestone: TOK.stone, building: TOK.building, wood: TOK.wood,
+  select: TOK.select, hover: TOK.hover, matrix: TOK.meadow,
 };
 
 export const STATUS_LABEL = {
-  documented: 'Documented', reconstructed: 'Reconstructed', schematic: 'Schematic', unknown: 'Unknown',
+  documented: 'Documented', reconstructed: 'Reconstructed', schematic: 'Schematic', unknown: 'Unknown', draft: 'Draft', derived: 'Derived',
 };
 
-export function hexToRgb(h) {
-  const n = parseInt(h.slice(1), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-export function mix(a, b, t) {
-  const A = hexToRgb(a), B = hexToRgb(b);
-  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
-}
+// ---------------------------------------------------------------- colour utilities
+export function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+export function rgbToHex(r, g, b) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+export function mix(a, b, t) { const A = hexToRgb(a), B = hexToRgb(b); return rgbToHex(...A.map((v, i) => v + (B[i] - v) * t)); }
 export function rgba(h, a) { const [r, g, b] = hexToRgb(h); return `rgba(${r},${g},${b},${a})`; }
-
-// species colour for plan fills: flower colour (if any) softened toward paper, else foliage
+function toHsl(hex) {
+  let [r, g, b] = hexToRgb(hex).map((v) => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0; const l = (mx + mn) / 2;
+  if (mx !== mn) { const d = mx - mn; s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; }
+  return [h, s, l];
+}
+function fromHsl(h, s, l) {
+  const f = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; };
+  if (!s) return rgbToHex(l * 255, l * 255, l * 255);
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+  return rgbToHex(f(p, q, h + 1 / 3) * 255, f(p, q, h) * 255, f(p, q, h - 1 / 3) * 255);
+}
+// low-saturation versions of the species' display colours (one function for 2D and 3D)
+const _cache = new Map();
+export function muteFlower(hex) {
+  if (!hex) return null; const k = 'f' + hex; if (_cache.has(k)) return _cache.get(k);
+  const [h, s, l] = toHsl(hex);
+  const v = fromHsl(h, Math.min(s * 0.62, 0.42), Math.max(0.5, Math.min(0.76, l * 0.8 + 0.16)));
+  _cache.set(k, v); return v;
+}
+export function muteLeaf(hex) {
+  if (!hex) return TOK.midVeg; const k = 'l' + hex; if (_cache.has(k)) return _cache.get(k);
+  let [h, s, l] = toHsl(hex);
+  h = h + (0.27 - h) * 0.35; // pull toward sage
+  const v = fromHsl(h, Math.min(s * 0.55, 0.3), Math.max(0.34, Math.min(0.56, l)));
+  _cache.set(k, v); return v;
+}
+// plan colour of a species: muted flower (if any), otherwise muted foliage / straw for grasses
 export function speciesPlanColor(sp) {
-  if (!sp) return '#9a9a8a';
-  const base = sp.displayFlower || sp.displayLeaf || '#7a8a5a';
-  return mix(base, PAL.paper, 0.28);
+  if (!sp) return TOK.inkSoft;
+  const k = 'p' + sp.id; if (_cache.has(k)) return _cache.get(k);
+  let v;
+  if (sp.plantType === 'grass' || sp.plantType === 'sedge') v = mix(muteLeaf(sp.displayLeaf), TOK.meadow, 0.35);
+  else if (sp.plantType === 'tree' || sp.plantType === 'shrub') v = mix(muteLeaf(sp.displayLeaf), TOK.midVeg, 0.4);
+  else v = sp.displayFlower ? mix(muteFlower(sp.displayFlower), muteLeaf(sp.displayLeaf), 0.15) : muteLeaf(sp.displayLeaf);
+  _cache.set(k, v); return v;
+}
+export function speciesLeaf(sp) { return muteLeaf(sp && sp.displayLeaf); }
+export function speciesFlower(sp) { return sp && sp.displayFlower ? muteFlower(sp.displayFlower) : speciesLeaf(sp); }
+
+// analysis ramps (distinct from any plant colour)
+export const RAMPS = {
+  elevation: ['#EFE9DC', '#DCD3BF', '#C6B99D', '#A8987A', '#857559'],
+  slope: ['#F3EED9', '#E5D29A', '#CF9F5E', '#A3623C', '#6B3A2C'],
+  pathdist: ['#3F6670', '#7FA2A6', '#BCD0CC', '#EDEFE6'],
+};
+export function ramp(stops, t) {
+  t = Math.max(0, Math.min(1, t)); const n = stops.length - 1; const k = Math.min(n - 1, Math.floor(t * n)); const f = t * n - k;
+  const a = hexToRgb(stops[k]), b = hexToRgb(stops[k + 1]);
+  return a.map((v, i) => Math.round(v + (b[i] - v) * f));
 }
 
-// trace a GeoJSON-like polygon into a canvas path with a transform fn
+// ---------------------------------------------------------------- path tracing
 export function tracePoly(ctx, geom, T) {
   if (!geom) return;
   const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
@@ -58,55 +96,5 @@ export function traceLine(ctx, geom, T) {
   const lines = geom.type === 'LineString' ? [geom.coordinates] : geom.type === 'MultiLineString' ? geom.coordinates : [];
   for (const r of lines) for (let i = 0; i < r.length; i++) { const q = T(r[i][0], r[i][1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }
 }
-
-export function paintContours(ctx, store, T, { scale = 10, alpha = 1 } = {}) {
-  const lines = store.contours(0.25);
-  for (const L of lines) {
-    ctx.beginPath();
-    const s = L.segs;
-    for (let i = 0; i < s.length; i += 4) { const a = T(s[i], s[i + 1]), b = T(s[i + 2], s[i + 3]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
-    ctx.strokeStyle = rgba('#6B5A3A', (L.major ? 0.75 : 0.38) * alpha);
-    ctx.lineWidth = L.major ? Math.max(1, scale * 0.09) : Math.max(0.6, scale * 0.05);
-    ctx.stroke();
-  }
-}
-
-// paint the ground (shared by plan and the 3D terrain texture)
-export function paintGround(ctx, store, T, { scale = 10, forTexture = false } = {}) {
-  const O = (id) => store.getObject(id);
-  const vis = (l) => store.layerVisible(l);
-  const fill = (geom, color) => { ctx.beginPath(); tracePoly(ctx, geom, T); ctx.fillStyle = color; ctx.fill('evenodd'); };
-  if (vis('veg.lawn')) {
-    fill(O('veg.lawn').geometry, PAL.lawn);
-    fill(O('veg.carillon-island').geometry, PAL.lawnDeep);
-  }
-  if (vis('site.context')) {
-    fill(O('context.parking').geometry, PAL.parking);
-    fill(O('context.roads').geometry, PAL.road);
-  }
-  for (const id of ['district.west-meadow', 'district.east-meadow']) {
-    const o = O(id); if (!o) continue;
-    fill(o.geometry, forTexture ? PAL.lawnDeep : PAL.meadow);
-  }
-  if (vis('site.water')) {
-    fill(O('water.lake-tacoma').geometry, PAL.water);
-    fill(O('water.carillon-moat').geometry, PAL.water);
-  }
-  if (vis('built.paths')) {
-    fill(O('context.sidewalks').geometry, PAL.concrete);
-    fill(O('built.gravel-walks').geometry, PAL.gravel);
-  }
-  if (vis('built.walks')) fill(O('built.grass-walks').geometry, PAL.lawnDeep);
-  // bed soil
-  if (vis('structure.beds') || forTexture) {
-    for (const b of store.beds) {
-      if (b.props.style === 'M') continue;
-      fill(b.geometry, forTexture ? PAL.soil : mix(PAL.soilLight, PAL.paper, 0.55));
-    }
-  }
-  // structures footprints
-  for (const o of store.model.objects) {
-    if ((o.type === 'building' || o.type === 'tower') && o.geometry && vis(o.layer)) fill(o.geometry, PAL.building);
-    if (o.type === 'boardwalk' && vis('built.structures')) fill(o.geometry, PAL.wood);
-  }
-}
+export const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif';
+export const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';

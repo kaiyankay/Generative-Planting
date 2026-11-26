@@ -3,60 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Oudolf Garden Detroit — Spatial Model</title>
-<meta name="description" content="AI-ready spatial model of Piet Oudolf's garden on Belle Isle, Detroit: shared 2D plan and 3D diorama, layered and queryable.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%276%27 fill=%27%236F8A4C%27/%3E%3C/svg%3E">
+<title>Generative Planting — Detroit Spatial Laboratory</title>
+<meta name="description" content="Spatial model of Oudolf Garden Detroit (Belle Isle): one site, a frozen schematic reference planting and an editable working design, shared by a 2D plan, a 3D model and a layered overview.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%275.5%27 fill=%27%23859779%27 fill-opacity=%27.55%27/%3E%3Ccircle cx=%278%27 cy=%278%27 r=%272%27 fill=%27%23506B5F%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="src/app.css">
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
 </script>
 </head>
 <body>
-<div id="app" data-view="3d">
+<div id="app" data-view="3d" data-mode="reference">
   <canvas id="c3d" aria-label="3D model"></canvas>
   <canvas id="c2d" aria-label="Plan"></canvas>
   <div id="labels3d" aria-hidden="true"></div>
+  <div id="platelabels" role="list" aria-label="Layer groups"></div>
   <div id="hovertag" aria-hidden="true" hidden></div>
-  <div id="exlabels" aria-hidden="true"><span data-l="vegetation">Vegetation</span><span data-l="structure">Planting structure</span><span data-l="ground">Topography &amp; built</span></div>
 
   <header class="top">
     <div class="brand">
-      <div class="t1">Oudolf Garden Detroit</div>
-      <div class="t2">Belle Isle · Piet Oudolf · spatial model, phase 01</div>
+      <div class="t1">Generative Planting</div>
+      <div class="t2">Detroit · Spatial Laboratory</div>
     </div>
-    <div class="seg" role="tablist" aria-label="View">
-      <button role="tab" data-v="3d" aria-selected="true">3D</button>
-      <button role="tab" data-v="plan" aria-selected="false">Plan</button>
-    </div>
-    <div class="tools">
-      <button class="icon" id="btnExplode" title="Exploded layers (E)" aria-label="Exploded layers" aria-pressed="false">
-        <svg viewBox="0 0 20 20" width="18" height="18"><path d="M10 2.5 3 5.6l7 3.1 7-3.1-7-3.1ZM3 9.6l7 3.1 7-3.1M3 13.8l7 3.1 7-3.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-dasharray="0"/></svg>
+    <nav class="seg views" role="tablist" aria-label="View">
+      <button role="tab" data-v="3d" aria-selected="true" title="3D model (1)">World</button>
+      <button role="tab" data-v="plan" aria-selected="false" title="Orthographic plan (2)">Plan</button>
+      <button role="tab" data-v="layers" aria-selected="false" title="Layer groups, one above the other (3)">Layers</button>
+    </nav>
+    <div class="right">
+      <div class="modes" role="radiogroup" aria-label="Design state">
+        <span class="lbl" aria-hidden="true">State</span>
+        <button role="radio" data-m="reference" aria-checked="true" title="Reference: the schematic reconstruction (read-only)">Reference</button>
+        <button role="radio" data-m="canvas" aria-checked="false" title="Canvas: your working planting design">Canvas</button>
+        <button role="radio" data-m="terrain" aria-checked="false" title="Terrain: the ground only (a view; nothing is deleted)">Terrain</button>
+      </div>
+      <button class="icon" id="btnFit" title="Fit (F)" aria-label="Fit">
+        <svg viewBox="0 0 20 20" width="17" height="17"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
       </button>
-      <button class="icon" id="btnFit" title="Fit garden (F)" aria-label="Fit garden">
-        <svg viewBox="0 0 20 20" width="18" height="18"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-      </button>
-      <button class="icon" id="btnAbout" title="About this model" aria-label="About this model">
-        <svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5" stroke="currentColor" stroke-width="1.7"/><circle cx="10" cy="6.3" r="1" fill="currentColor"/></svg>
+      <button class="icon" id="btnAbout" title="About this model and its evidence" aria-label="About this model">
+        <svg viewBox="0 0 20 20" width="17" height="17"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="6.3" r="1" fill="currentColor"/></svg>
       </button>
     </div>
   </header>
 
-  <aside class="layers" id="layers" aria-label="Layers">
-    <button class="ltoggle" id="ltoggle" aria-expanded="true" title="Layers">
-      <svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 3 2.5 7 10 11l7.5-4L10 3Z M2.5 10.5 10 14.5l7.5-4M2.5 13.8 10 17.8l7.5-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <nav class="crumbs-bar" id="crumbs" aria-label="Location" hidden></nav>
+
+  <aside class="layers collapsed" id="layers" aria-label="Layer index">
+    <button class="ltoggle" id="ltoggle" aria-expanded="false" title="Layer index">
+      <svg viewBox="0 0 20 20" width="15" height="15"><path d="M10 3 2.5 7 10 11l7.5-4L10 3Z M2.5 10.5 10 14.5l7.5-4M2.5 13.8 10 17.8l7.5-4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
       <span>Layers</span>
     </button>
     <div class="ltree" id="ltree"></div>
   </aside>
 
+  <section class="legend" id="legend" aria-label="Legend" hidden></section>
   <aside class="inspector" id="inspector" hidden aria-label="Inspector"></aside>
+  <section class="platecard" id="platecard" hidden aria-live="polite"></section>
 
   <div class="status" id="status">
-    <span id="note">Bed outlines as built (OSM) · planting inside beds is schematic, seeded from Oudolf's legends — not a survey</span>
+    <span id="note"></span>
     <span id="coords" class="mono"></span>
   </div>
 
   <div class="sheet" id="about" hidden></div>
+  <div class="dialog" id="draftdlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" hidden></div>
   <div class="loading" id="loading"><div class="dot"></div><span>Loading model…</span></div>
 </div>
 <script type="module" src="src/app.js"></script>
