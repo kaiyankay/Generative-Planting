@@ -1,0 +1,49 @@
+{
+  "accessed": "2026-11-26T00:20:27-0700",
+  "items": [
+    {
+      "file": "osm_map.json",
+      "url": "https://api.openstreetmap.org/api/0.6/map.json?bbox=-82.991221,42.334305,-82.986610,42.336826",
+      "license": "ODbL-1.0",
+      "attribution": "(c) OpenStreetMap contributors"
+    },
+    {
+      "file": "naip_3857.png",
+      "url": "https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage?bbox=-9238540.453%2C5211189.063%2C-9238027.172%2C5211568.661&bboxSR=3857&imageSR=3857&size=1400%2C1035&format=png&f=image",
+      "bbox3857": [
+        -9238540.452738903,
+        5211189.062845091,
+        -9238027.172202436,
+        5211568.661285062
+      ],
+      "size": [
+        1400,
+        1035
+      ],
+      "license": "US public domain (USGS/USDA)",
+      "attribution": "USGS, USDA, The National Map: Orthoimagery"
+    },
+    {
+      "file": "dem_3857.tif",
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox=-9238540.453%2C5211189.063%2C-9238027.172%2C5211568.661&bboxSR=3857&imageSR=3857&size=520%2C385&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image",
+      "bbox3857": [
+        -9238540.452738903,
+        5211189.062845091,
+        -9238027.172202436,
+        5211568.661285062
+      ],
+      "size": [
+        520,
+        385
+      ],
+      "license": "US public domain (USGS 3DEP)",
+      "attribution": "USGS 3D Elevation Program",
+      "units": "metres, NAVD88"
+    }
+  ],
+  "dem_service": {
+    "name": "3DEPElevation",
+    "pixelSizeX": 0.9999999900119095,
+    "copyright": "USGS National Map 3D Elevation Program (3DEP). October 27, 2026."
+  }
+}

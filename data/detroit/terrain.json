@@ -1,0 +1,19 @@
+{
+ "id": "field.elevation",
+ "file": "terrain.bin",
+ "encoding": "int16-le centimetres above datumZ; -32768 = unknown",
+ "datumZ": 175.0,
+ "verticalDatum": "NAVD88 (USGS 3DEP)",
+ "origin": [
+  -200.0,
+  -150.0
+ ],
+ "cellSize": 1.0,
+ "cols": 361,
+ "rows": 261,
+ "rowOrder": "south-to-north",
+ "zMin": 175.101,
+ "zMax": 177.328,
+ "sourceResolutionM": 1.0,
+ "unknownCells": 0
+}

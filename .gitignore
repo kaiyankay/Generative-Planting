@@ -1,0 +1,11 @@
+# private / never public
+private-inputs/
+.claude/settings.local.json
+.env*
+*.log
+logs/
+node_modules/
+.DS_Store
+__pycache__/
+tools/.cache/
+.claude/
