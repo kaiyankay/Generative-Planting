@@ -582,7 +582,9 @@ export class ModelStore extends Emitter {
           const rows = this._rowsOf(st.inst, w.index);
           rows.forEach((i, j) => { let pos = old.indexOf(st.inst.sp[i]); if (pos < 0) pos = j; st.inst.sp[i] = nu[pos % nu.length]; });
           st.changes.instancesChanged += rows.length;
-          w.speciesIds = value.slice(); w.legendCode = w.legendCode ? w.legendCode : null;
+          // the legend code belonged to the old species in Oudolf's legend: clear it, keep a trace of what was replaced
+          if (!w.replaced) w.replaced = { speciesIds: w.speciesIds.slice(), legendCode: w.legendCode || null };
+          w.speciesIds = value.slice(); w.legendCode = typeof op.legendCode === 'string' ? op.legendCode.slice(0, 24) : null;
           w.dataKind = 'hypothetical'; w.status = 'draft'; w.positionSource = w.positionSource || 'draft';
         } else w[path] = value;
         if (!st.changes.modified.includes(w.id) && !st.changes.added.includes(w.id)) st.changes.modified.push(w.id);

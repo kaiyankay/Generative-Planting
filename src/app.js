@@ -175,8 +175,10 @@ async function main() {
     if (!st.layersSnapshot) st.layersSnapshot = JSON.parse(JSON.stringify(store.layerState));
     if (!st.iso) st.isoFrom = fromUrl ? (st.isoFrom || 'layers') : st.view; // switching layer inside the isolated plan keeps where Back returns to
     st.iso = { group: gid, overlays: { ...overlays } };
-    if (!groupVisible(store, gid)) setGroup(store, gid, { visible: true });
-    if (gid === 'analysis' && !store.layerVisible('analysis.slope') && !store.layerVisible('analysis.pathdist')) store.setLayer('analysis.slope', { visible: true });
+    if (gid === 'analysis') { // one derived raster at a time: slope by default
+      if (!store.layerState['analysis.pathdist'].visible || store.layerState['analysis.slope'].visible) { store.setLayer('analysis.slope', { visible: true }); store.setLayer('analysis.pathdist', { visible: false }); }
+      store.setLayer('analysis', { visible: true });
+    } else if (!groupVisible(store, gid)) setGroup(store, gid, { visible: true });
     plan.setIsolation(st.iso);
     store.select(null);
     setView('plan', { keepIso: true });
@@ -291,7 +293,12 @@ async function main() {
     legendEl.querySelector('[data-a=close]')?.addEventListener('click', () => { if (st.iso || st.mode === 'terrain') { legendEl.classList.toggle('min'); return; } st.legendOpen = false; renderLegend(); });
     legendEl.querySelector('.lg-head')?.addEventListener('click', (e) => { if (legendEl.classList.contains('min') && !e.target.closest('button')) legendEl.classList.remove('min'); });
     legendEl.querySelector('[data-tout]')?.addEventListener('change', (e) => { store.setViewState({ terrainOutline: e.target.checked }); });
-    legendEl.querySelectorAll('.eye').forEach((b) => b.addEventListener('click', () => { store.setLayer(b.dataset.l, { visible: !store.layerState[b.dataset.l].visible, external: true }); renderLegend(); }));
+    legendEl.querySelectorAll('.eye').forEach((b) => b.addEventListener('click', () => {
+      const l = b.dataset.l; const on = !store.layerState[l].visible;
+      const other = { 'analysis.slope': 'analysis.pathdist', 'analysis.pathdist': 'analysis.slope' }[l]; // analysis rasters are exclusive
+      if (on && other) store.setLayer(other, { visible: false });
+      store.setLayer(l, { visible: on, external: true }); renderLegend();
+    }));
     legendEl.querySelectorAll('input[data-ov]').forEach((i) => i.addEventListener('change', () => { const g = i.dataset.ov; const r = legendEl.querySelector(`input[data-op="${g}"]`); st.iso.overlays[g] = i.checked ? r.value / 100 : 0; r.disabled = !i.checked; plan.setIsolation(st.iso); syncUrl(); }));
     legendEl.querySelectorAll('input[data-op]').forEach((r) => r.addEventListener('input', () => { st.iso.overlays[r.dataset.op] = r.value / 100; plan.request(); syncUrl(); }));
   }
@@ -511,6 +518,7 @@ function renderInspector(store, sel, ctx) {
       ['Area', o.areaM2 != null ? `${fmt(o.areaM2)} m²` : '—'], ['Recipe', esc(o.recipeId || '—')],
       ['Real plants (est.)', o.countEstimatedReal != null ? fmt(o.countEstimatedReal, 0) : '<span class="unk">not published</span>'],
       ['Visual proxies', `${rows.length.toLocaleString()} <span class="unk">live in this scenario</span>`], ['Position source', esc(o.positionSource)],
+      ...(o.replaced ? [['Replaced', `${o.replaced.speciesIds.map((id) => { const r = store.getObject(id); return r ? spName(r) : esc(id); }).join(' + ')}${o.replaced.legendCode ? ` (legend “${esc(o.replaced.legendCode)}”)` : ''} <span class="unk">in this working design</span>`]] : []),
     ]) + `<p class="note">${esc(o.countBasis || '')}${o.note ? ' ' + esc(o.note) : ''}${o.bloomNote ? ' ' + esc(o.bloomNote) : ''}</p>`);
     if (sps.length) body += sec('Species', `<ul class="splist">${sps.map((s) => `<li><span class="swatch" style="background:${speciesPlanColor(s)}"></span><span>${spName(s)}</span><span class="role">${esc(s.plantType)}</span></li>`).join('')}</ul>`);
     if (DEV && store.scenario === 'working') body += devEditor(store, o);

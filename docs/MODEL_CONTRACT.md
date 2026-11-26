@@ -91,7 +91,8 @@ One coordinate frame, four concepts (not four files):
 ### Patch operations
 
 ```js
-{ op: 'replaceSpecies', target: 'pl.*', speciesIds: ['sp.*', …] }            // keeps proxy rows, changes their species (2D, 3D, queries follow)
+{ op: 'replaceSpecies', target: 'pl.*', speciesIds: ['sp.*', …], legendCode? } // keeps proxy rows, changes their species (2D, 3D, queries follow);
+                                                                              // clears the old legend code, records `replaced: {speciesIds, legendCode}`
 { op: 'set', target: 'pl.*', path, value }   // path ∈ speciesIds | role | legendCode | note | countEstimatedReal | symbolRadiusM
 { op: 'remove', target: 'pl.*' }                                              // placement + its proxies leave model, index, render
 { op: 'add', collection: 'placements', value: { id?, bedId | districtId, role, speciesIds, geometry: Point | (Multi)Polygon, legendCode?, note? } }

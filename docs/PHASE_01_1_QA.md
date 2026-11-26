@@ -17,7 +17,7 @@ No id, geometry, species or placement changed. New file: `data/detroit/case.json
 | Suite | Phase 01 baseline (`5a7062d`) | Phase 01.1 |
 |---|---|---|
 | `tools/test_model.py` (data contract) | 23/23 | 23/23 (unchanged; data unchanged) |
-| `tools/run_browser_tests.py` → `tests.html` | 42/42 (286 s, frozen copy) | see §2.1 |
+| `tools/run_browser_tests.py` → `tests.html` | 42/42 (286 s, frozen copy) | **113/113** = 42 original + 71 new (≈ 10–14 min wall time on this machine) |
 
 No Phase 01 test was removed or loosened. The harness wall-time limit was raised (300 s → 1800 s) because this machine is shared with another Chrome renderer at ~70 % CPU; assertions are unchanged.
 
@@ -40,6 +40,9 @@ No Phase 01 test was removed or loosened. The harness wall-time limit was raised
 | World camera not restored after Layers → Plan → Back → Esc | the hidden 3D view started a return tween while the plan was open | 3D keeps its pose while the plan is shown |
 | `setPointerCapture` / `releasePointerCapture` threw for synthetic clicks | browser rule for events without an active pointer (agents, automation) | guarded on both canvases |
 | Plan redraw ~60 ms | colour strings rebuilt per proxy | cached per species → ~45 ms full extent, ~19 ms zoomed |
+| Replaced patch kept Oudolf's legend code of the old species | code belongs to the old species | cleared on replace; `replaced` records what was there |
+| Terrain state still painted beds / meadows in 3D; contours too thin | texture path forced bed fill; line width | bed fill follows visibility in Terrain; thicker texture contours; dashed reference outline |
+| Analysis opened both rasters, smoothed | group switch + smoothing | one raster at a time; 1 m cells shown crisp |
 | Test-side bugs | slanted bed edge, tolerance, variable shadowing, a `//` comment inside a one-line function | fixed in the test, assertions not weakened |
 
 ## 3. Screenshots

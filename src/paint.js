@@ -22,11 +22,11 @@ const PAINTERS = {
     ground(ctx, s, T, o) {
       const iso = o.focus === 'terrain' || s.view.mode === 'terrain';
       if (iso && vis(s, 'topo.surface')) { drawRaster(ctx, s, T, 'elevation', 0.9); drawRaster(ctx, s, T, 'hillshade', 0.55); }
-      if (vis(s, 'topo.contours')) paintContours(ctx, s, T, { scale: o.texture ? 7 : Math.min(o.scale, 30) * 0.4, strong: iso, texture: o.texture });
+      if (vis(s, 'topo.contours')) paintContours(ctx, s, T, { scale: o.texture ? 26 : Math.min(o.scale, 30) * 0.4, strong: iso, texture: o.texture });
     },
     top(ctx, s, T, o) {
-      if (!o.texture && s.view.mode === 'terrain' && s.view.terrainOutline !== false && !o.plate) { // optional reference outline of the bed framework
-        ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = rgba(TOK.inkDeep, 0.38); ctx.lineWidth = 0.8;
+      if (s.view.mode === 'terrain' && s.view.terrainOutline !== false && !o.plate) { // optional reference outline of the bed framework
+        ctx.save(); ctx.setLineDash(o.texture ? [10, 8] : [3, 3]); ctx.strokeStyle = rgba(TOK.inkDeep, o.texture ? 0.5 : 0.38); ctx.lineWidth = o.texture ? 2.2 : 0.8;
         for (const b of s.beds) { ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.stroke(); }
         ctx.restore();
       }
@@ -99,7 +99,7 @@ const PAINTERS = {
   },
   framework: {
     ground(ctx, s, T, o) {
-      if (!vis(s, 'structure.beds') && !o.texture) return;
+      if (!vis(s, 'structure.beds') && !(o.texture && s.view.mode !== 'terrain')) return; // 3D ground keeps bed soil unless the view is Terrain
       for (const b of s.beds) {
         const st = b.props.style;
         if (st === 'M') { fill(ctx, T, b.geometry, o.texture ? '#B9BA8A' : mix(TOK.meadow, TOK.paper, 0.35)); continue; }
@@ -201,7 +201,7 @@ const PAINTERS = {
     ground(ctx, s, T, o) {
       if (o.texture) { if (vis(s, 'analysis.slope')) drawRaster(ctx, s, T, 'slope', 0.65); else if (vis(s, 'analysis.pathdist')) drawRaster(ctx, s, T, 'pathdist', 0.65); return; }
       if (vis(s, 'analysis.slope')) drawRaster(ctx, s, T, 'slope', o.focus === 'analysis' ? 0.85 : 0.6);
-      if (vis(s, 'analysis.pathdist')) drawRaster(ctx, s, T, 'pathdist', o.focus === 'analysis' ? 0.8 : 0.55);
+      if (vis(s, 'analysis.pathdist') && !vis(s, 'analysis.slope')) drawRaster(ctx, s, T, 'pathdist', o.focus === 'analysis' ? 0.7 : 0.5);
     },
   },
 };
@@ -338,7 +338,7 @@ export function getRaster(s, kind) {
 }
 export function drawRaster(ctx, s, T, kind, alpha) {
   const R = getRaster(s, kind); const a = T(R.x0, R.y1), b = T(R.x1, R.y0);
-  ctx.save(); ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = true;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = kind === 'elevation' || kind === 'hillshade'; // analysis shows its real 1 m cells
   ctx.drawImage(R.canvas, a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.restore();
 }
 function buildRaster(s, kind) {

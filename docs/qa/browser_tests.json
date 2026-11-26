@@ -1,7 +1,7 @@
 {
  "ok": 113,
  "total": 113,
- "loadMs": 295.80000001192093,
+ "loadMs": 267.39999997615814,
  "results": [
   {
    "name": "app loads and exposes window.GP",
@@ -536,7 +536,7 @@
   {
    "name": "3D renders triangles",
    "ok": true,
-   "detail": "{\"fps\":3.5,\"triangles\":1184347,\"calls\":204,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
+   "detail": "{\"fps\":6.4,\"triangles\":1184347,\"calls\":204,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
   },
   {
    "name": "no horizontal overflow at 1440\u00d7900",
@@ -572,5 +572,5 @@
  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
  "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
  "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
- "wallSeconds": 836.4
+ "wallSeconds": 783.7
 }
