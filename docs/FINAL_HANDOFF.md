@@ -1,7 +1,7 @@
 # 早晨交接 — Generative Planting · Phase 01（Oudolf Garden Detroit）
 
 **在线网页：** https://kaiyankay.github.io/Generative-Planting/ （已在浏览器里实际打开并测试，见 QA_REPORT §5）
-**仓库：** https://github.com/kaiyankay/Generative-Planting （`main`，最终 commit 见 `git log -1` / QA_REPORT）
+**仓库：** https://github.com/kaiyankay/Generative-Planting （`main`；线上已验证的 commit `4ef93db`，之后只有文档更新，见 `git log`）
 
 ## 你打开网页会看到什么
 
@@ -27,6 +27,7 @@
 ## 测试与验证
 
 - 模型合约测试：`tools/test_model.py`（15 床、编号、引用、几何、实例都在床内、unknown 不为 0、重建逐字节一致等）。
+- 模型测试 23/23；浏览器测试 42/42（本地 `/Generative-Planting/` 路径下与线上网址各跑一次）。
 - 浏览器测试：`tools/run_browser_tests.py`，在 `/Generative-Planting/` 路径下跑真实 app（图层开关、锁定、2D↔3D 选择同步、缩放/平移/复位、草稿不改 baseline、手机宽度不溢出、无报错）；同一套测试也对线上网址跑过。
 - 性能（本机 Intel Iris Plus 650，1440×900）：总览约 25 fps（DPR 1.5）/ 37 fps（DPR 1）；静止时不渲染。数字见 QA_REPORT。
 

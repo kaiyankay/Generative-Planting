@@ -5,9 +5,9 @@
 | Suite | Command | Result | Where |
 |---|---|---|---|
 | Model contract | `python3 -I tools/test_model.py` | **23 / 23 pass** | `docs/qa/model_tests.json` |
-| Browser, local, production base path `/Generative-Planting/`, headless Chrome (SwiftShader) | `python3 -I tools/run_browser_tests.py` | **40 / 40 pass** | `docs/qa/browser_tests.json` |
-| Browser, desktop browser pane (Intel Iris Plus 650 GPU) | open `tests.html` | **40 / 40 pass**, app load 625 ms | — |
-| Browser, **live GitHub Pages** | `python3 -I tools/run_browser_tests.py --url https://kaiyankay.github.io/Generative-Planting/tests.html --out docs/qa/browser_tests_live.json` | **40 / 40 pass** (commit 4102f92) | `docs/qa/browser_tests_live.json` |
+| Browser, local, production base path `/Generative-Planting/`, headless Chrome (SwiftShader) | `python3 -I tools/run_browser_tests.py` | **42 / 42 pass** | `docs/qa/browser_tests.json` |
+| Browser, desktop browser pane (Intel Iris Plus 650 GPU) | open `tests.html` | 40 / 40 pass (before the two exploded-view checks were added), app load 625 ms | — |
+| Browser, **live GitHub Pages** | `python3 -I tools/run_browser_tests.py --url https://kaiyankay.github.io/Generative-Planting/tests.html --out docs/qa/browser_tests_live.json` | **42 / 42 pass** (commit 4ef93db) | `docs/qa/browser_tests_live.json` |
 
 What the suites cover (all required checks of the brief):
 
@@ -20,6 +20,7 @@ What the suites cover (all required checks of the brief):
 - Layers: hiding trees hides the 3D meshes, keeps the data, leaves other layers visible; group toggle hides children without changing their own state; locked bed layer stays visible but is not selectable.
 - Selection: click selects A1, 3D draws the outline and quiets other beds, second click drills down to a patch/plant, switching to Plan keeps it, inspector opens, parent climb, Esc clears.
 - Plan wheel zoom, drag pan, fit reset; 3D home reset.
+- Exploded view lifts vegetation and shows the structure plane, and returns to the ground and the previous camera.
 - Draft: `applyPatch` changes the draft, baseline unchanged, `exportModel()` returns the baseline, `resetDraft` restores.
 - No runtime errors; no horizontal overflow at 1440×900 and at 390×844 (phone); layer panel fits the phone width.
 
@@ -74,6 +75,7 @@ The app renders only when something changes (idle cost 0) and steps the pixel ra
 
 ## 5. Deployment check
 
+- Commit `4ef93db` (exploded view): Pages `built`; live `tests.html` → **42 / 42**.
 - Pages enabled through the GitHub API (source `main`, `/`, legacy build), first build from `55e5b23`.
 - Live URL opened in the browser: page title correct, all assets (`src/*.js`, `data/detroit/*`, `vendor/three/*`) returned 200 through relative paths, no console errors, 3D rendered.
 - Commit `4102f92`: Pages build `built`; `tests.html` run against the live URL in headless Chrome → **40 / 40**, including base-path loading and both viewports.
