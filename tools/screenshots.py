@@ -20,7 +20,6 @@ SHOTS = [
     ("08-layer-toggle", "index.html?view=3d&shot=1&lopen=1&layers=-veg.forbs,-veg.grasses,-veg.bulbs,-veg.shrubs,%2Btopo.contours,%2Banalysis.slope"),
     ("09-plan-detail", "index.html?view=plan&sel=bed.B1&focus=1&z=2.2"),
     ("10-exploded", "index.html?view=3d&shot=1&explode=1"),
-    ("11-phone", "index.html?view=3d&shot=1"),
 ]
 
 
@@ -39,7 +38,7 @@ def main():
         if a.only and a.only not in name: continue
         prof = tempfile.mkdtemp()
         path = os.path.join(out, name + ".png")
-        size = "390,844" if name == "11-phone" else "1440,900"
+        size = "1440,900"
         cmd = [CHROME, "--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
                f"--window-size={size}", "--force-device-scale-factor=1", f"--user-data-dir={prof}",
                "--virtual-time-budget=25000", f"--screenshot={path}", base + q]

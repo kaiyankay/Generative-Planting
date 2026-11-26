@@ -58,7 +58,7 @@ Scoring 1–5 against: recognisability of the real site, edges/composition, plan
 
 Current self-assessment (not a perfect score): recognisability 4, composition 4, plant forms 3.5 (far forms are still generic tufts; near forms are stylised, not species-accurate), hierarchy 4, UI restraint 4, performance 3.5 on a 2017 Intel iGPU.
 
-Screenshots in `docs/screenshots/`: 01-hero, 02-plan, 03-layer-structure, 04-block, 05-matrix, 06-grouping, 07-inspector, 08-layer-toggle (vegetation hidden, contours + slope on), 09-plan-detail, 10-exploded, 11-phone (headless Chrome cannot go narrower than ~500 px; the 375 px check was done in the browser pane). Captured by `tools/screenshots.py` with headless Chrome (SwiftShader) from the same URL states as the live site.
+Screenshots in `docs/screenshots/`: 01-hero, 02-plan, 03-layer-structure, 04-block, 05-matrix, 06-grouping, 07-inspector, 08-layer-toggle (vegetation hidden, contours + slope on), 09-plan-detail, 10-exploded. Phone layout (375×812) was checked visually in the browser pane; headless Chrome cannot lay out narrower than ~500 px, so no phone PNG is included. Captured by `tools/screenshots.py` with headless Chrome (SwiftShader) from the same URL states as the live site.
 
 ## 4. Performance (measured, not assumed)
 
