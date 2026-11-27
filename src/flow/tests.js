@@ -14,6 +14,10 @@ import { suggestMixes, interpretEdit } from './suggest.js';
 import { validateSuggestion } from './llm.js';
 import { autoCompose } from './compose.js';
 import { readIntent } from './stages/define.js';
+import { candidates } from './fill.js';
+import { Brush } from './brush.js';
+import { convertLegendRecipe, SYSTEMS } from './mix.js';
+import { proposeStrategy } from './strategy.js';
 
 const R = []; const t0 = performance.now();
 const test = async (id, gate, name, fn) => { try { const d = await fn(); R.push({ id, gate, name, ok: d === true || (d && d.ok !== false), detail: d === true ? '' : d }); } catch (e) { R.push({ id, gate, name, ok: false, detail: String(e && e.stack || e) }); } };
@@ -32,7 +36,7 @@ function validity(res, plantable) {
   return { A: +A.toFixed(2), sum: +sum.toFixed(2), dropped: res.adaptation.droppedM2, overlap: +overlap.toFixed(4), outside: +outside.toFixed(4), positive, ok: positive && overlap < 0.05 && outside < 0.05 && near(sum + res.adaptation.droppedM2, A, A * 0.003 + 0.05) };
 }
 
-const KEYS = ['gp.flow.project.v1', 'gp.flow.snapshots.v1', 'gp.workingDraft.v1'];
+const KEYS = ['gp.flow.project.v1', 'gp.flow.snapshots.v1', 'gp.flow.project.v2', 'gp.flow.snapshots.v2', 'gp.workingDraft.v1'];
 // the tests never leave their project in the browser: the visitor's own saved design is put back afterwards
 export async function run() {
   const saved = Object.fromEntries(KEYS.map((k) => { try { return [k, localStorage.getItem(k)]; } catch { return [k, null]; } }));
@@ -64,8 +68,8 @@ async function runAll() {
     return { g, ctx: { label: 'FIXTURE', pathDist: (x, y) => (pd(x, y) <= 0.05 ? 0 : pd(x, y)), elevation: (x, y) => 100 + relief * (x / 30), sample: (x, y) => ({ elevation: 100 + relief * (x / 30), slope: 0, pathDist: pd(x, y), canopy: canopy ? ((x - canopy[0]) ** 2 + (y - canopy[1]) ** 2 <= canopy[2] ** 2 ? 1 : 0) : 0 }) } };
   };
   await test('S4', 'G2', 'FIXTURE: hole is excluded and total area is conserved (bands, honeycomb, organic)', () => { const f = fixture('north'); const out = {}; let ok = true; for (const l of Object.keys(LOGICS)) { const r = generateCells({ bedId: 'fx', bedCode: 'FX', plantable: f.g, logic: l, context: f.ctx, objectives: {} }); const v = validity(r, f.g); const inHole = r.cells.some((c) => inside(c.geometry, 15, 4)); out[l] = { ...v, inHole }; ok = ok && v.ok && !inHole; } return { ok, ...out }; });
-  await test('S5', 'G2', 'FIXTURE (30 × 7.5 m, path on the short west edge): objective changes geometry — continuity ON → bands parallel to the path (90°), OFF → along the long axis (0°)', () => {
-    const f = fixture('west', { hole: false, h: 7.5 }); const on = generateCells({ bedId: 'fx', bedCode: 'FX', plantable: f.g, logic: 'bands', context: f.ctx, objectives: { continuity: true } }); const off = generateCells({ bedId: 'fx', bedCode: 'FX', plantable: f.g, logic: 'bands', context: f.ctx, objectives: { continuity: false } });
+  await test('S5', 'G2', 'FIXTURE (30 × 7.5 m, path on the short west edge): straight bands (V2: guide "straight"; curved is the default) — continuity ON → parallel to the path (90°), OFF → along the long axis (0°)', () => {
+    const f = fixture('west', { hole: false, h: 7.5 }); const on = generateCells({ bedId: 'fx', bedCode: 'FX', plantable: f.g, logic: 'bands', params: { guide: 'straight' }, context: f.ctx, objectives: { continuity: true } }); const off = generateCells({ bedId: 'fx', bedCode: 'FX', plantable: f.g, logic: 'bands', params: { guide: 'straight' }, context: f.ctx, objectives: { continuity: false } });
     return { ok: angDiff(on.params.angle, 90) < 5 && angDiff(off.params.angle, 0) < 5, on: [on.params.angle, on.adaptation.explanation], off: [off.params.angle, off.adaptation.explanation] };
   });
   await test('S6', 'G2', 'FIXTURE: context changes geometry — a 0.6 m slope across the bed turns bands to the contours; flat ground does not', () => {
@@ -110,10 +114,11 @@ async function runAll() {
   await test('P3', 'G4', 'FIXTURE: unknown flowering → uncertain, never "no resource"', () => { const p = perfOf('mA', 'mU'); return { ok: p.perCell.c2.months[6].state === 'uncertain' && p.byMonth[6].uncertainCells === 1 && p.issues.some((i) => i.id === 'gap.6' && i.severity === 'uncertain'), state: p.perCell.c2.months[6].state }; });
   await test('P4', 'G4', 'FIXTURE: adjacent resource cells form 1 component; separated cells 2 isolated', () => { const a = perfOf('mA', 'mA'); const b = perfOf('mA', 'mA', false); return { ok: a.byMonth[4].components.length === 1 && b.byMonth[4].components.length === 2 && b.byMonth[4].isolated.length === 2, adjacent: a.byMonth[4].components.length, separated: b.byMonth[4].components.length }; });
   await test('P5', 'G4', 'Empty design and no data: no error, no fabricated values', () => { const p = computePerformance({ cells: [cA, cB], assignments: {}, instances: {}, mixes: [], K: FK, brief }); return { ok: p.instances === 0 && p.byMonth[6].resourceShare === null && p.coverage.bloom === null && p.issues.length === 0, share: p.byMonth[6].resourceShare }; });
-  await test('P6', 'G4', 'FIXTURE adaptability: known mismatch (sun plant under a crown) vs unknown light are distinguished', () => {
+  await test('P6', 'G4', 'FIXTURE adaptability (V2: per placed plant): a sun plant placed under a crown is a conflict; unknown light stays uncertain', () => {
     const K2 = fakeK({ S: T([6], ['bees'], ['sun']), N: T([6], ['bees'], null) }); const under = { ...cA, conditions: { canopy: { status: 'under crown', fraction: 1 } } };
-    const p1 = computePerformance({ cells: [under], assignments: { c1: { mixId: 's' } }, instances: { c1: inst('S') }, mixes: [{ id: 's', members: [{ plantId: 'S', proportion: 1, role: 'seasonal' }] }], K: K2, brief });
-    const p2 = computePerformance({ cells: [under], assignments: { c1: { mixId: 'n' } }, instances: { c1: inst('N') }, mixes: [{ id: 'n', members: [{ plantId: 'N', proportion: 1, role: 'seasonal' }] }], K: K2, brief });
+    const mk = (id, fit) => ({ ...inst(id), plants: inst(id).plants.map((p) => ({ ...p, fit })) });
+    const p1 = computePerformance({ cells: [under], assignments: { c1: { mixId: 's' } }, instances: { c1: mk('S', 'conflict') }, mixes: [], K: K2, brief });
+    const p2 = computePerformance({ cells: [under], assignments: { c1: { mixId: 'n' } }, instances: { c1: mk('N', 'unknown') }, mixes: [], K: K2, brief });
     return { ok: p1.perCell.c1.adaptability.status === 'conflict' && p2.perCell.c1.adaptability.status === 'uncertain', known: p1.perCell.c1.adaptability.status, unknown: p2.perCell.c1.adaptability.status };
   });
 
@@ -144,9 +149,9 @@ async function runAll() {
   await test('K6', 'G3', 'Rules-mode intent reading is explicit and does not invent (unused words reported)', () => { const r = readIntent('Low maintenance pollinator planting from spring to autumn along the paths'); return { ok: r.objectives.pollinators.on && r.objectives.continuity.on && r.objectives.flowering.months[0] === 3 && r.unused.some((u) => u.startsWith('maintenance')), read: r.read, unused: r.unused }; });
   await test('K7', 'G3', 'Rules-mode edit: "keep the grass matrix, increase spring bloom" adds a spring plant and leaves matrix shares unchanged', () => {
     const mix = makeMix({ id: 'm', name: 'm', color: '#888', members: [{ plantId: 'sp.sporobolus-heterolepis', role: 'matrix', proportion: 0.5 }, { plantId: 'sp.m-echinacea-purpurea', role: 'seasonal', proportion: 0.5 }] });
-    const r = interpretEdit('keep the grass matrix, increase spring bloom', mix, { K }); const mat = r.proposed && r.proposed.members.find((m) => m.plantId === 'sp.sporobolus-heterolepis');
+    const r = interpretEdit('keep the grass matrix, increase spring bloom', mix, { K }); const base = r.proposed && r.proposed.layers.find((L) => L.slot === 'base'); const mat = base && base.members.find((m) => m.plantId === 'sp.sporobolus-heterolepis'); const mat0 = mix.layers.find((L) => L.slot === 'base').members.find((m) => m.plantId === 'sp.sporobolus-heterolepis');
     const added = r.proposed ? r.proposed.members.filter((m) => !mix.members.some((q) => q.plantId === m.plantId)) : [];
-    return { ok: r.ok && mat && Math.abs(mat.proportion - 0.5) < 0.002 && added.length === 1 && K.traits(added[0].plantId).bloom.value.some((m) => m <= 5), matched: r.matched, added: added.map((a) => a.plantId) };
+    return { ok: r.ok && mat && Math.abs(mat.share - mat0.share) < 0.002 && added.length === 1 && K.traits(added[0].plantId).bloom.value.some((m) => m <= 5), matched: r.matched, added: added.map((a) => a.plantId) };
   });
   await test('K8', 'G3', 'Unrecognised edit request is refused in Rules mode, not faked', () => { const mix = makeMix({ id: 'm', name: 'm', color: '#888', members: [{ plantId: 'sp.sporobolus-heterolepis', role: 'matrix', proportion: 1 }] }); const r = interpretEdit('make it feel more romantic', mix, { K }); return { ok: r.ok === false && /Not interpreted/.test(r.error), error: r.error }; });
   await test('L1', 'G3', 'Model answers are validated: invented evidence id, unknown plant, coordinates and bad sums are refused; a valid answer passes', () => {
@@ -162,7 +167,7 @@ async function runAll() {
   await test('L2', 'G3', 'No language model on a static page: the adapter reports Rules mode; no key in the client', async () => { const { MixReasoner } = await import('./llm.js'); const m = new MixReasoner({ K, endpoint: 'api/flow/llm-absent' }); const s = await m.probe(); const src = await fetch('src/flow/llm.js').then((r) => r.text()); return { ok: s.mode === 'rules' && !s.live && !/sk-ant|ANTHROPIC_API_KEY\s*=/.test(src), status: s }; });
 
   // ================================================================ Gate 2 · mixes, assignments, undo, variants (real project state)
-  await test('M1', 'G2', 'Mix validation: proportions must sum to 100 %, density in range; normalise is exact', () => { const bad = validateMix({ name: 'x', members: [{ plantId: 'sp.a', role: 'seasonal', proportion: 0.5 }, { plantId: 'sp.b', role: 'matrix', proportion: 0.3 }], density: { value: 4 } }); const n = normalize([{ proportion: 1 }, { proportion: 1 }, { proportion: 1 }]); return { ok: !bad.ok && bad.errors.some((e) => /sum/.test(e)) && n.reduce((a, m) => a + m.proportion, 0) === 1, errors: bad.errors, n: n.map((m) => m.proportion) }; });
+  await test('M1', 'G2', 'Mix validation (V2 layers): a layer\'s proportions must sum to 100 %, density in range; normalise is exact', () => { const bad = validateMix({ name: 'x', layers: [{ id: 'emergent', slot: 'overlay', basis: 'count', density: 1, members: [{ plantId: 'sp.a', role: 'emergent', proportion: 0.5 }, { plantId: 'sp.b', role: 'emergent', proportion: 0.3 }] }] }); const n = normalize([{ proportion: 1 }, { proportion: 1 }, { proportion: 1 }]); return { ok: !bad.ok && bad.errors.some((e) => /sum/.test(e)) && n.reduce((a, m) => a + m.proportion, 0) === 1, errors: bad.errors, n: n.map((m) => m.proportion) }; });
   const prv = P.previewCells('bed.B2', 'honeycomb'); P.commitStructure('bed.B2', prv);
   const ids = P.state.beds['bed.B2'].cellIds; P.addMix(testMix);
   const mixB = makeMix({ id: 'mix.b', name: 'B', color: '#aa8866', members: [{ plantId: 'sp.m-monarda-fistulosa', role: 'seasonal', proportion: 0.6 }, { plantId: 'sp.eragrostis-spectabilis', role: 'matrix', proportion: 0.4 }] }); P.addMix(mixB);
@@ -202,5 +207,102 @@ async function runAll() {
     const placed = Object.values(P.state.instances).reduce((a, i) => a + i.plants.filter((p) => p.plantId === r.id).length, 0); const sp = store.getObject(r.id);
     return { ok: r.ok && sp && sp.runtime && placed > 0 && K.traits(r.id).proxy, id: r.id, placed };
   });
+
+  // ================================================================ V2 · strategy, multi-bed structure, fill engine, live brush, layers
+  const legendFile = await fetch('data/detroit/mixes.json').then((r) => r.json());
+  const LG = legendFile.mixes.map((m, i) => convertLegendRecipe(m, { colorIndex: i, exists: (id) => !!store.getObject(id) }));
+  const V = new Project({ store, cs, K, site: { id: 'detroit', name: 'Oudolf Garden Detroit' } }); P = V; // the knowledge reads this project from here on
+  const fpOf = (inst, keep = () => true) => { let h = 2166136261 >>> 0, n = 0; for (const c of Object.keys(inst).sort()) for (const p of inst[c].plants) { if (!keep(p, c)) continue; n++; for (const ch of `${c}|${p.id}|${p.x}|${p.y};`) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } } return `${n}:${h.toString(16)}`; };
+  await test('V1', 'V2-B', 'Strategy (Rules mode): the V2 intent over Main Garden gives ≥ 3 zones with different systems / logics; meadows kept; ≥ 15 beds; one confirm', () => {
+    const s = proposeStrategy(V, { intent: 'Keep the meadows, use a coherent matrix-based planting along the main garden paths, add early flowers beneath trees, and support pollinators throughout the season.', scope: 'site' });
+    const sys = new Set(s.zones.map((z) => z.system)), lg = new Set(s.zones.map((z) => z.logic)); const past = V.past.length; V.confirmStrategy(s);
+    return { ok: s.zones.length >= 3 && sys.size >= 2 && lg.size >= 2 && s.kept.length === 2 && s.beds >= 15 && V.past.length === past + 1, zones: s.zones.map((z) => [z.name, z.system, z.logic, z.bedIds.length]), kept: s.kept, rules: s.rules.map((r) => r[0]) };
+  });
+  const zones = V.state.strategy.zones; const pzone = zones.find((z) => z.logic === 'bands');
+  const previews = zones.flatMap((z) => z.bedIds.map((id) => { const r = V.previewCells(id, z.logic, z.logic === 'bands' ? { guide: 'path' } : {}); r.zoneId = z.id; return r; }));
+  await test('V2', 'V2-C', 'Structure: every bed of the strategy previewed and committed in ONE undo step; cells valid (no overlap, inside plantable)', () => {
+    const past = V.past.length; const r = V.commitStructureMany(previews); let bad = []; for (const pv of previews) { if (!pv.ok) { bad.push(pv.bedId + ': ' + pv.error); continue; } const v = validity(pv, V.plantable(pv.bedId)); if (!v.ok) bad.push(pv.bedId + JSON.stringify(v)); }
+    return { ok: r.ok !== false && V.past.length === past + 1 && Object.keys(V.state.beds).length === previews.length && !bad.length, beds: Object.keys(V.state.beds).length, cells: V.allCells().length, bad: bad.slice(0, 4) };
+  });
+  await test('V3', 'V2-C', 'Curved bands follow the path edge on real beds (curved flag, ≥ 2 cells) and size changes the candidates', () => {
+    const b = pzone.bedIds[0]; const a = V.previewCells(b, 'bands', { guide: 'path', size: 2.5 }), c = V.previewCells(b, 'bands', { guide: 'path', size: 4.5 });
+    return { ok: a.ok && a.params.curved && a.cells.length >= 2 && c.cells.length !== a.cells.length, bed: b, curved: a.params.curved, n25: a.cells.length, n45: c.cells.length, note: a.adaptation.notes[0] };
+  });
+  await test('V4', 'V2-C', 'Straight bands of a zone share one world anchor: the band phase across two beds is identical (continues across the path)', () => {
+    const [b1, b2] = pzone.bedIds; const angle = 20; const anchor = [0, 0]; const r1 = V.previewCells(b1, 'bands', { guide: 'straight', angle, size: 3, anchor }), r2 = V.previewCells(b2, 'bands', { guide: 'straight', angle, size: 3, anchor });
+    const n = [-Math.sin(angle * Math.PI / 180), Math.cos(angle * Math.PI / 180)]; const ph = (r) => { const vals = []; for (const c of r.cells) for (const p of C(c.geometry)) for (const [x, y] of p[0]) vals.push(((x * n[0] + y * n[1]) % 3 + 3) % 3); return vals; };
+    const near0 = (v) => Math.min(v, 3 - v) < 0.02; const s1 = ph(r1).filter(near0).length, s2 = ph(r2).filter(near0).length;
+    return { ok: r1.ok && r2.ok && s1 > 3 && s2 > 3 && r1.params.angle === angle && r2.params.angle === angle, s1, s2 };
+  });
+  for (const m of LG) V.addMix(m);
+  const matrix = V.mix(LG.find((m) => m.system === 'matrix-based').id), colour = V.mix(LG.find((m) => m.system === 'maximal-color').id);
+  await test('V5', 'V2-D', 'Layered mixes: base (area shares + spacing), overlay (own density), drift (coverage); each layer is its own 100 %; 4 system templates exist', () => {
+    const L = (m, s) => m.layers.filter((q) => q.slot === s); const sum = (q, k) => q.members.reduce((a, x) => a + x[k], 0);
+    return { ok: L(matrix, 'base').length === 1 && L(matrix, 'overlay').length >= 1 && Math.abs(sum(L(matrix, 'base')[0], 'share') - 1) < 0.002 && Math.abs(sum(L(matrix, 'overlay')[0], 'proportion') - 1) < 0.002 && Object.keys(SYSTEMS).length === 4 && matrix.density.value !== 4.5, layers: matrix.layers.map((q) => [q.id, q.basis, q.members.length]), density: matrix.layerDensity };
+  });
+  await test('V6', 'V2-D', 'World-anchored lattice: the same mix gives identical candidates (ids and x/y) in overlapping windows; two mixes differ', () => {
+    const a = candidates(matrix, [0, 0, 6, 6]), b = candidates(matrix, [3, 3, 9, 9]); const inB = new Map(b.map((q) => [q.key, q])); const shared = a.filter((q) => q.x >= 3.5 && q.y >= 3.5 && q.x <= 5.5 && q.y <= 5.5);
+    const same = shared.every((q) => inB.has(q.key) && inB.get(q.key).x === q.x && inB.get(q.key).y === q.y); const c = candidates(colour, [0, 0, 6, 6]);
+    return { ok: shared.length > 10 && same && JSON.stringify(c.slice(0, 5)) !== JSON.stringify(a.slice(0, 5)), shared: shared.length };
+  });
+  const cellsOf = (bed) => V.state.beds[bed].cellIds; const bedA = pzone.bedIds[0];
+  await test('V7', 'V2-D', 'Cell Fill: counts follow each layer (base ≈ area × Σ share × hex density, overlay ≈ area × density); changing the overlay density changes overlay plants only', () => {
+    const c = cellsOf(bedA)[0]; V.assign([c], matrix.id); const inst = V.state.instances[c]; const n = (s) => inst.plants.filter((p) => p.slot === s).length; const baseBefore = fpOf(V.state.instances, (p, cc) => cc === c && p.slot === 'base');
+    const ov = matrix.layers.find((q) => q.slot === 'overlay'); const next = editMix(matrix, [{ op: 'setLayer', layer: ov.id, density: ov.density * 6 }]); const o0 = n('overlay'); V.applyMixEdit(matrix.id, next, { scope: 'all' }); const inst2 = V.state.instances[c]; const o1 = inst2.plants.filter((p) => p.slot === 'overlay').length;
+    const baseAfter = fpOf(V.state.instances, (p, cc) => cc === c && p.slot === 'base'); const area = V.state.cells[c].areaM2;
+    return { ok: n('base') > 0 && o1 > o0 && baseBefore.split(':')[0] === baseAfter.split(':')[0] && Math.abs(inst.target - inst.placed) / inst.target < 0.35, area, base: n('base'), overlayBefore: o0, overlayAfter: o1, target: inst.target, placed: inst.placed };
+  });
+  const allIn = () => Object.entries(V.state.instances).every(([c, i]) => i.plants.every((p) => inside(V.state.cells[c].geometry, p.x, p.y)));
+  // a stroke across two beds of the path zone (centre to centre crosses the walk between them)
+  const cen = (bed) => { const cs2 = cellsOf(bed).map((i) => V.state.cells[i].center); return [cs2.reduce((a, q) => a + q[0], 0) / cs2.length, cs2.reduce((a, q) => a + q[1], 0) / cs2.length]; };
+  const nearestOther = (bed) => { const a = cen(bed); return Object.keys(V.state.beds).filter((b) => b !== bed).map((b) => [b, Math.hypot(cen(b)[0] - a[0], cen(b)[1] - a[1])]).sort((x, y) => x[1] - y[1])[0][0]; };
+  const bed1 = 'bed.B1', bed2 = 'bed.B2'; const p1 = cen(bed1), p2 = cen(bed2);
+  const FB = { P: V, brushLog: [] }; FB.P = V; const B = new Brush(FB); Object.defineProperty(FB, 'P', { value: V });
+  const stroke = (mixId, slots = null, n = 24, r = 1.4) => { B.start({ mixId, slots, r }); B.down(p1[0], p1[1]); const seen = []; for (let k = 1; k <= n; k++) { B.move(p1[0] + (p2[0] - p1[0]) * k / n, p1[1] + (p2[1] - p1[1]) * k / n); seen.push(B.stroke.added); } return seen; };
+  await test('V8', 'V2-E', 'Live brush: staged instances grow DURING the drag (before pointer-up), the stroke crosses two beds and the walk, the commit is one undo step, no plant outside a cell', () => {
+    const before = fpOf(V.state.instances); const past = V.past.length; const seen = stroke(colour.id); const staged = B.stagedPlants().length; const persistedBefore = fpOf(V.state.instances) === before;
+    const r = B.up(); const grew = seen.filter((v, i) => i && v > seen[i - 1]).length;
+    return { ok: staged > 50 && persistedBefore && grew >= 6 && r.ok && r.beds === 2 && V.past.length === past + 1 && allIn(), staged, grewSteps: grew, committedAdded: r.added, beds: r.beds, cells: r.cells, meanMoveMs: r.meanMoveMs };
+  });
+  await test('V9', 'V2-E', 'Repeating the same stroke adds nothing (same lattice ids, no stacking); Esc cancel leaves the state unchanged; undo / redo one stroke', () => {
+    const f0 = fpOf(V.state.instances); stroke(colour.id); const again = B.up(); const f1 = fpOf(V.state.instances);
+    stroke(matrix.id); B.cancel(); const f2 = fpOf(V.state.instances); V.undo(); const f3 = fpOf(V.state.instances); V.redo(); const f4 = fpOf(V.state.instances);
+    return { ok: f1 === f0 && f2 === f1 && f4 === f1, repeatAdded: again.added, f0, f1, f2, undone: f3, redone: f4 };
+  });
+  await test('V10', 'V2-F', 'Brush affects only its footprint: plants of the same cells outside the stroke keep their coordinates; other beds untouched', () => {
+    const cells = Object.keys(V.state.instances); const fpOutside = fpOf(V.state.instances, (p) => Math.hypot(p.x - (p1[0] + p2[0]) / 2, p.y - (p1[1] + p2[1]) / 2) > 30);
+    const fill = cellsOf(bed1).slice(0, 6); V.assign(fill, matrix.id); const keep = fpOf(V.state.instances, (p, c) => fill.includes(c) && segDist(p.x, p.y) > 2.2);
+    stroke(colour.id); B.up(); const keep2 = fpOf(V.state.instances, (p, c) => fill.includes(c) && segDist(p.x, p.y) > 2.2);
+    return { ok: keep === keep2 && fpOutside === fpOf(V.state.instances, (p) => Math.hypot(p.x - (p1[0] + p2[0]) / 2, p.y - (p1[1] + p2[1]) / 2) > 30), keep, keep2, cells: cells.length };
+  });
+  function segDist(x, y) { const vx = p2[0] - p1[0], vy = p2[1] - p1[1]; const L2 = vx * vx + vy * vy; let t = ((x - p1[0]) * vx + (y - p1[1]) * vy) / L2; t = Math.max(0, Math.min(1, t)); return Math.hypot(p1[0] + t * vx - x, p1[1] + t * vy - y); }
+  await test('V11', 'V2-F', 'Overlay-only stroke: the existing matrix (base) under the stroke is kept, only overlay plants change', () => {
+    const fill = cellsOf(bed1); V.assign(fill, matrix.id); const base0 = fpOf(V.state.instances, (p, c) => fill.includes(c) && p.slot === 'base'); const ov0 = fpOf(V.state.instances, (p, c) => fill.includes(c) && p.slot === 'overlay');
+    stroke(colour.id, ['overlay']); const r = B.up(); const base1 = fpOf(V.state.instances, (p, c) => fill.includes(c) && p.slot === 'base'); const ov1 = fpOf(V.state.instances, (p, c) => fill.includes(c) && p.slot === 'overlay');
+    return { ok: base0 === base1 && ov0 !== ov1 && r.ok, base0, base1, ov0, ov1 };
+  });
+  await test('V12', 'V2-F', 'Freeze: a frozen cell is skipped by the brush, by Cell Fill and by a shared mix edit', () => {
+    const c = cellsOf(bed1)[0]; V.setLock([c]); const f0 = fpOf(V.state.instances, (p, cc) => cc === c); stroke(colour.id); B.up(); V.assign([c], colour.id); const e = editMix(V.mix(matrix.id), [{ op: 'setDensity', value: V.mix(matrix.id).density.value * 1.3 }]); V.applyMixEdit(matrix.id, e, { scope: 'all' }); const f1 = fpOf(V.state.instances, (p, cc) => cc === c); V.setLock([c], false);
+    return { ok: f0 === f1, f0, f1 };
+  });
+  await test('V13', 'V2-F', 'Local variant changes only the selected cells; Auto Compose fills only unplanted cells with the same engine (plants carry lattice ids)', () => {
+    const used = V.usesOf(matrix.id); const sel = used.slice(0, 2); const other = used.slice(2); const f0 = fpOf(V.state.instances, (p, c) => other.includes(c)); const v = editMix(V.mix(matrix.id), [{ op: 'setDensity', value: V.mix(matrix.id).density.value * 0.7 }]); V.applyMixEdit(matrix.id, v, { scope: 'variant', cells: sel }); const f1 = fpOf(V.state.instances, (p, c) => other.includes(c));
+    const scope = V.allCells().filter((c) => !(V.state.instances[c.id] && V.state.instances[c.id].plants.length)).slice(0, 6); const planted0 = fpOf(V.state.instances); const ac = autoCompose({ scopeCells: scope, allCells: V.allCells(), assignments: V.state.assignments, mixes: V.state.mixes, K, brief: V.state.brief, links: V.links() }); V.assignMany(Object.fromEntries(ac.proposals.map((q) => [q.cellId, q.mixId])));
+    const newOnes = scope.every((c) => V.state.instances[c.id] && V.state.instances[c.id].plants.every((p) => /\//.test(p.id)));
+    return { ok: f0 === f1 && sel.every((c) => V.state.assignments[c].fragments.some((f) => f.mixId.includes('.v'))) && newOnes && ac.proposals.length === scope.length, variantCells: sel.length, auto: ac.proposals.length };
+  });
+  await test('V14', 'V2-G', 'FIXTURE distribution: same area, same plant count, same presence — different flowering counts give different fraction and per m² (unknown counted apart)', () => {
+    const FK = fakeK({ A: T([6], ['bees']), B: T([9], ['bees']), U: T(null, null) }); const cell = (id, x) => ({ ...cA, id, label: id, neighbors: [], geometry: MP(rect(x, 0, x + 4, 4)), areaM2: 16, center: [x + 2, 2] });
+    const mk = (ids) => ({ plants: ids.map((id, i) => ({ id: id + i, x: i % 4 + 0.5, y: Math.floor(i / 4) + 0.5, plantId: id, slot: 'base', fit: 'unknown' })) });
+    const x = cell('x', 0), y = cell('y', 10); const ix = mk(['A', 'A', 'A', 'A', 'A', 'A', 'B', 'B', 'U', 'U', 'B', 'B']), iy = mk(['A', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'U', 'U', 'B']);
+    const p = computePerformance({ cells: [x, y], assignments: { x: { mixId: 'm' }, y: { mixId: 'm' } }, instances: { x: ix, y: iy }, mixes: [], K: FK, brief }); const a = p.perCell.x.months[6], b = p.perCell.y.months[6];
+    return { ok: a.state === 'resource' && b.state === 'resource' && a.instances === 6 && b.instances === 1 && a.fraction !== b.fraction && a.unknownInstances === 2 && b.unknownInstances === 2 && p.byMonth[6].placed === 24, x: [a.instances, a.fraction, a.perM2], y: [b.instances, b.fraction, b.perM2] };
+  });
+  await test('V15', 'V2-J', 'Save → reload (restore) keeps fragments, layers, plant ids / x / y, locks and strategy; export has z per plant and assumptions', () => {
+    V.setLock([cellsOf(bed1)[1]]); V.save(); const o = Project.stored(); const W = new Project({ store, cs, K, site: { id: 'detroit', name: 'Oudolf Garden Detroit' } }); W.restore(o);
+    const e = V.exportData(); const i = e.instances[0]; P = V;
+    return { ok: fpOf(W.state.instances) === fpOf(V.state.instances) && JSON.stringify(W.state.locks) === JSON.stringify(V.state.locks) && !!W.state.strategy && e.cells.some((c) => c.fragments.length) && Number.isFinite(i.z) && i.slot && e.assumptions.length >= 2, plants: e.instances.length, fp: fpOf(W.state.instances) };
+  });
+  await test('V16', 'V2-L', 'Base model unchanged by the V2 design (baseline placements identical)', () => { const d = store.baseline.placements; return { ok: d.length === baseCount && !d.some((p) => p.id.startsWith('pl.dz.')), n: d.length }; });
   return { tests: R, passed: R.filter((x) => x.ok).length, failed: R.filter((x) => !x.ok).length, ms: Math.round(performance.now() - t0), when: new Date().toISOString() };
 }

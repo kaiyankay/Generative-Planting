@@ -293,9 +293,11 @@ export function paintInstances(ctx, s, T, o) {
   const HY = { dry: hy('#C9A24E'), moist: hy('#7FA36B'), wet: hy('#4F7FA6'), unk: hy('#C9C4B6') };
   const MC = new Map(); const mixCol = (c, k) => { const key = c + (k % 4); let v = MC.get(key); if (!v) { const cc = mix(c, k % 2 ? TOK.inkDeep : '#FFFFFF', 0.08 + (k % 4) * 0.06); v = { halo: rgba(cc, 0.5), haloG: rgba(cc, 0.42), ring: rgba(mix(cc, TOK.inkDeep, 0.4), 0.6), core: mix(cc, TOK.inkDeep, 0.25), grass: rgba(mix(cc, TOK.inkDeep, 0.3), 0.75), bulb: rgba(mix(cc, TOK.inkDeep, 0.3), 0.7) }; MC.set(key, v); } return v; };
   const C = new Map(); const col = (sp) => { let c = C.get(sp.index); if (!c) { const pc = speciesPlanColor(sp); c = { halo: rgba(pc, haloA), haloG: rgba(pc, haloA * 0.8), ring: rgba(mix(pc, TOK.inkDeep, 0.4), 0.5), core: mix(speciesFlower(sp), TOK.inkDeep, close ? 0.08 : 0.15), grass: rgba(mix(speciesLeaf(sp), TOK.inkDeep, 0.3), close ? 0.75 : 0.55), bulb: rgba(mix(speciesFlower(sp), TOK.inkDeep, 0.35), 0.8) }; C.set(sp.index, c); } return c; };
+  const flowMask = s.flowMask ? s.flowMask() : null; // live brush: plants staged for replacement are hidden while the stroke is open
   for (let i = 0; i < t.n; i++) {
     if (!t.alive[i] || t.pl[i] < 0) continue;
     const x = t.x[i], y = t.y[i]; if (x < vb[0] - 2 || x > vb[2] + 2 || y < vb[1] - 2 || y > vb[3] + 2) continue;
+    if (flowMask && t.k[i] === 1 && flowMask.has(`${x.toFixed(3)},${y.toFixed(3)}`)) continue;
     const sp = s.speciesByIndex[t.sp[i]]; const L = speciesLayerOf(sp);
     if (L === 'veg.trees' || L === 'veg.shrubs' || !show[L]) continue;
     const q = T(x, y);
@@ -319,6 +321,20 @@ export function paintInstances(ctx, s, T, o) {
       ctx.beginPath(); ctx.arc(q[0], q[1], cr, 0, 7); ctx.fillStyle = cc.core; ctx.fill();
     }
   }
+}
+// one design plant symbol (the same language as paintInstances) — used for the live brush's staged plants
+export function plantSymbol(ctx, sp, q, rPx, sc, { alpha = 1, rot = 0 } = {}) {
+  const L = speciesLayerOf(sp); const close = sc > 22, mid = sc > 7;
+  const pc = speciesPlanColor(sp);
+  if (L === 'veg.bulbs') { ctx.fillStyle = rgba(mix(speciesFlower(sp), TOK.inkDeep, 0.35), 0.8 * alpha); ctx.beginPath(); ctx.arc(q[0], q[1], close ? 1.4 : 1, 0, 7); ctx.fill(); return; }
+  if (L === 'veg.grasses') {
+    if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], rPx, 0, 7); ctx.fillStyle = rgba(pc, 0.18 * alpha); ctx.fill(); }
+    ctx.strokeStyle = rgba(mix(speciesLeaf(sp), TOK.inkDeep, 0.3), 0.75 * alpha); ctx.lineWidth = close ? 0.8 : 0.6; ctx.beginPath();
+    const n = close ? 11 : mid ? 7 : 4; for (let k = 0; k < n; k++) { const a = rot + (k / n) * 6.283; const rr = rPx * (0.75 + 0.25 * ((k * 7) % 3) / 2); ctx.moveTo(q[0] + Math.cos(a) * rPx * 0.15, q[1] + Math.sin(a) * rPx * 0.15); ctx.lineTo(q[0] + Math.cos(a) * rr, q[1] + Math.sin(a) * rr); }
+    ctx.stroke(); return;
+  }
+  if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], rPx, 0, 7); ctx.fillStyle = rgba(pc, 0.26 * alpha); ctx.fill(); }
+  const cr = Math.max(0.9, Math.min(rPx * 0.36, close ? 4.5 : 2.4)); ctx.beginPath(); ctx.arc(q[0], q[1], cr, 0, 7); ctx.fillStyle = rgba(mix(speciesFlower(sp), TOK.inkDeep, close ? 0.08 : 0.15), alpha); ctx.fill();
 }
 // tree / shrub crowns: translucent canopy, fine edge, soft offset shadow; existing crowns dashed (digitised), designed solid
 function paintCanopies(ctx, s, T, o, pick, existing) {

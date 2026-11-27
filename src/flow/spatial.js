@@ -10,6 +10,7 @@ export const LOGICS = {
   honeycomb: { id: 'honeycomb', name: 'Honeycomb', blurb: 'Even hexagonal cells', sizeLabel: 'Cell width', sizes: [3.5, 4.5, 5.5], minSize: 2, maxSize: 9 },
   bands: { id: 'bands', name: 'Bands', blurb: 'Parallel bands across the bed', sizeLabel: 'Band width', sizes: [2.5, 3.5, 5], minSize: 1.5, maxSize: 9 },
   organic: { id: 'organic', name: 'Organic patches', blurb: 'Irregular patches of similar size', sizeLabel: 'Patch size (√area)', sizes: [3.5, 4.5, 5.5], minSize: 2, maxSize: 9 },
+  whole: { id: 'whole', name: 'Whole area', blurb: 'No division: the plantable area is one cell', sizeLabel: '', sizes: [0], minSize: 0, maxSize: 0 },
 };
 // documented prototype defaults (see docs/integrated/ALGORITHMS.md)
 export const RULES = {
@@ -122,6 +123,42 @@ function bandRaw(mp, { size, angle, offset = 0 }) {
   }
   return { tiles: out, fullArea: size * size * RULES.bandSegment, bandWidth: size, stackDir: n };
 }
+// curved bands: distance bands from a guide polyline (the bed edges that run along a path, or a curve drawn by the designer)
+// band k = buffer(guide, (k+1)·w) − buffer(guide, k·w); bands are cut into segments ≈ 3 × w long by cut lines perpendicular to
+// the guide (sequentially differenced, so cells never overlap; leftovers become fragments handled by the fragment rule)
+// guide = the longest run of bed edges that face a path AND run with the dominant path direction (beds ringed by walks
+// would otherwise give a closed ring); bands are then offset from that edge across the bed
+export function pathEdgeChains(mp, ctx) {
+  if (!ctx || !ctx.pathDist) return [];
+  const dir = pathEdgeDirection(mp, ctx); if (!dir) return [];
+  const chains = [];
+  for (const p of C(mp)) { const r = p[0]; const n = r.length - 1; const on = []; for (let i = 0; i < n; i++) { const [ax, ay] = r[i], [bx, by] = r[i + 1]; const d = ctx.pathDist((ax + bx) / 2, (ay + by) / 2); const L = Math.hypot(bx - ax, by - ay); const a = normDeg((Math.atan2(by - ay, bx - ax) * 180) / Math.PI); on.push(d != null && d <= RULES.pathEdgeM && (L < 0.6 || angDiff(a, dir.deg) <= 32)); }
+    if (on.every(Boolean)) { chains.push(r.slice()); continue; }
+    let start = on.findIndex((v, i) => v && !on[(i - 1 + n) % n]); if (start < 0) continue;
+    for (let k = 0, i = start; k < n; k++, i = (i + 1) % n) { if (on[i] && !on[(i - 1 + n) % n]) chains.push([r[i]]); if (on[i]) chains[chains.length - 1].push(r[i + 1]); } }
+  const ok = chains.filter((c) => c.length >= 2 && chainLen(c) >= 2 && !(c.length > 3 && Math.hypot(c[0][0] - c[c.length - 1][0], c[0][1] - c[c.length - 1][1]) < 0.01)).sort((a, b) => chainLen(b) - chainLen(a));
+  return ok.length ? [ok[0].map(([x, y]) => [+x.toFixed(3), +y.toFixed(3)])] : [];
+}
+const snapMP = (g) => (g ? MP(C(g).map((p) => p.map((r) => r.map(([x, y]) => [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000])))) : g);
+function bufferChains(chains, d) { if (d <= 0) return null; const parts = []; for (const ch of chains) { const h = d; for (let i = 0; i < ch.length - 1; i++) { const [ax, ay] = ch[i], [bx, by] = ch[i + 1]; const L = Math.hypot(bx - ax, by - ay); if (L < 1e-6) continue; const nx = -(by - ay) / L * h, ny = (bx - ax) / L * h; parts.push([[[ax + nx, ay + ny], [bx + nx, by + ny], [bx - nx, by - ny], [ax - nx, ay - ny], [ax + nx, ay + ny]]]); } for (const [x, y] of ch) { const ring = []; for (let k = 0; k <= 16; k++) { const a = (k % 16) / 16 * Math.PI * 2; ring.push([x + Math.cos(a) * h, y + Math.sin(a) * h]); } parts.push([ring]); } } return parts.length ? snapMP(MP(polygonClipping.union(...parts.map((q) => q.map((r) => r.map(([x, y]) => [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000])))))) : null; }
+function curvedBandRaw(mp, { size, chains }) {
+  const b = bbox(mp); let maxD = 0; for (const p of C(mp)) for (const [x, y] of p[0]) { let d = Infinity; for (const ch of chains) for (let i = 0; i < ch.length - 1; i++) d = Math.min(d, segD(x, y, ch[i][0], ch[i][1], ch[i + 1][0], ch[i + 1][1])); maxD = Math.max(maxD, d); }
+  const K = Math.max(1, Math.ceil(maxD / size + 0.01)); const bands = []; let prev = null;
+  for (let k = 0; k < K; k++) { const outer = bufferChains(chains, (k + 1) * size); const ring = prev ? (outer ? MP(polygonClipping.difference(C(outer), C(prev))) : null) : outer; prev = outer; if (ring && C(ring).length) bands.push({ k, g: MP(polygonClipping.intersection(C(ring), C(mp))) }); }
+  // cut lines along the longest chain, every bandSegment × size
+  const main = chains.slice().sort((p, q) => chainLen(q) - chainLen(p))[0]; const L = chainLen(main); const seg = size * RULES.bandSegment; const nseg = Math.max(1, Math.round(L / seg));
+  const cuts = []; for (let j = 1; j < nseg; j++) { const [pt, dir] = alongChain(main, (L * j) / nseg); cuts.push({ pt, dir }); }
+  const pad = Math.hypot(b[2] - b[0], b[3] - b[1]) + size; const box = [[b[0] - pad, b[1] - pad], [b[2] + pad, b[1] - pad], [b[2] + pad, b[3] + pad], [b[0] - pad, b[3] + pad], [b[0] - pad, b[1] - pad]];
+  const slabs = []; let used = null;
+  for (let j = 0; j <= cuts.length; j++) { let poly = box; if (j > 0) { const c = cuts[j - 1]; poly = clipHalf(poly, -c.dir[0], -c.dir[1], -(c.pt[0] * c.dir[0] + c.pt[1] * c.dir[1])); } if (j < cuts.length && poly.length > 3) { const c = cuts[j]; poly = clipHalf(poly, c.dir[0], c.dir[1], c.pt[0] * c.dir[0] + c.pt[1] * c.dir[1]); } if (poly.length < 4) { slabs.push(null); continue; } let g = MP([[poly]]); if (used) g = MP(polygonClipping.difference(C(g), C(used))); used = used ? MP(polygonClipping.union(C(used), C(g))) : g; slabs.push(g); }
+  const tiles = [];
+  for (const B of bands) { let left = B.g; slabs.forEach((sl, j) => { if (!sl || !C(left).length) return; const part = MP(polygonClipping.intersection(C(B.g), C(sl))); if (C(part).length) tiles.push({ key: `cb${B.k}s${j}`, geom: part, order: [B.k, j] }); left = MP(polygonClipping.difference(C(left), C(sl))); }); if (C(left).length) tiles.push({ key: `cb${B.k}r`, geom: left, order: [B.k, 999] }); }
+  return { tiles, fullArea: size * seg, bandWidth: size, curved: true, guideLengthM: round(L, 1) };
+}
+const chainLen = (c) => { let L = 0; for (let i = 0; i < c.length - 1; i++) L += Math.hypot(c[i + 1][0] - c[i][0], c[i + 1][1] - c[i][1]); return L; };
+function alongChain(c, s) { for (let i = 0; i < c.length - 1; i++) { const L = Math.hypot(c[i + 1][0] - c[i][0], c[i + 1][1] - c[i][1]); if (s <= L || i === c.length - 2) { const t = L ? Math.min(1, s / L) : 0; return [[c[i][0] + (c[i + 1][0] - c[i][0]) * t, c[i][1] + (c[i + 1][1] - c[i][1]) * t], [(c[i + 1][0] - c[i][0]) / (L || 1), (c[i + 1][1] - c[i][1]) / (L || 1)]]; } s -= L; } return [c[0], [1, 0]]; }
+function wholeRaw(mp) { return { tiles: C(mp).map((p, i) => ({ key: `w${i}`, geom: MP([p]), order: [i, 0] })), fullArea: mpArea(mp) }; }
+
 // clipped Voronoi with bounded Lloyd relaxation; seeds by deterministic dart throwing (bed shape) + context weighting
 function clipHalf(poly, a, b, c) { // keep a x + b y <= c (convex poly ring, closed)
   const out = []; const r = poly; for (let i = 0; i < r.length - 1; i++) { const P = r[i], Q = r[i + 1]; const fp = a * P[0] + b * P[1] - c, fq = a * Q[0] + b * Q[1] - c;
@@ -227,6 +264,13 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
   if (!plantable || !C(plantable).length || mpArea(plantable) < 2) return { ok: false, error: 'no plantable area in this bed' };
   const t0 = performance.now();
   const area = mpArea(plantable);
+  if (logic === 'whole') return wholeCells({ bedId, bedCode, plantable, context, t0 });
+  // curved bands: guide = the bed edges along a path (or the designer's curve); falls back to straight bands, stated
+  let chains = null, curveNote = null;
+  if (logic === 'bands' && params.guide !== 'straight') {
+    chains = Array.isArray(params.curve) && params.curve.length > 1 ? [params.curve] : pathEdgeChains(plantable, context);
+    if (!chains.length) { chains = null; curveNote = 'No path runs along this bed: straight bands (fallback), not curved.'; }
+  }
   const axis = principalAxis(plantable); const pathDir = pathEdgeDirection(plantable, context); const contour = contourDirection(plantable, context);
   const classOf = contextClassifier(plantable, context);
   const userSize = Number.isFinite(params.size) ? Math.max(L.minSize, Math.min(L.maxSize, params.size)) : null;
@@ -242,22 +286,27 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
   else if (logic === 'bands') { angles = refs.slice(); }
   else angles = [{ deg: 0, why: 'orientation-free', kind: 'none' }];
   const seeds = logic === 'organic' ? (Number.isFinite(params.seed) ? [params.seed] : [1, 2, 3, 4, 5, 6]) : [0];
-  const offsets = logic === 'honeycomb' ? [[0, 0], [0.5, 0], [0.25, 0.433]] : logic === 'bands' ? [0, 0.5] : [0];
+  let offsets = logic === 'honeycomb' ? [[0, 0], [0.5, 0], [0.25, 0.433]] : logic === 'bands' ? [0, 0.5] : [0];
+  if (chains) { angles = [{ deg: 0, why: Array.isArray(params.curve) ? 'following your guide curve' : 'following the bed edge along the path (distance bands)', kind: 'curve' }]; offsets = [0]; }
+  // a shared world anchor (multi-bed zone): straight bands of neighbouring beds continue across the path
+  const anchorOff = (deg, size) => { if (!Array.isArray(params.anchor)) return null; const n = rot(0, 1, deg); let lo = Infinity; for (const p of C(plantable)) for (const [x, y] of p[0]) lo = Math.min(lo, x * n[0] + y * n[1]); const s0 = params.anchor[0] * n[0] + params.anchor[1] * n[1]; return (((lo - s0) % size) + size) % size; };
   const cands = [];
   for (const size of sizes) for (const a of angles) for (const off of offsets) for (const sd of seeds) {
-    const raw = logic === 'honeycomb' ? hexRaw(plantable, { size, angle: a.deg, offset: [off[0] * size, off[1] * size] }) : logic === 'bands' ? bandRaw(plantable, { size, angle: a.deg, offset: off * size }) : organicRaw(plantable, { size, seed: hash(bedId, sd), ctx: context });
-    const cl = clipTiles(plantable, raw);
+    const ao = logic === 'bands' && !chains ? anchorOff(a.deg, size) : null; if (ao != null && off !== offsets[0]) continue;
+    let raw; try { raw = logic === 'honeycomb' ? hexRaw(plantable, { size, angle: a.deg, offset: [off[0] * size, off[1] * size] }) : logic === 'bands' ? (chains ? curvedBandRaw(plantable, { size, chains }) : bandRaw(plantable, { size, angle: a.deg, offset: ao != null ? ao : off * size })) : organicRaw(plantable, { size, seed: hash(bedId, sd), ctx: context }); } catch (e) { console.warn('cells: candidate skipped', bedCode, e.message); continue; }
+    var cl; try { cl = clipTiles(plantable, raw); } catch (e) { console.warn('cells: candidate skipped', bedCode, e.message); continue; }
     if (!cl.parts.length) continue;
     const areas = cl.parts.map((p) => p.area); const mean = areas.reduce((s, v) => s + v, 0) / areas.length; const cv = Math.sqrt(areas.reduce((s, v) => s + (v - mean) ** 2, 0) / areas.length) / mean;
     const het = cl.parts.reduce((s, p) => s + heterogeneity(p.geom, context, classOf) * p.area, 0) / area;
     const sliver = (cl.mergedArea + cl.droppedArea) / area;
-    const align = pathDir && logic !== 'organic' ? angDiff(a.deg, pathDir.deg) / 90 : 0;
+    const align = pathDir && logic !== 'organic' && !chains ? angDiff(a.deg, pathDir.deg) / 90 : 0;
     const targetN = area / (size * size * (logic === 'bands' ? RULES.bandSegment : 1)); const countDev = Math.abs(cl.parts.length - targetN) / Math.max(1, targetN); // a band's area is width × length: no count target
     const w = { sliver: 2, regularity: 0.6, mixedConditions: objectives.suitability === false ? 0.3 : 1.2, pathAlignment: objectives.continuity ? 1.5 : 0, count: 0.3 }; // path alignment counts only for the continuity objective
     const terms = { sliver: round(sliver, 4), regularity: round(cv, 4), mixedConditions: round(het, 4), pathAlignment: round(align, 4), count: round(countDev, 4) };
     const score = Object.entries(terms).reduce((s, [k, v]) => s + w[k] * v, 0);
     cands.push({ size, angle: a, offset: off, seed: sd, raw, cl, terms, weights: w, score: round(score, 4) });
   }
+  if (!cands.length && chains) { const r = generateCells({ bedId, bedCode, plantable, logic, params: { ...params, guide: 'straight', curve: undefined }, context, objectives }); if (r.ok) r.adaptation.notes.unshift('Curved bands failed on this geometry (boolean operation): straight bands used instead (fallback).'); return r; }
   if (!cands.length) return { ok: false, error: 'the pattern produced no cells inside this bed: make the cells smaller' };
   cands.sort((p, q) => p.score - q.score || p.size - q.size || p.angle.deg - q.angle.deg || String(p.offset).localeCompare(String(q.offset)) || p.seed - q.seed);
   const best = cands[0];
@@ -276,16 +325,20 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
   const chosen = { size: best.size, angle: logic === 'organic' ? null : best.angle.deg, offset: best.offset, seed: logic === 'organic' ? best.seed : null };
   const reason = logic === 'organic'
     ? `${cells.length} patches from a clipped Voronoi partition (Lloyd relaxation, 2 steps) of seed layout ${best.seed} of ${seeds.length}: the layout whose patches mix the fewest known site conditions (tree crown, path edge${contour && contour.relief >= RULES.reliefForGradientM ? ', elevation tercile' : ''}) and leave the fewest slivers.`
+    : chains ? `Curved bands ${best.angle.why}, ${best.size} m wide, cut into segments of about ${round(best.size * RULES.bandSegment, 1)} m.`
     : `${logic === 'bands' ? 'Bands' : 'Cells'} ${best.angle.why} (${round(best.angle.deg, 0)}°), ${best.size} m ${logic === 'bands' ? `wide, cut into equal segments of about ${round(best.size * RULES.bandSegment, 1)} m along their length` : 'across'}.`;
   const notes = [];
-  if (!pathDir && logic !== 'organic') notes.push('No path runs along this bed: orientation follows the bed shape.');
+  if (chains) notes.push(`Curved bands: distance bands from ${Array.isArray(params.curve) ? 'your guide curve' : `the ${best.raw.guideLengthM} m of bed edge along the path`}; segments cut perpendicular to the guide.`);
+  if (curveNote) notes.push(curveNote);
+  if (ao0(params) && logic === 'bands' && !chains) notes.push('Band offset shared with the other beds of the zone (one world anchor): bands continue across the paths, clipped by them.');
+  if (!pathDir && logic !== 'organic' && !chains) notes.push('No path runs along this bed: orientation follows the bed shape.');
   if (!(contour && contour.relief >= RULES.reliefForGradientM)) notes.push(`Relief in the bed is ${contour ? contour.relief : '?'} m: elevation is not used to orient or classify.`);
   notes.push('Sun, soil moisture and pH have no data here: they do not shape the cells.');
   if (best.cl.merged) notes.push(`${best.cl.merged} edge fragment${best.cl.merged === 1 ? '' : 's'} (< ${Math.round(RULES.fragmentMergeFraction * 100)} % of a cell) merged into a neighbour.`);
   if (best.cl.dropped) notes.push(`${round(best.cl.droppedArea, 1)} m² of slivers (< ${RULES.minCellAreaM2} m², no neighbour) left out.`);
   return {
     ok: true, bedId, logic, cells,
-    params: { size: chosen.size, angle: chosen.angle, seed: chosen.seed, offset: chosen.offset, mode: userAngle != null || userSize != null ? 'manual' : 'auto' },
+    params: { size: chosen.size, angle: chains ? null : chosen.angle, seed: chosen.seed, offset: chosen.offset, guide: logic === 'bands' ? (chains ? (Array.isArray(params.curve) ? 'curve' : 'path') : 'straight') : undefined, curve: Array.isArray(params.curve) ? params.curve : undefined, anchor: params.anchor, curved: !!chains, mode: userAngle != null || userSize != null ? 'manual' : 'auto' },
     adaptation: {
       chosen, explanation: reason, notes, references: refs.map((r) => ({ ...r, deg: round(r.deg, 1) })), unusedFields: ['sun', 'moisture', 'ph'],
       objectivesUsed: { continuity: !!objectives.continuity, suitability: objectives.suitability !== false },
@@ -293,6 +346,15 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
       candidates: cands.length, weights: best.weights, areaM2: round(area, 2), droppedM2: round(best.cl.droppedArea, 2), ms: Math.round(performance.now() - t0),
     },
   };
+}
+
+const ao0 = (p) => Array.isArray(p.anchor);
+function wholeCells({ bedId, bedCode, plantable, context, t0 }) {
+  const parts = C(plantable).map((p) => MP([p])).filter((g) => mpArea(g) >= RULES.minCellAreaM2).sort((a, b) => mpArea(b) - mpArea(a));
+  if (!parts.length) return { ok: false, error: 'no plantable area in this bed' };
+  const cells = parts.map((g, i) => { const geom = roundGeom(g); const c = labelPoint(geom); return { id: `c.${bedCode}.${i + 1}`, n: i + 1, label: `${bedCode}·${i + 1}`, bedId, logic: 'whole', geometry: geom, areaM2: round(mpArea(geom), 2), center: [round(c[0], 2), round(c[1], 2)], neighbors: [], conditions: context ? sampleCell(geom, context) : null }; });
+  const area = mpArea(plantable);
+  return { ok: true, bedId, logic: 'whole', cells, params: { size: null, angle: null, mode: 'auto' }, adaptation: { chosen: {}, explanation: `Not divided: the plantable area (${round(area, 1)} m²) is ${cells.length === 1 ? 'one cell' : cells.length + ' cells (separate parts)'}.`, notes: ['Whole area: the mix arrangement (blocks, matrix, drifts) gives the pattern, not a cell grid.'], references: [], unusedFields: ['sun', 'moisture', 'ph'], objectivesUsed: {}, ranking: [], candidates: 1, weights: {}, areaM2: round(area, 2), droppedM2: 0, ms: Math.round(performance.now() - t0) } };
 }
 
 // cells of different beds that are close (across a path): structural proxy for resource continuity, never "flight"

@@ -1,91 +1,95 @@
-// Define: one project (preselected — there is only one real site), intent → editable brief, knowledge sources in use.
-import { esc } from '../ui.js';
+// Define: one strategy for the whole design scope — intent (words) or manual choices → a confirmable Design Brief and a
+// Planting Strategy drawn on the map (zones = role · system · spatial logic, with reasons and evidence gaps).
+// Rules mode only reads explicit words with listed rules; it never claims to understand arbitrary language.
+import { esc, monthStrip } from '../ui.js';
 import { MONTHS, SCOPE_LABEL } from '../knowledge.js';
+import { SYSTEMS } from '../mix.js';
+import { LOGICS } from '../spatial.js';
+import { proposeStrategy, editZone, SCOPES, STARTERS, readIntent } from '../strategy.js';
+export { readIntent, STARTERS };
 
-export const STARTERS = [
-  { id: 'season', text: 'A pollinator planting that flowers from spring to autumn.' },
-  { id: 'corridor', text: 'Connected flower resources along the paths for bees and butterflies.' },
-  { id: 'shade', text: 'Planting that suits the shade under the existing trees, with early-season flowers.' },
-];
-// Rules mode reading of the intent: keyword → objective, every match shown; nothing else is inferred
-export function readIntent(text) {
-  const t = String(text || '').toLowerCase(); const read = []; const unused = [];
-  const o = { flowering: { on: true, months: [4, 5, 6, 7, 8, 9, 10] }, pollinators: { on: false }, continuity: { on: false }, suitability: { on: true } };
-  if (/pollinat|bee|butterfl|insect|nectar|moth|hummingbird|wildlife|biodivers/.test(t)) { o.pollinators.on = true; read.push(['pollinator / bee / butterfly', 'Pollinator resources (groups)']); }
-  let lo = null, hi = null;
-  if (/early|spring/.test(t)) { lo = 3; read.push(['spring / early', 'flowering from March']); }
-  if (/autumn|fall|late season|october/.test(t)) { hi = 10; read.push(['autumn / late', 'flowering to October']); }
-  if (/summer/.test(t) && lo == null && hi == null) { lo = 6; hi = 8; read.push(['summer', 'flowering June–August']); }
-  if (/all (year|season)|long season|continuous flower|season-long|whole season/.test(t)) { lo = lo ?? 3; hi = hi ?? 10; read.push(['long season', 'flowering March–October']); }
-  if (lo != null || hi != null) { const a = lo ?? 4, b = hi ?? 9; o.flowering.months = Array.from({ length: b - a + 1 }, (_, i) => a + i); }
-  if (/connect|corridor|continu(ous|ity) (along|across)|along the path|network|link/.test(t)) { o.continuity.on = true; read.push(['connected / corridor / along paths', 'Connected resources in space']); }
-  if (/shade|tree|canopy|woodland/.test(t)) { o.suitability.on = true; read.push(['shade / trees', 'Plant suitability (light under existing crowns)']); }
-  if (/low maintenance|maintenance|easy care/.test(t)) unused.push('maintenance (no maintenance data in the knowledge)');
-  if (/native/.test(t)) unused.push('native origin (not recorded for these plants)');
-  if (/\b(colou?rs?|purple|yellow|white|pink)\b/.test(t)) unused.push('flower colour (only a display colour exists, not evidence)');
-  if (/\b(height|tall|low|short)\b/.test(t) && !/low maintenance/.test(t)) unused.push('height (only nominal display heights exist)');
-  if (/\b(water|wet|dry|drought|rain)\b/.test(t)) unused.push('soil moisture (no data on this site)');
-  if (/kid|child|play|privacy|seat/.test(t)) unused.push('uses of the space (outside this planting prototype)');
-  return { objectives: o, read, unused, method: 'Rules mode: keyword matching, shown in full — not a language model' };
+export function gate(F) { const s = F.P.state.strategy; return s && s.confirmed && s.zones.length ? { ok: true } : { ok: false, reason: 'Confirm a planting strategy first (it takes one click).' }; }
+export function enter(F) {
+  F.u.scope = F.u.scope || (F.P.state.strategy && F.P.state.strategy.scope) || 'main'; F.u.customBeds = F.u.customBeds || new Set((F.P.state.strategy && F.P.state.strategy.customBeds) || []);
+  quietMap(F, !F.u.showRef);
 }
-
-export function gate(F) {
-  const b = F.P.state.brief;
-  if (!b.interpreted && !b.confirmed) return { ok: false, reason: 'Write what this planting should do (or pick a starter) and read it into a brief first.' };
-  const o = b.objectives; if (!['flowering', 'pollinators', 'continuity', 'suitability'].some((k) => o[k].on)) return { ok: false, reason: 'Keep at least one objective switched on.' };
-  return { ok: true };
-}
-export function enter() {}
-
+function quietMap(F, quiet) { F.store.setViewState({ hidePlanting: !!quiet && !Object.keys(F.P.state.beds).length }); }
 export function bottom(F) {
-  const P = F.P; const b = P.state.brief; const g = gate(F);
-  return { msg: b.interpreted ? '<b>Brief</b> ready: check the objectives and the knowledge in use.' : '<b>Define</b> what the planting should do.', next: { label: 'Continue to Structure →', enabled: g.ok && !F.u.resume, reason: F.u.resume ? 'Resume your saved design or start a new one.' : g.reason, run: () => { P.setBrief({ confirmed: true, confirmedAt: new Date().toISOString() }); F.go('structure'); } } };
+  const s = F.u.strategy || F.P.state.strategy;
+  const msg = !s ? '<b>Define</b> the planting for the whole scope — words or manual choices.' : s.confirmed && !F.u.strategy ? `<b>Strategy confirmed</b>: ${s.zones.length} zones, ${s.beds} beds, ${Math.round(s.areaM2).toLocaleString('en-US')} m².` : `<b>Strategy proposed</b>: ${s.zones.length} zones over ${s.beds} beds — check it on the map, then confirm.`;
+  const g = gate(F);
+  return { msg, next: { label: 'Continue to Structure →', enabled: g.ok && !F.u.strategy, reason: F.u.strategy ? 'Confirm the proposed strategy first.' : g.reason, run: () => F.go('structure') } };
 }
+export function onCanvasClick(F, x, y) {
+  const b = F.bedAt(x, y); if (!b) return;
+  F.u.scope = 'custom'; if (!F.u.customBeds.size && F.u.strategy) for (const z of F.u.strategy.zones) for (const id of z.bedIds) F.u.customBeds.add(id);
+  if (F.u.customBeds.has(b.id)) F.u.customBeds.delete(b.id); else F.u.customBeds.add(b.id);
+  if (F.u.strategy || F.P.state.strategy) propose(F); else F.render();
+}
+function propose(F) {
+  const keep = F.u.keepMeadows ? F.P.eligibleBeds().filter((b) => /^M[WE]$/.test(b.code)).map((b) => b.id) : [];
+  F.u.strategy = proposeStrategy(F.P, { intent: F.P.state.brief.intent, scope: F.u.scope, customBeds: [...F.u.customBeds], keep });
+  if (F.u.strategy.kept.length) F.u.keepMeadows = F.u.strategy.kept.some((id) => /M[WE]$/.test(id));
+  F.P.setBrief({ objectives: mergeObjectives(F.P.state.brief.objectives, F.u.strategy.objectives), interpreted: { read: F.u.strategy.read, unused: F.u.strategy.unused, method: F.u.strategy.method } });
+  F.focusBeds(F.u.strategy.zones.flatMap((z) => z.bedIds)); F.render();
+}
+function mergeObjectives(cur, next) { const o = structuredClone(cur); for (const k of Object.keys(next)) o[k] = { ...o[k], ...next[k] }; return o; }
 
 export function render(F) {
-  const P = F.P, st = P.state, b = st.brief, K = F.K; const el = F.panel;
-  const site = F.preset; const beds = P.eligibleBeds();
-  let h = `<h1>Define</h1><p class="task">Say what this planting should do. The site is the existing model; you will choose beds in the next step.</p>`;
-  h += `<dl class="kv"><dt>Site</dt><dd>${esc(site.name)} · ${esc(site.location || '')}</dd><dt>Plantable</dt><dd>${beds.length} beds and areas, ${Math.round(beds.reduce((a, x) => a + x.areaM2, 0)).toLocaleString('en-US')} m²; terrain 1 m (USGS 3DEP)</dd><dt>Not known</dt><dd>sun, soil moisture, pH — treated as unknown, never as zero</dd></dl>`;
-  if (F.u.resume) {
-    const r = F.u.resume;
-    h += `<hr><h2>Saved design in this browser</h2><p><b>${esc(r.name)}</b> — at ${esc(r.stage)}, ${r.cells} cells, ${r.mixes} mix${r.mixes === 1 ? '' : 'es'}${r.savedAt ? `, saved ${esc(new Date(r.savedAt).toLocaleString())}` : ''}.</p>
-      <div class="row"><button class="btn-p" data-a="resume">Resume this design</button><button class="lnk" data-a="new">Start a new design</button></div><p class="dim small">Starting new replaces the saved design in this browser. Export it first from Explore if you want to keep it.</p>`;
-    el.innerHTML = h; el.querySelector('[data-a=resume]').onclick = () => F.resume(); el.querySelector('[data-a=new]').onclick = () => F.startNew(); return;
+  if (!F.u.customBeds) { F.u.scope = F.u.scope || (F.P.state.strategy && F.P.state.strategy.scope) || 'main'; F.u.customBeds = new Set((F.P.state.strategy && F.P.state.strategy.customBeds) || []); }
+  const P = F.P, st = P.state, el = F.panel; const s = F.u.strategy || st.strategy; const beds = P.eligibleBeds(); const total = beds.reduce((a, b) => a + b.areaM2, 0);
+  let h = `<header class="stage-head"><p class="kicker">1 · Define</p><h1>The planting strategy</h1><p class="task">Say what the whole site should become. A strategy is drawn on the map; nothing changes until you confirm it.</p></header>`;
+  if (F.u.entry && F.u.resume) h += `<div class="note"><b>Saved design:</b> “${esc(F.u.resume.name)}” at ${esc(F.u.resume.stage)} (${F.u.resume.cells} cells, ${F.u.resume.mixes} mixes)${F.u.resume.schema === 'gp.project/1' ? ' · V1 — it will be migrated' : ''}. <div class="row"><button class="btn-s" data-a="resume">Resume</button><button class="lnk" data-a="fresh">Start a new design</button></div></div>`;
+  h += `<section class="blk"><h2>Intent <span class="tag mode" title="${esc(F.R && F.R.status && F.R.status.configured ? 'A language model is configured on this server' : 'No language model: explicit rules only, shown in full')}">${F.R && F.R.status && F.R.status.configured ? 'Model available' : 'Rules mode · offline'}</span></h2>
+    <textarea id="fintent" rows="4" placeholder="e.g. Keep the meadows, a coherent matrix along the main garden paths, early flowers beneath trees, pollinators all season.">${esc(st.brief.intent)}</textarea>
+    <div class="starters">${STARTERS.map((x) => `<button class="starter" data-st="${x.id}">${esc(x.text)}</button>`).join('')}</div></section>`;
+  h += `<section class="blk"><h2>Scope</h2><div class="chips">${SCOPES.map((x) => `<button class="chip" data-scope="${x.id}" aria-pressed="${F.u.scope === x.id}">${esc(x.name)}${x.id === 'custom' && F.u.customBeds.size ? ` · ${F.u.customBeds.size}` : ''}</button>`).join('')}</div>
+    <label class="chk"><input type="checkbox" id="fkeep" ${F.u.keepMeadows ? 'checked' : ''}> Keep East + West Meadow as they are</label>
+    <p class="xs dim">Click beds on the map to make your own selection. Existing trees always stay. ${Math.round(total).toLocaleString('en-US')} m² plantable in ${beds.length} beds and areas.</p>
+    <div class="row"><button class="btn-p" data-a="read">${s ? 'Propose again' : 'Propose a strategy'}</button><label class="chk sm"><input type="checkbox" id="fref" ${F.u.showRef ? 'checked' : ''}> show the reference planting</label></div></section>`;
+  if (s) {
+    h += `<section class="blk"><h2>Strategy <span class="aside">${s.zones.length} zones · ${s.beds} beds · ${Math.round(s.areaM2).toLocaleString('en-US')} m²</span></h2><div class="zones">`;
+    for (const z of s.zones) {
+      h += `<article class="zone${F.u.zone === z.id ? ' on' : ''}" data-zone="${z.id}" style="--zc:${z.color}"><header><span class="sw"></span><b>${esc(z.name)}</b><span class="mono xs">${z.bedIds.map((id) => P.bedCode(id)).join(' ')}</span></header>
+        <p class="small">${esc(z.role)}</p>
+        <div class="zsel"><label>System <select data-zsys="${z.id}">${Object.values(SYSTEMS).map((x) => `<option value="${x.id}" ${x.id === z.system ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
+        <label>Spatial logic <select data-zlog="${z.id}">${['bands:path', 'bands:straight', 'honeycomb', 'organic', 'whole'].map((k) => { const [lg, gd] = k.split(':'); const on = z.logic === lg && (lg !== 'bands' || ((z.params && z.params.guide) || 'path') === gd); return `<option value="${k}" ${on ? 'selected' : ''}>${lg === 'bands' ? (gd === 'path' ? 'Curved bands (follow the path)' : 'Straight bands (shared axis)') : LOGICS[lg].name}</option>`; }).join('')}</select></label></div>
+        <details><summary class="xs">Why · gaps</summary><ul class="xs">${z.why.map((w) => `<li>${esc(w)}</li>`).join('')}${z.gaps.map((w) => `<li class="gap">${esc(w)}</li>`).join('')}</ul></details></article>`;
+    }
+    h += `</div>${s.kept.length ? `<p class="small"><span class="tag found">kept</span> ${s.kept.map((id) => P.bedCode(id)).join(', ')} stay as the reference planting.</p>` : ''}</section>`;
+    const o = st.brief.objectives; const mo = o.flowering.months;
+    h += `<section class="blk"><h2>Design brief</h2><div class="objs">
+      <label><input type="checkbox" data-obj="flowering" ${o.flowering.on ? 'checked' : ''}> Flowering ${esc(MONTHS[mo[0] - 1])}–${esc(MONTHS[mo[mo.length - 1] - 1])} <span class="mrange"><input type="number" min="1" max="12" id="fm0" value="${mo[0]}" aria-label="first month"> – <input type="number" min="1" max="12" id="fm1" value="${mo[mo.length - 1]}" aria-label="last month"></span></label>
+      <label><input type="checkbox" data-obj="pollinators" ${o.pollinators.on ? 'checked' : ''}> Pollinator resources (documented groups)</label>
+      <label><input type="checkbox" data-obj="continuity" ${o.continuity.on ? 'checked' : ''}> Connected resources along the paths</label>
+      <label><input type="checkbox" data-obj="suitability" ${o.suitability.on ? 'checked' : ''}> Plant suitability (light vs crown proxy)</label></div>
+      ${monthStrip(mo)}
+      <ul class="xs dim cons">${st.brief.constraints.map((c) => `<li><span class="tag ${c.kind === 'hard' ? 'warn' : 'unk'}">${c.kind}</span> ${esc(c.text)}</li>`).join('')}</ul></section>`;
+    const ks = F.K.sourcesStatus();
+    h += `<section class="blk"><h2>Knowledge in use</h2><ul class="sources">${Object.entries(ks).map(([k, v]) => `<li><label><input type="checkbox" data-ks="${k}" ${v.on ? 'checked' : ''} ${k === 'illustrative' && v.status !== 'loaded' ? 'disabled' : ''}> ${esc(SCOPE_LABEL[k])}</label> <span class="xs dim">${esc(v.status)}${v.count != null ? ' · ' + v.count : ''}</span>${k === 'personal' && !v.count ? ' <span class="xs dim">(empty is fine)</span>' : ''}</li>`).join('')}</ul>
+      <p class="xs dim">Sun hours, soil moisture and pH: no data on this site — unknown, never assumed.</p></section>`;
+    h += `<section class="blk"><h2>What Rules mode read</h2><ul class="xs read">${[...s.read.map(([a, b]) => `<li><b>${esc(a)}</b> → ${esc(b)}</li>`), ...s.rules.map(([a, b]) => `<li><b>${esc(a)}</b> → ${esc(b)}</li>`)].join('') || '<li class="dim">no keyword matched: the scope rules alone shaped the zones</li>'}${s.unused.map((x) => `<li class="dim">not used: ${esc(x)}</li>`).join('')}</ul></section>`;
+    h += F.u.strategy ? `<div class="sticky-cta"><button class="btn-p wide" data-a="confirm">Confirm strategy · ${s.zones.length} zones</button><p class="xs dim">Structure then previews every zone at once.</p></div>` : `<p class="small ok">Confirmed. Change the intent or a zone and propose again to revise it.</p>`;
   }
-  h += `<hr><h2>Intent</h2><textarea id="fintent" placeholder="e.g. A pollinator planting that flowers from spring to autumn, connected along the paths." aria-label="Planting intent">${esc(b.intent)}</textarea>
-    <div class="chips" style="margin:8px 0">${STARTERS.map((s) => `<button class="chip small" data-s="${s.id}" aria-pressed="${b.starter === s.id}">${esc(s.text)}</button>`).join('')}</div>
-    <div class="row sp"><button class="${b.interpreted ? 'btn-s' : 'btn-p'}" data-a="read">${b.interpreted ? 'Read again' : 'Read into a brief'}</button><span class="f-modetag" title="${esc(F.R.status.reasons.join('; '))}">Rules mode — offline, no language model</span></div>`;
-  if (b.interpreted) {
-    const it = b.interpreted;
-    h += `<div class="note"><b>Read:</b> ${it.read.length ? it.read.map(([w, o]) => `“${esc(w)}” → ${esc(o)}`).join('; ') : 'no objective words found — defaults kept'}.${it.unused.length ? `<br><b>Not used:</b> ${esc(it.unused.join('; '))}.` : ''}<br><span class="dim">${esc(it.method)}</span></div>`;
-    const o = b.objectives; const ms = o.flowering.months;
-    h += `<h2>Objectives <span class="aside">edit freely</span></h2><div class="objs">
-      <label><input type="checkbox" data-o="flowering" ${o.flowering.on ? 'checked' : ''}><span><b>Flowering continuity</b> <span class="mrange">from <select data-m="lo" aria-label="First month">${MONTHS.map((m, i) => `<option value="${i + 1}" ${ms[0] === i + 1 ? 'selected' : ''}>${m}</option>`).join('')}</select> to <select data-m="hi" aria-label="Last month">${MONTHS.map((m, i) => `<option value="${i + 1}" ${ms[ms.length - 1] === i + 1 ? 'selected' : ''}>${m}</option>`).join('')}</select></span></span><span class="sub">Months with a known flower resource, from placed plants</span></label>
-      <label><input type="checkbox" data-o="pollinators" ${o.pollinators.on ? 'checked' : ''}><span><b>Pollinator resources</b></span><span class="sub">Documented pollinator groups of the flowering plants (association, not visits)</span></label>
-      <label><input type="checkbox" data-o="continuity" ${o.continuity.on ? 'checked' : ''}><span><b>Connected resources in space</b></span><span class="sub">Neighbouring cells flowering in the same month (structural proxy). Shapes cells along paths.</span></label>
-      <label><input type="checkbox" data-o="suitability" ${o.suitability.on ? 'checked' : ''}><span><b>Plant suitability</b></span><span class="sub">Known light needs vs crowns above (inference); moisture unknown</span></label></div>`;
-    h += `<h2>Constraints</h2><ul class="small" style="margin:0;padding-left:16px">${b.constraints.map((c) => `<li><span class="tag ${c.kind === 'hard' ? '' : 'mode'}">${c.kind}</span> ${esc(c.text)}</li>`).join('')}</ul>`;
-    const S = K.sourcesStatus(); const sp = K.catalogue().map((s) => s.id); const cov = K.coverage(sp);
-    h += `<h2>Knowledge in use <span class="aside"><button class="lnk" data-a="know">Open Knowledge</button></span></h2><ul class="sources">
-      ${['foundation', 'site', 'project', 'personal', 'illustrative'].map((k) => `<li><input type="checkbox" data-k="${k}" ${S[k].on ? 'checked' : ''} ${S[k].status === 'absent' || S[k].status === 'unavailable' ? 'disabled' : ''} aria-label="${esc(SCOPE_LABEL[k])}"><span><b>${esc(SCOPE_LABEL[k])}</b>${k === 'illustrative' ? ' <span class="tag illus">not verified</span>' : ''}<br><span class="dim small">${esc(k === 'personal' ? (S[k].count ? `${S[k].count} personal change(s)` : 'empty — optional; add notes any time') : k === 'project' ? `${S[k].count} record(s) added in this project` : (S[k].note || ''))}</span></span><span class="dim xs">${esc(S[k].status)}</span></li>`).join('')}</ul>
-      <p class="small">Coverage over the ${sp.length} plants of the site: flowering months <b>${Math.round(cov.bloom * 100)} %</b>, pollinator groups ${Math.round(cov.pollinators * 100)} %, light ${Math.round(cov.light * 100)} %, moisture ${Math.round(cov.moisture * 100)} %${cov.illustrative ? ` — ${Math.round(cov.illustrative * 100)} % of plants carry illustrative values` : ''}.</p>
-      ${S.illustrative.on ? '<div class="note illus">The illustrative teaching layer fills flowering, pollinator, light and moisture values the knowledge does not have for Detroit plants. It is labelled wherever it is used. Switch it off to see what is really known.</div>' : '<div class="note">Illustrative values are off: most Detroit plants have unknown flowering and pollinator data, so suggestions and performance will mostly report unknowns.</div>'}`;
-  }
-  el.innerHTML = h;
-  const ta = el.querySelector('#fintent');
-  ta.oninput = () => { b.intent = ta.value; P.saveSoon(); };
-  el.querySelectorAll('[data-s]').forEach((x) => (x.onclick = () => { const s = STARTERS.find((q) => q.id === x.dataset.s); b.starter = s.id; ta.value = s.text; b.intent = s.text; doRead(F); }));
-  el.querySelector('[data-a=read]').onclick = () => { if (!ta.value.trim()) { F.toast('Write a sentence about what the planting should do, or pick one of the starters.'); ta.focus(); return; } b.intent = ta.value; doRead(F); };
-  el.querySelectorAll('[data-o]').forEach((x) => (x.onchange = () => { const ob = { ...b.objectives }; ob[x.dataset.o] = { ...ob[x.dataset.o], on: x.checked }; P.setBrief({ objectives: ob }); F.render(); }));
-  el.querySelectorAll('[data-m]').forEach((x) => (x.onchange = () => { const lo = +el.querySelector('[data-m=lo]').value, hi = +el.querySelector('[data-m=hi]').value; const a = Math.min(lo, hi), c = Math.max(lo, hi); const ob = { ...b.objectives, flowering: { ...b.objectives.flowering, months: Array.from({ length: c - a + 1 }, (_, i) => a + i) } }; P.setBrief({ objectives: ob }); F.render(); }));
-  el.querySelectorAll('[data-k]').forEach((x) => (x.onchange = () => { K.setScope(x.dataset.k, x.checked); P.setBrief({ knowledgeScopes: { ...K.scopes } }); F.render(); }));
-  const kb = el.querySelector('[data-a=know]'); if (kb) kb.onclick = () => F.openKnowledge();
-  if (!b.interpreted && document.activeElement === document.body) ta.focus();
+  el.innerHTML = h; bind(F, el);
 }
-function doRead(F) {
-  const P = F.P; const r = readIntent(P.state.brief.intent);
-  const prev = P.state.brief.objectives; const ob = {}; for (const k of Object.keys(prev)) ob[k] = { ...prev[k], ...r.objectives[k] };
-  P.setBrief({ interpreted: { read: r.read, unused: r.unused, method: r.method, at: new Date().toISOString() }, objectives: ob, knowledgeScopes: { ...F.K.scopes } });
-  F.render();
+function bind(F, el) {
+  const P = F.P; const a = (k, fn) => el.querySelectorAll(`[data-a=${k}]`).forEach((x) => (x.onclick = fn));
+  a('resume', () => F.resume()); a('fresh', () => F.startNew());
+  const ta = el.querySelector('#fintent'); ta.oninput = () => { P.state.brief.intent = ta.value; P.saveSoon(); };
+  el.querySelectorAll('[data-st]').forEach((b) => (b.onclick = () => { const x = STARTERS.find((q) => q.id === b.dataset.st); P.setBrief({ intent: x.text, starter: x.id }); if (/keep the meadows/i.test(x.text)) F.u.keepMeadows = true; propose(F); }));
+  el.querySelectorAll('[data-scope]').forEach((b) => (b.onclick = () => { F.u.scope = b.dataset.scope; if (F.u.scope !== 'custom') F.u.customBeds = new Set(); propose(F); }));
+  el.querySelector('#fkeep').onchange = (e) => { F.u.keepMeadows = e.target.checked; if (F.u.strategy || P.state.strategy) propose(F); else F.render(); };
+  el.querySelector('#fref').onchange = (e) => { F.u.showRef = e.target.checked; quietMap(F, !F.u.showRef); };
+  a('read', () => { P.setBrief({ intent: ta.value }); propose(F); });
+  a('confirm', () => { const s = F.u.strategy; s.objectives = P.state.brief.objectives; P.confirmStrategy(s); F.u.strategy = null; F.toast(`Strategy confirmed: ${s.zones.length} zones. Structure previews them all at once.`); F.render(); });
+  el.querySelectorAll('[data-zone]').forEach((z) => z.addEventListener('mouseenter', () => { F.u.zone = z.dataset.zone; F.repaint(); }));
+  el.querySelectorAll('[data-zone]').forEach((z) => z.addEventListener('click', (e) => { if (e.target.closest('select,summary')) return; const s = F.u.strategy || P.state.strategy; const zz = s.zones.find((q) => q.id === z.dataset.zone); if (zz) F.focusBeds(zz.bedIds); }));
+  const editable = () => { if (!F.u.strategy) F.u.strategy = structuredClone(P.state.strategy); F.u.strategy.confirmed = false; return F.u.strategy; };
+  el.querySelectorAll('[data-zsys]').forEach((s) => (s.onchange = () => { F.u.strategy = editZone(editable(), s.dataset.zsys, { system: s.value, manual: true }); F.render(); }));
+  el.querySelectorAll('[data-zlog]').forEach((s) => (s.onchange = () => { const [lg, gd] = s.value.split(':'); F.u.strategy = editZone(editable(), s.dataset.zlog, { logic: lg, params: lg === 'bands' ? { guide: gd } : {}, manual: true }); F.render(); }));
+  el.querySelectorAll('[data-obj]').forEach((c) => (c.onchange = () => { const o = structuredClone(P.state.brief.objectives); o[c.dataset.obj].on = c.checked; P.setBrief({ objectives: o }); F.renderPanel(); }));
+  const m0 = el.querySelector('#fm0'), m1 = el.querySelector('#fm1'); if (m0) { const upd = () => { const x = Math.max(1, Math.min(12, +m0.value)), y = Math.max(x, Math.min(12, +m1.value)); const o = structuredClone(P.state.brief.objectives); o.flowering.months = Array.from({ length: y - x + 1 }, (_, i) => x + i); P.setBrief({ objectives: o }); F.render(); }; m0.onchange = upd; m1.onchange = upd; }
+  el.querySelectorAll('[data-ks]').forEach((c) => (c.onchange = () => { F.K.setScope(c.dataset.ks, c.checked); P.state.brief.knowledgeScopes = { ...F.K.scopes }; P.save(); F.render(); }));
 }
+export function inspector() { return null; }
