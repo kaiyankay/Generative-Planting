@@ -1,6 +1,6 @@
 # Generative Planting · Integrated Design Prototype — 中文交接报告
 
-日期：2026-11-26 · 分支：本地 `integration/design-prototype`（含 Knowledge 模块，完整验收版，未 push）；GitHub `integration/design-prototype-public`（同样的设计层，不含待授权的 Knowledge 资料，见 §9）
+日期：2026-11-26 · 分支：GitHub `integration/design-prototype-public` = 设计层 + Knowledge 模块的公开版（`feature/knowledge-workspace`，不含待授权的 Robertson 原始行与 Metro Vancouver 原文引语，见 §9）；本地 `integration/design-prototype` 是含完整研究副本的开发分支（未 push）
 本地打开：`python3 -I tools/serve.py --port 8790` → http://127.0.0.1:8790/ （无缓存静态服务器；Claude 预览配置名 `gp-design`）
 
 ## 0. 结果一览
@@ -128,11 +128,11 @@ Point / Line / Area 是几何；Matrix / Blocks / Groups / Mixed 是配置方法
 ## 9. 发布检查
 
 - 没有上传 slides、私有输入（`private-inputs/` 仍被 git 忽略）、密钥。
-- Knowledge 模块交接中写明：Robertson 数字化表与 Metro Vancouver 原文引语**在许可确认前只留本地**。所以：
-  - 本地分支 `integration/design-prototype` = computational-space + 设计层 + 合并的 Knowledge 分支（完整验收版，未 push）；
-  - GitHub 分支 `integration/design-prototype-public` = 同样的设计层，但不含 Knowledge 模块文件；在那里植物库报告 `unavailable`，光照 / 花期为 unknown，水文分区仍可用（站点属性）。
+- Knowledge 模块交接中写明：Robertson 数字化表与 Metro Vancouver 原文引语**在许可确认前只留本地**。Knowledge Agent 已推送一个公开版（`origin/feature/knowledge-workspace`）：保留所有记录、实体、关系、每种植物的计数和转述，只把这两类材料放在被 git 忽略的本地研究副本里。所以：
+  - GitHub 分支 `integration/design-prototype-public` = computational-space + 设计层 + Knowledge 公开版，可以完整复现实验 A–F（包括 E）；
+  - 本地分支 `integration/design-prototype` = 同样的设计层 + 完整的 Knowledge 研究副本（含待授权材料，未 push）。
 - `design-library.json` 只存事实（种名 → 名录上印的水文分区，附来源 S-OGD-MEADOW；与 model.json 里已公开的草甸种名同源），PDF 本身仍在 `private-inputs/`。它**已包含在公开分支**，因为没有它水文情景无法运行；如果你不同意公开，删除该文件即可（功能退化为 unknown）。
-- 公开分支不含 `E01-knowledge-card.png`（卡片上显示了由 Robertson 1929 数字化表得出的访花昆虫数），`flow.gif` / `flow-sheet.jpg` 在公开分支里重新生成为 17 帧（同样去掉这一帧）。
+- `E01-knowledge-card.png` 上显示的是每种植物的 Robertson 访花昆虫计数——公开版 Knowledge 也保留这类计数，所以截图与 18 帧 `flow.gif` 都在公开分支里。
 - 合并后 Knowledge 分支又前进到 `ca437c4`（Part B：Claude 集成层，未连接）；本地完整分支已合并它，Knowledge 测试 133/133。
 - 没有覆盖 main、没有动 Knowledge Agent 的 worktree（那里还有一个未提交的 `tools/knowledge/llm/`，未触碰）。
 
@@ -154,11 +154,11 @@ Point / Line / Area 是几何；Matrix / Blocks / Groups / Mixed 是配置方法
 6. **3D**：空间轮廓、名称标签、月份着色只在平面图；3D 显示植物与地面色块。
 7. **交互**：画笔需要指针；非指针路径是 JSON 操作。Mix 编辑仍是表单（评审建议：直接拖动色板上的角色条——未做）。
 8. **持久化**：设计文档保存在本浏览器 localStorage；导出用 ⋯ › Export working design（含所有设计植物）。
-9. **GitHub 分支不含 Knowledge 模块**（见 §9）：公开分支上植物库为 unavailable，Under trees 在树冠下不会种植任何植物（因为没有任何遮阴知识可用），实验 E 只能在本地完整分支复现。
+9. **GitHub 分支使用 Knowledge 公开版**（见 §9）：设计规则读取的记录与本地相同；只有 Robertson 原始行与 Metro Vancouver 原文引语不在其中。
 
 ## 12. 需要你决定的事项
 
-1. 是否同意公开 Knowledge 模块中的 Robertson 数字化表与 Metro Vancouver 原文引语（决定后可把本地完整分支 push）。
+1. Robertson 原始行与 Metro Vancouver 原文引语的许可（目前只在本地研究副本里；公开分支已能完整运行）。
 2. `design-library.json`（官方草甸名录印刷的水文分区，事实 + 来源）是否可以公开。
 3. 初始 Mix 的物种子集、等权比例、株距（0.40–0.80 m）、块大小（1.6–6 m²）是否符合你的设计意图。
 4. Native meadow 四个功能角色的物种归类（目前是设计假设）。
