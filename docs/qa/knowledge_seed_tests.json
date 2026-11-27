@@ -1,6 +1,6 @@
 {
- "total": 34,
- "ok": 34,
+ "total": 31,
+ "ok": 31,
  "results": [
   {
    "name": "T01.a seed pinned to the planting-db SHA",
@@ -61,11 +61,6 @@
    "name": "T01.l AI source assessments kept apart from verification (534 assessments; none changes a status)",
    "ok": true,
    "detail": ""
-  },
-  {
-   "name": "T01.m rebuild is byte-identical for both copies (no duplicate records on re-run)",
-   "ok": true,
-   "detail": "(['139d6b4bfb42', 'b7244f2a2eb4'], ['139d6b4bfb42', 'b7244f2a2eb4'])"
   },
   {
    "name": "T06.a Robertson 1929 rows kept unchanged (1998 rows, 38 plants; in the public copy the rows stay local and only their number is kept); per-plant record = count of listed visitor taxa with unit; no score field",
@@ -158,23 +153,22 @@
    "detail": ""
   },
   {
-   "name": "P01 the public copy is exactly public_seed(full copy) \u2014 nothing else differs",
-   "ok": true,
-   "detail": ""
-  },
-  {
-   "name": "P02 the public copy holds no Metro Vancouver quote (whole or first 30 characters) and no Robertson row (no listed insect name)",
-   "ok": true,
-   "detail": "[]"
-  },
-  {
-   "name": "P03 the public copy keeps every entity, record and relation; its base version differs and names the full one",
+   "name": "P02 the public copy holds no restricted quote or dataset row",
    "ok": true,
    "detail": ""
   }
  ],
- "notRun": [],
- "seedUnderTest": "full",
+ "notRun": [
+  {
+   "name": "T01.m rebuild",
+   "why": "needs the licence-restricted research sources, which are not published"
+  },
+  {
+   "name": "P01/P03 public copy = public_seed(full copy)",
+   "why": "the full research copy is not on this machine"
+  }
+ ],
+ "seedUnderTest": "public",
  "seed": {
   "builtBy": "tools/knowledge/build_seed.py",
   "plantingDb": {
@@ -192,6 +186,13 @@
   },
   "ontologyVersion": "0.2.0",
   "note": "Base snapshot: read-only. Personal edits live in the browser (IndexedDB) and in exported workspace files.",
-  "baseVersion": "base-ebbbf3db18e5"
+  "copy": "public",
+  "fullBaseVersion": "base-ebbbf3db18e5",
+  "restricted": {
+   "robertson-1929": "digitised table rows kept in the local research copy (licence not cleared for publication)",
+   "mv-water-restrictions": "verbatim page text kept in the local research copy (licence not cleared for publication)",
+   "mv-seasonal-lawn-care": "verbatim page text kept in the local research copy (licence not cleared for publication)"
+  },
+  "baseVersion": "base-965bbf84fc2f"
  }
 }

@@ -125,7 +125,7 @@ def main():
             path = os.path.join(a.shots, name + ".png"); P.shot(path); shots.append({"file": os.path.relpath(path, ROOT), "caption": caption}); print("  shot", name, flush=True)
 
         def load(q=""):
-            P("Page.navigate", url=base + "index.html" + q)
+            P("Page.navigate", url=base + "index.html?classic=1" + q.replace("?", "&", 1))
             P.wait("document.documentElement.dataset.ready === '1'")
             P.wait("!!document.documentElement.dataset.knowledge", 120)
             P.js("window.__errs = []; window.addEventListener('error', (e) => window.__errs.push(e.message)); const ce = console.error.bind(console); console.error = (...a) => { window.__errs.push(a.join(' ')); ce(...a); }; true")
@@ -136,7 +136,7 @@ def main():
         def want(e): return only is None or e in only
 
         # ============================================================ F (part 1) + A: entry → empty beds → palette → fill with real clicks
-        P("Page.navigate", url=base + "index.html?kdb=" + kdb)
+        P("Page.navigate", url=base + "index.html?classic=1&kdb=" + kdb)
         P.js("true")
         P.wait("document.documentElement.dataset.ready === '1'")
         P.js("localStorage.clear(); true")
@@ -383,7 +383,7 @@ def main():
             shot("F07-final-plan", "The iterated design in plan")
             # reload: the design document is restored and rebuilt deterministically
             n3 = P.js("GP.design.feedback().totals.perennials"); h3 = P.js("GP._store.draft.inst.fingerprint().live")
-            P("Page.navigate", url=base + "index.html?view=plan&design=working&kdb=" + kdb); P.wait("document.documentElement.dataset.ready === '1'"); P.wait("!!document.documentElement.dataset.knowledge", 120); time.sleep(1.0)
+            P("Page.navigate", url=base + "index.html?classic=1&view=plan&design=working&kdb=" + kdb); P.wait("document.documentElement.dataset.ready === '1'"); P.wait("!!document.documentElement.dataset.knowledge", 120); time.sleep(1.0)
             n4 = P.js("GP.design.feedback().totals.perennials")
             check("F", "after a reload the design document is restored and rebuilt to the same plants", n4 == n3, [n3, n4])
             errs = P.js("(window.__errs || []).slice(0, 5)")

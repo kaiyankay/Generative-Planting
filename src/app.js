@@ -622,7 +622,7 @@ async function main() {
   }
   if (params.get('about') === '1') $('#btnSite').click();
   // first visit without any state in the URL: the site preset is shown first, then entered
-  if (!FLOW && !EMBED && ![...params.keys()].filter((k) => !['kdb', 'knowledge'].includes(k)).length) {
+  if (!FLOW && !EMBED && ![...params.keys()].filter((k) => !['kdb', 'knowledge', 'classic'].includes(k)).length) {
     st.entered = false; app.classList.add('at-entry'); // not 'entry': that is the card's own class
     const e = $('#entry'); const beds = cs.designBeds(); const main = beds.filter((b) => 'ABC'.includes(b.props.style)).length;
     e.innerHTML = `<p class="kicker">Site preset</p><h1>${esc(preset.name)}</h1><p class="loc">${esc(preset.location || '')}</p>

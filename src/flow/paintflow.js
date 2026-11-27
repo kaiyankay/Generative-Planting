@@ -33,9 +33,11 @@ export function paintFlow(F, c, T, o, phase) {
     if (phase === 'ground') {
       if (!u.bed && !tex) for (const b of P.eligibleBeds()) { const o2 = F.store.getObject(b.id); if (o2) strokeG(c, T, o2.geometry, rgba(PROP, st.beds[b.id] ? 0 : 0.75), 1.2, [5, 4]); }
       for (const c0 of cells) { if (u.preview && c0.bedId === u.preview.bedId) continue; if (!inView(o, c0.geometry)) continue; fillG(c, T, c0.geometry, rgba(BOT, 0.07)); strokeG(c, T, c0.geometry, rgba(INK, 0.55), lw); }
-      if (u.preview) for (const c0 of u.preview.cells) { fillG(c, T, c0.geometry, rgba(PROP, c0.n % 2 ? 0.16 : 0.24)); strokeG(c, T, c0.geometry, PROP, tex ? 2.5 : 1.3, tex ? [] : [4, 3]); }
       if (u.bed) { const o2 = F.store.getObject(u.bed); if (o2) strokeG(c, T, o2.geometry, INK, tex ? 4 : 2); }
-    } else if (!tex) {
+    } else {
+      // the preview is drawn above the existing plants, over a light veil of the bed, so the proposed cells read clearly
+      if (u.preview) { const o2 = F.store.getObject(u.preview.bedId); if (o2) fillG(c, T, o2.geometry, 'rgba(255,255,255,.62)'); for (const c0 of u.preview.cells) { fillG(c, T, c0.geometry, rgba(PROP, c0.n % 2 ? 0.14 : 0.26)); strokeG(c, T, c0.geometry, PROP, tex ? 2.5 : 1.4); } if (o2) strokeG(c, T, o2.geometry, INK, tex ? 4 : 2); }
+      if (tex) return;
       if (u.preview) for (const c0 of u.preview.cells) label(c, T, c0, sc, String(c0.n), { color: WARN });
       else for (const c0 of cells) if (inView(o, c0.geometry)) label(c, T, c0, sc, String(c0.n));
     }

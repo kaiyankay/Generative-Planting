@@ -139,7 +139,7 @@ def main():
         c = CDP(WS(page["webSocketDebuggerUrl"]))
         c("Page.enable"); c("Runtime.enable")
         c("Emulation.setDeviceMetricsOverride", width=1440, height=900, deviceScaleFactor=1, mobile=False)
-        c("Page.navigate", url=base + "index.html")  # a first visit: the site preset is shown before the workspace
+        c("Page.navigate", url=base + "index.html?classic=1")  # a first visit: the site preset is shown before the workspace
         for _ in range(300):
             if c.js("document.documentElement.dataset.ready === '1'"):
                 break

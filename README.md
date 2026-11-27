@@ -1,3 +1,20 @@
+# Generative Planting · Integrated Prototype (Define → Structure → Compose → Explore)
+
+> **Branch `feature/integrated-prototype`** — one app, one project state, four stages on the real Detroit model:
+> **Define** an intent and an editable brief (knowledge sources in use, unknowns stated) → **Structure** beds into
+> numbered cells with an adaptive spatial logic (Honeycomb · Bands · Organic patches) → **Compose** reusable Mixes
+> (Rules-mode suggestion or by hand, same library) and assign them to cells (paint or Auto compose) so that real plant
+> instances are placed → **Explore** pollinator resources, seasonality and adaptability by month from the placed plants,
+> follow issues back to the cell or mix, save, compare, export. Knowledge stays a parallel workspace (top bar).
+>
+> Run: `python3 -I tools/flow_server.py --port 8796` → http://127.0.0.1:8796/ · tests: `python3 -I -u tools/flow_e2e.py`
+> then `python3 -I tools/flow_report.py` · read first: [HANDOFF.md](HANDOFF.md) (中文),
+> [docs/integrated/IMPLEMENTATION_REPORT.md](docs/integrated/IMPLEMENTATION_REPORT.md),
+> [docs/integrated/ALGORITHMS.md](docs/integrated/ALGORITHMS.md), [docs/qa/FLOW_E2E.md](docs/qa/FLOW_E2E.md).
+> No language model is connected (Rules mode, labelled). Flowering / pollinator values for Detroit plants come from a
+> switchable **illustrative teaching layer**, labelled "not verified" wherever it is used.
+> The previous site-setup + brush prototype is kept at `index.html?classic=1`.
+
 # Generative Planting · Site setup → Integrated Design Prototype
 
 > **Branch `integration/design-prototype`: the Integrated Design Prototype.** One spatial workspace where a site preset is

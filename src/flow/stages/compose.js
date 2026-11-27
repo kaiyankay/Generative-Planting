@@ -10,6 +10,7 @@ export function gate(F) { const t = F.P.totals(); return t.plants > 0 ? { ok: tr
 export function enter(F, opts = {}) {
   if (F.ctx.st.view !== 'plan' && !opts.resumed && !opts.keepView) F.ctx.setObs('plan');
   if (opts.cells) { F.u.cells = new Set(opts.cells); F.focusCells(opts.cells); }
+  else if (!opts.resumed && !opts.keepView) F.focusCells(F.P.allCells().map((c) => c.id));
   if (opts.editMix) openEditor(F, opts.editMix);
   if (opts.knowledge) F.u.knowledgeAdd = { plantId: opts.knowledge, text: '', parsed: null, scope: 'project' };
 }

@@ -48,7 +48,7 @@ export function labelPoint(mp) {
 function segD(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay; const L = dx * dx + dy * dy; let t = L ? ((px - ax) * dx + (py - ay) * dy) / L : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - ax - t * dx, py - ay - t * dy); }
 export function edgeDist(mp, x, y) { let d = Infinity; for (const p of C(mp)) for (const r of p) for (let i = 0; i < r.length - 1; i++) d = Math.min(d, segD(x, y, r[i][0], r[i][1], r[i + 1][0], r[i + 1][1])); return d; }
 const clipMP = (a, b) => { try { return MP(polygonClipping.intersection(C(a), C(b))); } catch { return MP([]); } };
-const unionMP = (list) => { try { return MP(polygonClipping.union(...list.map(C))); } catch { return list[0]; } };
+const unionMP = (list) => { try { return MP(polygonClipping.union(...list.map(C))); } catch { return MP(list.flatMap(C)); } }; // never lose a part on a failed boolean
 const round = (v, d = 3) => +(+v).toFixed(d);
 const roundGeom = (mp) => MP(C(mp).map((p) => p.map((r) => r.map(([x, y]) => [round(x, 3), round(y, 3)]))));
 
@@ -98,11 +98,11 @@ function rot(x, y, deg) { const t = (deg * Math.PI) / 180; return [x * Math.cos(
 function hexRaw(mp, { size, angle, offset = [0, 0] }) {
   const b = bbox(mp); const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2; const R = Math.hypot(b[2] - b[0], b[3] - b[1]) / 2 + size;
   const d = size; const u = rot(d, 0, angle), v = rot(d / 2, (d * Math.sqrt(3)) / 2, angle); const rad = d / Math.sqrt(3);
-  const n = Math.ceil(R / d) + 2; const out = [];
+  const n = Math.ceil(R / (0.866 * d)) + 2; const out = []; // the skewed (60°) lattice rhombus must contain the whole bed
   for (let i = -n; i <= n; i++) for (let j = -n; j <= n; j++) {
     const x = cx + offset[0] + i * u[0] + j * v[0], y = cy + offset[1] + i * u[1] + j * v[1];
     if (x < b[0] - d || x > b[2] + d || y < b[1] - d || y > b[3] + d) continue;
-    const ring = []; for (let k = 0; k <= 6; k++) { const a = ((angle + 30 + (k % 6) * 60) * Math.PI) / 180; ring.push([x + rad * Math.cos(a), y + rad * Math.sin(a)]); }
+    const ring = []; for (let k = 0; k <= 6; k++) { const a = ((angle + 30 + (k % 6) * 60) * Math.PI) / 180; ring.push([+(x + rad * Math.cos(a)).toFixed(5), +(y + rad * Math.sin(a)).toFixed(5)]); } // snapped: shared edges are identical
     out.push({ key: `${i},${j}`, geom: MP([[ring]]), order: [i, j] });
   }
   return { tiles: out, fullArea: (Math.sqrt(3) / 2) * d * d };
@@ -112,13 +112,13 @@ function bandRaw(mp, { size, angle, offset = 0 }) {
   const n = rot(0, 1, angle), t = rot(1, 0, angle); // bands run along t, stack along n
   let lo = Infinity, hi = -Infinity, tlo = Infinity, thi = -Infinity;
   for (const [x, y] of pts) { const s = x * n[0] + y * n[1], q = x * t[0] + y * t[1]; lo = Math.min(lo, s); hi = Math.max(hi, s); tlo = Math.min(tlo, q); thi = Math.max(thi, q); }
-  tlo -= 2; thi += 2; const out = []; let k = 0;
+  const tmin = tlo, tmax = thi; tlo -= 0.01; thi += 0.01; const out = []; let k = 0;
   for (let s = lo - (offset % size) - (offset ? size : 0); s < hi; s += size, k++) {
     const s1 = s + size; if (s1 <= lo) continue;
     const P = (q, ss) => [q * t[0] + ss * n[0], q * t[1] + ss * n[1]];
     // long bands are cut into segments of RULES.bandSegment × width along their length (numbered cells, not one strip)
-    const seg = size * RULES.bandSegment; let j = 0;
-    for (let q = tlo; q < thi; q += seg, j++) { const q1 = Math.min(thi, q + seg); const ring = [P(q, s), P(q1, s), P(q1, s1), P(q, s1), P(q, s)]; out.push({ key: `b${k}s${j}`, geom: MP([[ring]]), order: [k, j] }); }
+    const nseg = Math.max(1, Math.round((tmax - tmin) / (size * RULES.bandSegment))); const seg = (thi - tlo) / nseg; let j = 0; // equal segments along the bed
+    for (let q = tlo; j < nseg; q += seg, j++) { const q1 = j === nseg - 1 ? thi : q + seg; const ring = [P(q, s), P(q1, s), P(q1, s1), P(q, s1), P(q, s)]; out.push({ key: `b${k}s${j}`, geom: MP([[ring]]), order: [k, j] }); }
   }
   return { tiles: out, fullArea: size * size * RULES.bandSegment, bandWidth: size, stackDir: n };
 }
@@ -253,7 +253,7 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
     const sliver = (cl.mergedArea + cl.droppedArea) / area;
     const align = pathDir && logic !== 'organic' ? angDiff(a.deg, pathDir.deg) / 90 : 0;
     const targetN = area / (size * size * (logic === 'bands' ? RULES.bandSegment : 1)); const countDev = Math.abs(cl.parts.length - targetN) / Math.max(1, targetN); // a band's area is width × length: no count target
-    const w = { sliver: 2, regularity: 0.6, mixedConditions: objectives.suitability === false ? 0.3 : 1.2, pathAlignment: objectives.continuity ? 1.5 : 0.25, count: 0.3 };
+    const w = { sliver: 2, regularity: 0.6, mixedConditions: objectives.suitability === false ? 0.3 : 1.2, pathAlignment: objectives.continuity ? 1.5 : 0, count: 0.3 }; // path alignment counts only for the continuity objective
     const terms = { sliver: round(sliver, 4), regularity: round(cv, 4), mixedConditions: round(het, 4), pathAlignment: round(align, 4), count: round(countDev, 4) };
     const score = Object.entries(terms).reduce((s, [k, v]) => s + w[k] * v, 0);
     cands.push({ size, angle: a, offset: off, seed: sd, raw, cl, terms, weights: w, score: round(score, 4) });
@@ -276,7 +276,7 @@ export function generateCells({ bedId, bedCode, plantable, logic, params = {}, c
   const chosen = { size: best.size, angle: logic === 'organic' ? null : best.angle.deg, offset: best.offset, seed: logic === 'organic' ? best.seed : null };
   const reason = logic === 'organic'
     ? `${cells.length} patches from a clipped Voronoi partition (Lloyd relaxation, 2 steps) of seed layout ${best.seed} of ${seeds.length}: the layout whose patches mix the fewest known site conditions (tree crown, path edge${contour && contour.relief >= RULES.reliefForGradientM ? ', elevation tercile' : ''}) and leave the fewest slivers.`
-    : `${logic === 'bands' ? 'Bands' : 'Cells'} ${best.angle.why} (${round(best.angle.deg, 0)}°), ${best.size} m ${logic === 'bands' ? `wide, cut every ${round(best.size * RULES.bandSegment, 1)} m along their length` : 'across'}.`;
+    : `${logic === 'bands' ? 'Bands' : 'Cells'} ${best.angle.why} (${round(best.angle.deg, 0)}°), ${best.size} m ${logic === 'bands' ? `wide, cut into equal segments of about ${round(best.size * RULES.bandSegment, 1)} m along their length` : 'across'}.`;
   const notes = [];
   if (!pathDir && logic !== 'organic') notes.push('No path runs along this bed: orientation follows the bed shape.');
   if (!(contour && contour.relief >= RULES.reliefForGradientM)) notes.push(`Relief in the bed is ${contour ? contour.relief : '?'} m: elevation is not used to orient or classify.`);

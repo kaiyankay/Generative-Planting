@@ -152,12 +152,13 @@ export class ModelStore extends Emitter {
     this.byId = new Map();
     for (const o of m.objects) this.byId.set(o.id, { kind: 'object', rec: o });
     for (const p of m.placements) this.byId.set(p.id, { kind: 'placement', rec: p });
-    for (const s of m.species) this.byId.set(s.id, { kind: 'species', rec: s });
+    const species = this.runtimeSpecies && this.runtimeSpecies.length ? [...m.species, ...this.runtimeSpecies] : m.species;
+    for (const s of species) this.byId.set(s.id, { kind: 'species', rec: s });
     for (const r of m.recipes) this.byId.set(r.id, { kind: 'recipe', rec: r });
     for (const s of m.sources) this.byId.set(s.id, { kind: 'source', rec: s });
     this.speciesByIndex = [];
-    for (const s of m.species) this.speciesByIndex[s.index] = s;
-    this.speciesIndexById = new Map(m.species.map((s) => [s.id, s.index]));
+    for (const s of species) this.speciesByIndex[s.index] = s;
+    this.speciesIndexById = new Map(species.map((s) => [s.id, s.index]));
     this.placementByIndex = [];
     for (const p of m.placements) this.placementByIndex[p.index] = p;
     this.beds = m.objects.filter((o) => o.type === 'bed');
@@ -675,12 +676,11 @@ export class ModelStore extends Emitter {
   registerRuntimeSpecies(sp) {
     if (!sp || typeof sp.id !== 'string' || !/^sp\.x-[a-z0-9-]{2,60}$/.test(sp.id)) return { ok: false, error: "runtime species ids are 'sp.x-<name>'" };
     if (this.speciesIndexById.has(sp.id)) return { ok: true, index: this.speciesIndexById.get(sp.id) };
-    const index = 1 + Math.max(...this.baseline.species.map((s) => s.index));
+    const index = 1 + Math.max(...this.baseline.species.map((s) => s.index), ...(this.runtimeSpecies || []).map((s) => s.index));
     const rec = { id: sp.id, scientificName: String(sp.scientificName || sp.id).slice(0, 80), cultivar: sp.cultivar || null, plantType: ['forb', 'grass', 'sedge', 'shrub', 'bulb', 'fern'].includes(sp.plantType) ? sp.plantType : 'forb',
       formProxy: sp.formProxy || 'mound', nominalHeightM: +sp.nominalHeightM || 0.6, nominalSpreadM: +sp.nominalSpreadM || 0.5, displayFlower: sp.displayFlower || '#c9b98a', displayLeaf: sp.displayLeaf || '#8f9c80',
       aliases: [], note: 'added in a design project: generic display proxy', index, sourceRefs: [], inferredFields: ['formProxy', 'nominalHeightM', 'nominalSpreadM', 'displayFlower', 'displayLeaf'], phenology: null, temporal: {}, canonicalKey: sp.scientificName, runtime: true };
-    this.baseline.species.push(rec);
-    if (this.draft && this.draft.model !== this.baseline && !this.draft.model.species.some((s) => s.id === rec.id)) this.draft.model.species.push(rec);
+    (this.runtimeSpecies ||= []).push(Object.freeze(rec)); // the baseline model is frozen and is never changed
     this._index(); this.emit('species', rec);
     return { ok: true, index };
   }
