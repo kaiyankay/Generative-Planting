@@ -425,7 +425,7 @@ export class Scene3D {
   }
   // model changed (draft patch, scenario switch): rebuild plant geometry + ground, keep camera / selection / view
   _onModel() {
-    if (this.active === false && this._built3d) { this._stale = true; return; } // V3: rebuilt when the 3D view is shown, not on every edit in Plan
+    if (this.deferWhenHidden && this.active === false && this._built3d) { this._stale = true; return; } // V3 workflow (opt-in): rebuilt when the 3D view is shown, not on every edit in Plan; the classic app rebuilds at once
     this._built3d = true; this._stale = false;
     const t0 = performance.now();
     this._disposePlants(); this._plants();

@@ -52,6 +52,7 @@ export async function startFlow(ctx) {
   P = new Project({ store, cs: ctx.cs, K, site: preset });
   const R = new MixReasoner({ K }); R.probe().then(() => F.renderPanel());
   ctx.claimsSelection = () => true;
+  if (scene) scene.deferWhenHidden = true; // the workflow edits in Plan; 3D catches up when it is shown
 
   const shell = document.createElement('div'); shell.className = 'f-shell'; shell.id = 'fshell';
   shell.innerHTML = `

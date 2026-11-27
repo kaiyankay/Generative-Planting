@@ -29,6 +29,7 @@ python3 -I -u tools/v3_unit.py --serve <rsync 快照>              # 引擎 71 �
 python3 -I -u tools/v3_e2e.py  --serve <rsync 快照>              # 真实鼠标/键盘完整旅程 27 步（A–P）→ docs/qa/v3_e2e.json + docs/screenshots/v3/
 python3 -I -u tools/v3_perf.py --serve <快照> --label X --gpu    # 笔刷性能（空设计 + 约 2 万株），→ docs/qa/perf/X-gpu.json（--profile 可加 CPU 采样）
 python3 tools/v3_report.py                                       # docs/qa/V3_E2E.md、各类拼图、journey.gif
+python3 -I -u tools/run_browser_tests.py --out docs/qa/browser_tests_v3.json   # 原有场地组件 177 项（?classic=1），单独运行：177/177
 ```
 旅程与性能测试在本机用 headless Chrome + Metal GPU（Intel Iris Plus 650）运行；`--swiftshader` 可用软件渲染（慢）。
 

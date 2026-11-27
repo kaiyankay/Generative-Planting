@@ -10,7 +10,10 @@ assertion: [../qa/V3_E2E.md](../qa/V3_E2E.md) · machine-readable: `docs/qa/v3_e
 raw.githack, not GitHub Pages).
 
 **Tests (final code, same machine):** engine 71 / 71 (V2 60 kept unchanged + 11 new) · real-browser journey 27 / 27 (one
-continuous session from an empty profile, real mouse and keyboard; 0 console errors). Device: MacBookPro14,2 · Intel i5-7267U ·
+continuous session from an empty profile, real mouse and keyboard; 0 console errors) · classic site suite (`?classic=1`,
+run alone) 177 / 177 (`docs/qa/browser_tests_v3.json`). The first classic run gave 175 / 177: the V3 deferral of the 3D
+rebuild while the 3D view is hidden broke two classic checks that read the 3D scene right after an edit in Plan; the deferral
+is now opt-in for the workflow only (`scene.deferWhenHidden`), classic rebuilds at once as before. Device: MacBookPro14,2 · Intel i5-7267U ·
 Intel Iris Plus 650 (Metal) · macOS 13.7.8 · Chrome 158, headless, 1440 × 900.
 
 ## Results by acceptance case
