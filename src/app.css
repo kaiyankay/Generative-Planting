@@ -2,7 +2,7 @@
    Chrome is quiet and docked; the canvas carries the colour. Sentence case, no eyebrows, 1 px rules. */
 :root {
   --paper: #F5F1E8; --paper-2: #EEE9DD; --panel: rgba(250, 248, 242, .94); --panel-solid: #FAF8F2;
-  --ink: #33433A; --ink-2: #506B5F; --ink-3: #7B857C; --line: rgba(51, 67, 58, .14); --line-2: rgba(51, 67, 58, .26);
+  --ink: #33433A; --ink-2: #506B5F; --ink-3: #626B61; --line: rgba(51, 67, 58, .14); --line-2: rgba(51, 67, 58, .26);
   --sage: #859779; --meadow: #C7C38A; --select: #9A4F2E; --draft: #8C6A2E;
   --doc: #4F7A3A; --rec: #3F6E8C; --sch: #9A6E28; --unk: #7B857C;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;

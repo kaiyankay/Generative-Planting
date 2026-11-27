@@ -354,10 +354,12 @@ export class Scene3D {
       const L = s.instanceLayer(i); const k = L + '|' + sp.formProxy;
       let g = groups.get(k); if (!g) groups.set(k, (g = [])); g.push(i);
       const sc = t.sc[i]; const woody = L === 'veg.trees' || L === 'veg.shrubs' || L === 'siteveg.trees';
-      const spread = sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.8));
+      // design plants (k = 1) carry their planned spacing in sc: a render proxy as wide as the spacing, nominal height
+      const design = t.k[i] === 1; const hj = design ? 0.88 + (((i * 2246822519) >>> 0) % 1000) / 1000 * 0.24 : 1;
+      const spread = design ? (woody ? Math.max(sc, sp.nominalSpreadM * 0.8) : L === 'veg.bulbs' ? sp.nominalSpreadM : sc * 1.2) : sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.8));
       dummy.position.set(x, this.hY(x, y) - 0.03, -y);
       dummy.rotation.set(0, t.rot[i], 0);
-      dummy.scale.set(spread, Math.max(0.05, sp.nominalHeightM * sc), spread);
+      dummy.scale.set(spread, Math.max(0.05, sp.nominalHeightM * (design ? hj : sc)), spread);
       dummy.updateMatrix(); dummy.matrix.toArray(this.iMat, i * 16);
       const jit = 0.94 + (((i * 2654435761) >>> 0) % 1000) / 1000 * 0.12;
       col.set(speciesLeaf(sp)); this.iLeaf[i * 3] = col.r * jit; this.iLeaf[i * 3 + 1] = col.g * jit; this.iLeaf[i * 3 + 2] = col.b * jit;
@@ -749,10 +751,20 @@ export class Scene3D {
     if (this.onLabels) this.onLabels();
   }
 
+  // a design tool (brush) takes the left button: OrbitControls keep wheel zoom and right-drag rotate
+  setTool(tool) {
+    this.tool = tool || null;
+    if (this.controls && this.controls.mouseButtons) { if (!this._mb) this._mb = { ...this.controls.mouseButtons }; this.controls.mouseButtons.LEFT = this.tool ? null : this._mb.LEFT; }
+  }
   _bind() {
-    const c = this.c; let down = null;
-    c.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+    const c = this.c; let down = null; let toolDown = false;
+    c.addEventListener('pointerdown', (e) => {
+      if (this.tool && e.button === 0 && !this.layersView) { const p = this._ground(e); toolDown = true; this.tool.down && this.tool.down(p ? p[0] : null, p ? p[1] : null, e); return; }
+      down = { x: e.clientX, y: e.clientY };
+    });
+    c.addEventListener('pointermove', (e) => { if (toolDown && this.tool) { const p = this._ground(e); if (p) this.tool.move && this.tool.move(p[0], p[1], e); } });
     c.addEventListener('pointerup', (e) => {
+      if (toolDown) { toolDown = false; const p = this._ground(e); this.tool && this.tool.up && this.tool.up(p ? p[0] : null, p ? p[1] : null, e); return; }
       if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4; down = null;
       if (moved) return;
       if (this.layersView) { const g = this.plateAt(e); if (this.onPlateClick) this.onPlateClick(g, e); return; }
@@ -764,6 +776,7 @@ export class Scene3D {
     c.addEventListener('dblclick', (e) => { if (this.layersView && this.onPlateOpen) { const g = this.plateAt(e); if (g) this.onPlateOpen(g); } });
     c.addEventListener('pointermove', (e) => {
       if (e.buttons) return;
+      if (this.tool && this.tool.hover) { const p = this._ground(e); if (p) this.tool.hover(p[0], p[1], e); }
       if (this._hovT && performance.now() - this._hovT < 50) return; this._hovT = performance.now();
       if (this.layersView) { const g = this.plateAt(e); if (g !== this._hovPlate) { this._hovPlate = g; this.onPlateHover && this.onPlateHover(g); c.style.cursor = g ? 'pointer' : ''; } return; }
       const p = this._ground(e); if (p) { this.picker.hoverAt(p[0], p[1], this._pxPerM()); this.onCursor && this.onCursor(p[0], p[1]); }

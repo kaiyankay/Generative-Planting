@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Site setup — Generative Planting</title>
+<title>Generative Planting — Design</title>
 <meta name="description" content="Generative Planting · Site setup: the spatial input of an AI-assisted planting design tool. Load a site preset, read its terrain, infrastructure and planting framework, and start a working design from the reference planting or a blank one.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%275.5%27 fill=%27%23859779%27 fill-opacity=%27.55%27/%3E%3Ccircle cx=%278%27 cy=%278%27 r=%272%27 fill=%27%23506B5F%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="src/app.css">
+<link rel="stylesheet" href="src/design/design.css">
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
 </script>
@@ -36,9 +37,10 @@
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="5" cy="10" r="1.4" fill="currentColor"/><circle cx="10" cy="10" r="1.4" fill="currentColor"/><circle cx="15" cy="10" r="1.4" fill="currentColor"/></svg>
       </button>
       <div class="menu" id="designMenu" role="menu" hidden>
-        <button role="menuitem" data-a="reset">Undo all changes</button>
         <button role="menuitem" data-a="export">Export working design</button>
+        <button role="menuitem" data-a="knowledge">Open the Knowledge workspace</button>
         <button role="menuitem" data-a="new">Start a new design…</button>
+        <button role="menuitem" data-a="reset">Undo all changes</button>
         <button role="menuitem" data-a="discard" class="danger">Delete working design</button>
       </div>
     </div>

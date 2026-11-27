@@ -52,8 +52,8 @@ export class Plan2D {
       for (const id of ['layers', 'inspector', 'conditions']) { const e = document.getElementById(id); if (e && !e.hidden) p.b = Math.max(p.b, this.h - e.getBoundingClientRect().top + 10); }
       p.t = Math.max(p.t, 56); return p;
     }
-    const lg = document.getElementById('layers'); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16);
-    for (const id of ['inspector', 'conditions']) { const e = document.getElementById(id); if (e && !e.hidden) p.r = Math.max(p.r, this.w - e.getBoundingClientRect().left + 16); }
+    for (const id of ['layers', 'palette']) { const lg = document.getElementById(id); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16); }
+    for (const id of ['inspector', 'conditions', 'dpanel']) { const e = document.getElementById(id); if (e && !e.hidden) p.r = Math.max(p.r, this.w - e.getBoundingClientRect().left + 16); }
     return p;
   }
   focus(id) {
@@ -69,8 +69,15 @@ export class Plan2D {
   _bind() {
     const c = this.c;
     let drag = null;
-    c.addEventListener('pointerdown', (e) => { try { c.setPointerCapture(e.pointerId); } catch { /* synthetic / automation events have no active pointer */ } drag = { x: e.clientX, y: e.clientY, cx: this.view.cx, cy: this.view.cy, moved: false }; });
+    // a design tool (brush) takes the left button; pan stays on the right / middle button, Space or Alt + drag
+    const world = (e) => { const r = c.getBoundingClientRect(); return this.inv(e.clientX - r.left, e.clientY - r.top); };
+    let toolDown = false;
+    c.addEventListener('pointerdown', (e) => {
+      if (this.tool && e.button === 0 && !e.altKey && !this.spaceDown) { try { c.setPointerCapture(e.pointerId); } catch { /* synthetic events */ } toolDown = true; const [x, y] = world(e); this.tool.down && this.tool.down(x, y, e); this.request(); return; }
+      try { c.setPointerCapture(e.pointerId); } catch { /* synthetic / automation events have no active pointer */ } drag = { x: e.clientX, y: e.clientY, cx: this.view.cx, cy: this.view.cy, moved: false };
+    });
     c.addEventListener('pointermove', (e) => {
+      if (this.tool) { const [x, y] = world(e); this.cursor = [x, y]; this.onCursor && this.onCursor(x, y); if (toolDown) { this.tool.move && this.tool.move(x, y, e); this.request(); return; } if (this.tool.hover) { this.tool.hover(x, y, e); this.request(); } }
       if (drag) {
         const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
         if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
@@ -85,6 +92,7 @@ export class Plan2D {
       }
     });
     c.addEventListener('pointerup', (e) => {
+      if (toolDown) { toolDown = false; const [x, y] = world(e); this.tool && this.tool.up && this.tool.up(x, y, e); this.request(); return; }
       if (drag && !drag.moved) {
         const r = c.getBoundingClientRect();
         const [x, y] = this.inv(e.clientX - r.left, e.clientY - r.top);
@@ -118,6 +126,7 @@ export class Plan2D {
       const op = this.iso.overlays && this.iso.overlays[gid];
       if (op > 0) { ctx.save(); ctx.globalAlpha = op; paintGroup(ctx, s, T, gid, phase, { ...o, overlay: true }); ctx.restore(); }
     }
+    if (this.decor) this.decor(ctx, T, sc, o);
     this._highlight();
     this._overlay();
     this.lastDrawMs = performance.now() - t0;

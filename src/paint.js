@@ -7,7 +7,7 @@ import { centroidOf, bboxOf } from './model.js';
 // o: { scale: px per metre, vb: [x0,y0,x1,y1] visible metres, texture: bool (3D ground), focus: group id (isolated) }
 export const ORDER = [
   ['terrain', 'ground'], ['infrastructure', 'ground'], ['siteveg', 'ground'], ['framework', 'ground'], ['analysis', 'ground'],
-  ['composition', 'ground'], ['representation', 'ground'], ['compute', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'],
+  ['composition', 'ground'], ['design', 'ground'], ['representation', 'ground'], ['compute', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'],
 ];
 export function paintGroup(ctx, s, T, gid, phase, o) {
   const f = PAINTERS[gid] && PAINTERS[gid][phase];
@@ -197,6 +197,22 @@ const PAINTERS = {
       paintCanopies(ctx, s, T, o, (i) => s.inst.pl[i] >= 0, false);
     },
   },
+  // design spaces (assignments): each placement of kind 'plants' tints its space in the mix colour, under the plants;
+  // the same painter draws the plan and the 3D ground texture
+  design: {
+    ground(ctx, s, T, o) {
+      if (!vis(s, 'structure.patches') && !vis(s, 'veg.forbs')) return;
+      for (const p of s.model.placements) {
+        if (p.kind !== 'plants' || !p.geometry) continue;
+        if (!inView(o, s.placementBox(p))) continue;
+        const c = p.color || '#9C9A8C';
+        ctx.beginPath(); tracePoly(ctx, p.geometry, T);
+        if (o.texture) { ctx.fillStyle = rgba(mix(c, '#4A5440', 0.35), 0.42); ctx.fill('evenodd'); continue; }
+        ctx.fillStyle = rgba(c, s.view.month ? 0.1 : 0.2); ctx.fill('evenodd');
+        if (o.scale > 2.5) { ctx.strokeStyle = rgba(mix(c, TOK.inkDeep, 0.35), 0.55); ctx.lineWidth = 0.8; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]); }
+      }
+    },
+  },
   // computational space: a field shown in bands inside the scope beds, or the zones of the current computation
   compute: { ground(ctx, s, T, o) { paintCompute(ctx, s, T, o); } },
   analysis: {
@@ -251,7 +267,7 @@ function paintBedLabels(ctx, s, T, o) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round'; ctx.lineWidth = 3.5; ctx.strokeStyle = rgba(TOK.paper, 0.92); ctx.strokeText(code, q[0], q[1]);
     ctx.fillStyle = b.props.style === 'M' ? TOK.ink : TOK.inkDeep; ctx.fillText(code, q[0], q[1]);
-    if (sc > 12 && big) {
+    if (sc > 12 && big && !s.view.designing) { // in a working design the bed's original style is not the planting any more
       ctx.font = `500 9.5px ${SANS}`; const t = b.props.styleName.toUpperCase();
       ctx.strokeText(t, q[0], q[1] + fs * 0.95); ctx.fillStyle = TOK.ink; ctx.fillText(t, q[0], q[1] + fs * 0.95);
     }
@@ -266,6 +282,14 @@ export function paintInstances(ctx, s, T, o) {
   const close = sc > 22, mid = sc > 7;
   const haloA = o.focus === 'representation' ? 0.32 : 0.22;
   // colour strings per species (built once per draw, not per proxy)
+  const ph = s.view.month && s.view.phenology ? s.view.phenology : null; // Map(speciesIndex -> true | false | null) for the chosen month
+  const unk = { halo: rgba('#B7B2A4', 0.18), haloG: rgba('#B7B2A4', 0.16), ring: rgba('#8E897C', 0.4), core: '#C9C4B6', grass: rgba('#A39E90', 0.55), bulb: rgba('#B7B2A4', 0.5) };
+  const OFF = new Map(); const off = (sp) => { let c = OFF.get(sp.index); if (!c) { const lf = speciesLeaf(sp); c = { halo: rgba(lf, 0.16), haloG: rgba(lf, 0.14), ring: rgba(mix(lf, TOK.inkDeep, 0.4), 0.4), core: mix(lf, TOK.inkDeep, 0.2), grass: rgba(mix(lf, TOK.inkDeep, 0.25), 0.6), bulb: rgba(lf, 0.4) }; OFF.set(sp.index, c); } return c; };
+  const byMix = s.view.colorBy === 'mix';
+  const byHydro = s.view.colorBy === 'hydrology' && s.view.hydro;
+  const hy = (c) => ({ halo: rgba(c, 0.55), haloG: rgba(c, 0.5), ring: rgba(mix(c, TOK.inkDeep, 0.4), 0.6), core: mix(c, TOK.inkDeep, 0.2), grass: rgba(mix(c, TOK.inkDeep, 0.2), 0.85), bulb: rgba(c, 0.8) });
+  const HY = { dry: hy('#C9A24E'), moist: hy('#7FA36B'), wet: hy('#4F7FA6'), unk: hy('#C9C4B6') };
+  const MC = new Map(); const mixCol = (c, k) => { const key = c + (k % 4); let v = MC.get(key); if (!v) { const cc = mix(c, k % 2 ? TOK.inkDeep : '#FFFFFF', 0.08 + (k % 4) * 0.06); v = { halo: rgba(cc, 0.5), haloG: rgba(cc, 0.42), ring: rgba(mix(cc, TOK.inkDeep, 0.4), 0.6), core: mix(cc, TOK.inkDeep, 0.25), grass: rgba(mix(cc, TOK.inkDeep, 0.3), 0.75), bulb: rgba(mix(cc, TOK.inkDeep, 0.3), 0.7) }; MC.set(key, v); } return v; };
   const C = new Map(); const col = (sp) => { let c = C.get(sp.index); if (!c) { const pc = speciesPlanColor(sp); c = { halo: rgba(pc, haloA), haloG: rgba(pc, haloA * 0.8), ring: rgba(mix(pc, TOK.inkDeep, 0.4), 0.5), core: mix(speciesFlower(sp), TOK.inkDeep, close ? 0.08 : 0.15), grass: rgba(mix(speciesLeaf(sp), TOK.inkDeep, 0.3), close ? 0.75 : 0.55), bulb: rgba(mix(speciesFlower(sp), TOK.inkDeep, 0.35), 0.8) }; C.set(sp.index, c); } return c; };
   for (let i = 0; i < t.n; i++) {
     if (!t.alive[i] || t.pl[i] < 0) continue;
@@ -273,9 +297,13 @@ export function paintInstances(ctx, s, T, o) {
     const sp = s.speciesByIndex[t.sp[i]]; const L = speciesLayerOf(sp);
     if (L === 'veg.trees' || L === 'veg.shrubs' || !show[L]) continue;
     const q = T(x, y);
-    const cc = col(sp);
+    let cc = col(sp);
+    if (ph && t.k[i] === 1) { const b = ph.get(sp.index); cc = b == null ? unk : b ? cc : off(sp); } // month view: known bloom, known not, unknown
+    else if (byHydro && t.k[i] === 1) { cc = HY[s.view.hydro.get(sp.index) || 'unk']; }
+    else if (byMix && t.k[i] === 1) { const pl = s.placementByIndex[t.pl[i]]; if (pl && pl.color) cc = mixCol(pl.color, sp.index); } // colour by mix: the paint reads at a glance
     if (L === 'veg.bulbs') { if (!mid) continue; ctx.fillStyle = cc.bulb; ctx.beginPath(); ctx.arc(q[0], q[1], close ? 1.4 : 0.9, 0, 7); ctx.fill(); continue; }
-    const r = Math.max(1.1, sp.nominalSpreadM * 0.42 * t.sc[i] * sc);
+    // design plants (k = 1): one symbol per planned plant, sized by its planned spacing; proxies keep the build's sizing
+    const r = t.k[i] === 1 ? Math.max(1.1, t.sc[i] * 0.47 * sc) : Math.max(1.1, sp.nominalSpreadM * 0.42 * t.sc[i] * sc);
     if (L === 'veg.grasses') {
       if (mid) { ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = cc.haloG; ctx.fill(); }
       ctx.strokeStyle = cc.grass; ctx.lineWidth = close ? 0.8 : 0.6; ctx.beginPath();

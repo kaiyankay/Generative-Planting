@@ -1,4 +1,15 @@
-# Generative Planting · Site setup
+# Generative Planting · Site setup → Integrated Design Prototype
+
+> **Branch `integration/design-prototype`: the Integrated Design Prototype.** One spatial workspace where a site preset is
+> entered, a Planting Mix is picked or created, beds / areas / curves / points are painted, and real planned plants are
+> generated on the Detroit terrain (2D and 3D from the same data), checked against paths, structures, trees and plant
+> knowledge, then modified and iterated. Start: `python3 -I tools/serve.py --port 8790` → http://127.0.0.1:8790/ (first
+> visit: *Empty beds* or *From the reference*; `?demo=1` opens a ready-made design). Read
+> [docs/INTEGRATED_HANDOFF.md](docs/INTEGRATED_HANDOFF.md) (Chinese handoff), [docs/DESIGN_CONTRACT.md](docs/DESIGN_CONTRACT.md)
+> (data, engine, operations API), [docs/INTEGRATED_RESEARCH.md](docs/INTEGRATED_RESEARCH.md) (research basis) and
+> [docs/qa/design_e2e.json](docs/qa/design_e2e.json) (experiments A–F). Tests: `python3 -I tools/design_e2e.py`.
+>
+> ![Experiment A: the 15 main beds painted with two mixes](docs/screenshots/integrated/A02-filled-plan.png)
 
 **Live:** https://kaiyankay.github.io/Generative-Planting/
 

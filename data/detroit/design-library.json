@@ -1,0 +1,1171 @@
+{
+ "schema": "generative-planting/design-library",
+ "version": "0.1",
+ "site": "detroit",
+ "place": "place:detroit",
+ "note": "Site-specific plant attributes with their source. Hydrology zone = the zone printed for the species on the official 2026 East / West Meadow lists (S-OGD-MEADOW). It is a species attribute; where these zones are on site is not published (field.moisture stays unknown). Cultivars never receive a species' zone.",
+ "classes": {
+  "hydrology": [
+   {
+    "id": "dry",
+    "label": "Upland (dry)",
+    "order": 0
+   },
+   {
+    "id": "moist",
+    "label": "Facultative wet (moist)",
+    "order": 1
+   },
+   {
+    "id": "wet",
+    "label": "Obligate wet",
+    "order": 2
+   }
+  ]
+ },
+ "species": {
+  "sp.asclepias-incarnata": {
+   "scientificName": "Asclepias incarnata",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.cornus-sericea": {
+   "scientificName": "Cornus sericea",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.eryngium-yuccifolium": {
+   "scientificName": "Eryngium yuccifolium",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.gentiana-andrewsii": {
+   "scientificName": "Gentiana andrewsii",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.lindera-benzoin": {
+   "scientificName": "Lindera benzoin",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.lobelia-cardinalis": {
+   "scientificName": "Lobelia cardinalis",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.lobelia-siphilitica": {
+   "scientificName": "Lobelia siphilitica",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.lythrum-alatum": {
+   "scientificName": "Lythrum alatum",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-andropogon-gerardii": {
+   "scientificName": "Andropogon gerardii",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-anemone-canadensis": {
+   "scientificName": "Anemone canadensis",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-angelica-atropurpurea": {
+   "scientificName": "Angelica atropurpurea",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-arnoglossum-atriplicifolium": {
+   "scientificName": "Arnoglossum atriplicifolium",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-aronia-prunifolia": {
+   "scientificName": "Aronia prunifolia",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-asclepias-incarnata": {
+   "scientificName": "Asclepias incarnata",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-baptisia-australis": {
+   "scientificName": "Baptisia australis",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-baptisia-lactea": {
+   "scientificName": "Baptisia lactea",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-cephalanthus-occidentalis": {
+   "scientificName": "Cephalanthus occidentalis",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-chelone-glabra": {
+   "scientificName": "Chelone glabra",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-coreopsis-tripteris": {
+   "scientificName": "Coreopsis tripteris",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-cornus-foemina": {
+   "scientificName": "Cornus foemina",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-cornus-sericea": {
+   "scientificName": "Cornus sericea",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-dasiphora-fruticosa": {
+   "scientificName": "Dasiphora fruticosa",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.m-desmodium-canadense": {
+   "scientificName": "Desmodium canadense",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-echinacea-purpurea": {
+   "scientificName": "Echinacea purpurea",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-elymus-virginicus": {
+   "scientificName": "Elymus virginicus",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-eryngium-yuccifolium": {
+   "scientificName": "Eryngium yuccifolium",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-eupatorium-perfoliatum": {
+   "scientificName": "Eupatorium perfoliatum",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-euphorbia-corollata": {
+   "scientificName": "Euphorbia corollata",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-euthamia-graminifolia": {
+   "scientificName": "Euthamia graminifolia",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-eutrochium-maculatum": {
+   "scientificName": "Eutrochium maculatum",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-gentiana-andrewsii": {
+   "scientificName": "Gentiana andrewsii",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-geranium-maculatum": {
+   "scientificName": "Geranium maculatum",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-glyceria-striata": {
+   "scientificName": "Glyceria striata",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-helenium-autumnale": {
+   "scientificName": "Helenium autumnale",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-hibiscus-moscheutos": {
+   "scientificName": "Hibiscus moscheutos",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-ilex-verticillata": {
+   "scientificName": "Ilex verticillata",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-iris-virginica": {
+   "scientificName": "Iris virginica",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist",
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet/Fac. wet",
+     "east": "Obligate wet/Fac. wet"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-liatris-spicata": {
+   "scientificName": "Liatris spicata",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-lindera-benzoin": {
+   "scientificName": "Lindera benzoin",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-lobelia-cardinalis": {
+   "scientificName": "Lobelia cardinalis",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-lobelia-siphilitica": {
+   "scientificName": "Lobelia siphilitica",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.m-lobelia-spicata": {
+   "scientificName": "Lobelia spicata",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-lysimachia-quadriflora": {
+   "scientificName": "Lysimachia quadriflora",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-lythrum-alatum": {
+   "scientificName": "Lythrum alatum",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-monarda-fistulosa": {
+   "scientificName": "Monarda fistulosa",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-onoclea-sensibilis": {
+   "scientificName": "Onoclea sensibilis",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-packera-aurea": {
+   "scientificName": "Packera aurea",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-penstemon-digitalis": {
+   "scientificName": "Penstemon digitalis",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.m-physostegia-virginiana": {
+   "scientificName": "Physostegia virginiana",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-pycnanthemum-virginianum": {
+   "scientificName": "Pycnanthemum virginianum",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-rosa-palustris": {
+   "scientificName": "Rosa palustris",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-rosa-setigera": {
+   "scientificName": "Rosa setigera",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-sambucus-canadensis": {
+   "scientificName": "Sambucus canadensis",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-schizachyrium-scoparium": {
+   "scientificName": "Schizachyrium scoparium",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-schoenoplectus-pungens": {
+   "scientificName": "Schoenoplectus pungens",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-schoenoplectus-tabernaemontani": {
+   "scientificName": "Schoenoplectus tabernaemontani",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-scirpus-atrovirens": {
+   "scientificName": "Scirpus atrovirens",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-scirpus-pendulus": {
+   "scientificName": "Scirpus pendulus",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-scutellaria-lateriflora": {
+   "scientificName": "Scutellaria lateriflora",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-solidago-ohioensis": {
+   "scientificName": "Solidago ohioensis",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-solidago-riddellii": {
+   "scientificName": "Solidago riddellii",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-solidago-rigida": {
+   "scientificName": "Solidago rigida",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-sorghastrum-nutans": {
+   "scientificName": "Sorghastrum nutans",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-sparganium-eurycarpum": {
+   "scientificName": "Sparganium eurycarpum",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-spiraea-tomentosa": {
+   "scientificName": "Spiraea tomentosa",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-sporobolus-heterolepis": {
+   "scientificName": "Sporobolus heterolepis",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-symphyotrichum-novae-angliae": {
+   "scientificName": "Symphyotrichum novae-angliae",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-symphyotrichum-oolentangiense": {
+   "scientificName": "Symphyotrichum oolentangiense",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-thalictrum-dasycarpum": {
+   "scientificName": "Thalictrum dasycarpum",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-thelypteris-palustris": {
+   "scientificName": "Thelypteris palustris",
+   "hydrology": {
+    "class": "wet",
+    "range": [
+     "wet"
+    ],
+    "printedByList": {
+     "west": "Obligate wet 10cm",
+     "east": "Obligate wet 10cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-tradescantia-ohiensis": {
+   "scientificName": "Tradescantia ohiensis",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "east": "Facult. upland/Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-verbena-hastata": {
+   "scientificName": "Verbena hastata",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-verbesina-alternifolia": {
+   "scientificName": "Verbesina alternifolia",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-vernonia-missurica": {
+   "scientificName": "Vernonia missurica",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-veronicastrum-virginicum": {
+   "scientificName": "Veronicastrum virginicum",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-viburnum-cassinoides": {
+   "scientificName": "Viburnum cassinoides",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-viburnum-lentago": {
+   "scientificName": "Viburnum lentago",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.m-zizia-aurea": {
+   "scientificName": "Zizia aurea",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.onoclea-sensibilis": {
+   "scientificName": "Onoclea sensibilis",
+   "hydrology": {
+    "class": "moist",
+    "range": [
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facultative wet 5cm",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  },
+  "sp.penstemon-digitalis": {
+   "scientificName": "Penstemon digitalis",
+   "hydrology": {
+    "class": null,
+    "range": [
+     "dry",
+     "moist"
+    ],
+    "printedByList": {
+     "west": "Facult. upland/Upland",
+     "east": "Facultative wet 5cm"
+    },
+    "sourceRef": "S-OGD-MEADOW",
+    "note": "East and West lists print different zones; both are kept."
+   }
+  },
+  "sp.sporobolus-heterolepis": {
+   "scientificName": "Sporobolus heterolepis",
+   "hydrology": {
+    "class": "dry",
+    "range": [
+     "dry"
+    ],
+    "printedByList": {
+     "west": "Upland"
+    },
+    "sourceRef": "S-OGD-MEADOW"
+   }
+  }
+ },
+ "unmatched": [],
+ "conflicts": [
+  {
+   "speciesId": "sp.m-dasiphora-fruticosa",
+   "printed": {
+    "west": "Facultative wet 5cm",
+    "east": "Facult. upland/Upland"
+   }
+  },
+  {
+   "speciesId": "sp.lobelia-siphilitica",
+   "printed": {
+    "west": "Facult. upland/Upland",
+    "east": "Facultative wet 5cm"
+   }
+  },
+  {
+   "speciesId": "sp.m-lobelia-siphilitica",
+   "printed": {
+    "west": "Facult. upland/Upland",
+    "east": "Facultative wet 5cm"
+   }
+  },
+  {
+   "speciesId": "sp.m-penstemon-digitalis",
+   "printed": {
+    "west": "Facult. upland/Upland",
+    "east": "Facultative wet 5cm"
+   }
+  },
+  {
+   "speciesId": "sp.penstemon-digitalis",
+   "printed": {
+    "west": "Facult. upland/Upland",
+    "east": "Facultative wet 5cm"
+   }
+  },
+  {
+   "speciesId": "sp.m-zizia-aurea",
+   "printed": {
+    "west": "Facult. upland/Upland",
+    "east": "Facultative wet 5cm"
+   }
+  }
+ ]
+}
