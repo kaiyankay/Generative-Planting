@@ -106,6 +106,7 @@ export async function startFlow(ctx) {
     // ---- live brush (Compose). mixId null = eraser
     brush: null,
     setBrush(opts) {
+      document.getElementById('app').classList.toggle('brushing', !!opts);
       if (!opts) { F.brush.stop(); plan.tool = null; if (scene) scene.setTool(null); document.getElementById('c2d').style.cursor = ''; renderHud(); F.repaint(); return; }
       F.brush.start(opts); plan.tool = brushTool; if (scene) scene.setTool(null);
       if (ctx.st.view !== 'plan') F.setMode('plan', { quiet: true });

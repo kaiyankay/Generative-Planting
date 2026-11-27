@@ -57,7 +57,7 @@ export function showIntro(F, { again = false } = {}) {
   pts.sort((p, q) => (p[0] + p[1] * 0.3) - (q[0] + q[1] * 0.3));
   let n = 0; const T0 = performance.now(); const dur = reduce() ? 0 : 2600;
   const draw = () => { const upto = dur ? Math.min(pts.length, Math.floor(pts.length * Math.min(1, (performance.now() - T0) / dur))) : pts.length;
-    for (; n < upto; n++) { const [x, y, c, r] = pts[n]; ctx.beginPath(); ctx.arc(ox + (x - b[0]) * k, cv.height - (oy + (y - b[1]) * k), Math.max(1.2 * dpr, r * k * 0.35), 0, 7); ctx.fillStyle = c; ctx.globalAlpha = 0.55; ctx.fill(); }
+    for (; n < upto; n++) { const [x, y, c, r] = pts[n]; ctx.beginPath(); ctx.arc(ox + (x - b[0]) * k, cv.height - (oy + (y - b[1]) * k), Math.max(1.8 * dpr, r * k * 0.5), 0, 7); ctx.fillStyle = c; ctx.globalAlpha = 0.72; ctx.fill(); }
     if (n < pts.length && !el._stop) requestAnimationFrame(draw); };
   if (pts.length) requestAnimationFrame(draw);
   const close = (fn) => { el._stop = true; const done = () => { el.remove(); if (fn) fn(); }; if (reduce()) done(); else { el.classList.add('leaving'); setTimeout(done, 520); } };

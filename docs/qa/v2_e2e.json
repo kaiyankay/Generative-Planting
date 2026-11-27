@@ -1,0 +1,1051 @@
+{
+ "runner": "headless Chrome (SwiftShader) over CDP; real mouse / keyboard input",
+ "url": "http://127.0.0.1:8798/Generative-Planting/",
+ "started": "2026-11-27 05:09:00",
+ "steps": [
+  {
+   "n": 1,
+   "case": "A",
+   "name": "intro",
+   "action": "Open the app in an empty browser profile",
+   "expected": "A typographic introduction with a plant field drawn from the model's real instances; one Start",
+   "actual": {
+    "title": "GenerativePlanting",
+    "start": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/01-intro.jpg",
+   "s": 21.1,
+   "newErrors": []
+  },
+  {
+   "n": 2,
+   "case": "A",
+   "name": "choose-landscape",
+   "action": "Click Start",
+   "expected": "Three landscape cards in one axonometric language; only Detroit (real model) can be entered; the other two are 'Planned'",
+   "actual": {
+    "cards": 3,
+    "disabled": 2
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/02-choose-landscape.jpg",
+   "s": 1.8,
+   "newErrors": []
+  },
+  {
+   "n": 3,
+   "case": "A",
+   "name": "enter-detroit",
+   "action": "Click the Detroit card",
+   "expected": "Short transition into the Design workspace at Define; no resume prompt (empty profile)",
+   "actual": {
+    "stage": "define",
+    "intro": false
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/03-enter-detroit.jpg",
+   "s": 16.6,
+   "newErrors": []
+  },
+  {
+   "n": 4,
+   "case": "B",
+   "name": "strategy-proposed",
+   "action": "Click the starter intent \u201cKeep the meadows, \u2026 matrix along the main garden paths, early flowers beneath trees, pollinators all season\u201d",
+   "expected": "A whole-site strategy drawn on the map: \u2265 3 zones (role \u00b7 system \u00b7 logic) over \u2265 15 Main Garden beds, meadows kept, Rules mode stated, trees rule reported honestly",
+   "actual": {
+    "zones": [
+     [
+      "Path matrix",
+      "Matrix Based",
+      "bands",
+      8
+     ],
+     [
+      "Matrix beds",
+      "Matrix Based",
+      "honeycomb",
+      5
+     ],
+     [
+      "Organic groups",
+      "Maximal Color",
+      "organic",
+      4
+     ]
+    ],
+    "beds": 17,
+    "kept": [
+     "bed.MW",
+     "bed.ME"
+    ],
+    "rules": [
+     "\u201ckeep the meadows\u201d",
+     "matrix / coherent",
+     "path / along the paths",
+     "trees / shade / beneath",
+     "early / spring",
+     "beneath trees"
+    ],
+    "unused": [],
+    "method": "Rules mode \u2014 explicit rules over your words and the site (no language model)"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/04-strategy-proposed.jpg",
+   "s": 8.8,
+   "newErrors": []
+  },
+  {
+   "n": 5,
+   "case": "B",
+   "name": "strategy-confirmed",
+   "action": "Click \u201cConfirm strategy\u201d",
+   "expected": "One undoable confirmation; Continue enabled; no bed-by-bed confirmation",
+   "actual": {
+    "confirmed": true,
+    "undoSteps": 1,
+    "next": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/05-strategy-confirmed.jpg",
+   "s": 8.3,
+   "newErrors": []
+  },
+  {
+   "n": 6,
+   "case": "C",
+   "name": "structure-preview-all",
+   "action": "Click Continue to Structure",
+   "expected": "Every bed of the strategy previewed at once (curved bands along the paths, honeycomb, organic), no bed fails",
+   "actual": {
+    "beds": 17,
+    "cells": 209,
+    "failed": [],
+    "curved": 8,
+    "logics": [
+     "bands",
+     "honeycomb",
+     "organic"
+    ],
+    "ms": 2460
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/06-structure-preview-all.jpg",
+   "s": 14.8,
+   "newErrors": []
+  },
+  {
+   "n": 7,
+   "case": "C",
+   "name": "structure-size",
+   "action": "Drag the Matrix-beds cell-width slider (real click on the track)",
+   "expected": "The zone's real candidates change (cell count), only that zone is recomputed",
+   "actual": {
+    "zone": "z.matrix",
+    "cellsBefore": 105,
+    "cellsAfter": 22
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/07-structure-size.jpg",
+   "s": 10.0,
+   "newErrors": []
+  },
+  {
+   "n": 8,
+   "case": "C",
+   "name": "structure-guide-curve",
+   "action": "\u201cDraw a guide curve\u201d for the path zone, click 4 points across the beds, \u201cUse this curve\u201d",
+   "expected": "Bands of the zone follow the drawn curve (distance bands from it), clipped by each bed",
+   "actual": {
+    "beds": 8,
+    "curve": 8,
+    "cells": 59,
+    "note": "Curved bands: distance bands from your guide curve; segments cut perpendicular to the guide."
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/08-structure-guide-curve.jpg",
+   "s": 48.1,
+   "newErrors": []
+  },
+  {
+   "n": 9,
+   "case": "C",
+   "name": "structure-confirm-all",
+   "action": "Click \u201cConfirm N beds\u201d",
+   "expected": "All beds structured in ONE undo step",
+   "actual": {
+    "beds": 17,
+    "cells": 117,
+    "undoSteps": 1
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/09-structure-confirm-all.jpg",
+   "s": 10.4,
+   "newErrors": []
+  },
+  {
+   "n": 10,
+   "case": "C",
+   "name": "structure-refine-bed",
+   "action": "Click bed A1 on the canvas, choose Organic, confirm",
+   "expected": "Only A1 changes (local refinement); every other bed keeps its cell ids",
+   "actual": {
+    "A1": "organic",
+    "othersUnchanged": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/10-structure-refine-bed.jpg",
+   "s": 12.3,
+   "newErrors": []
+  },
+  {
+   "n": 11,
+   "case": "D",
+   "name": "mix-palette",
+   "action": "Continue to Compose",
+   "expected": "A visual palette: each mix card shows a plan patch from the fill engine, a section, a phenology ribbon, its system; recipes from the Detroit legends (base + overlay + drift)",
+   "actual": {
+    "cards": 3,
+    "svgs": 342,
+    "systems": [
+     "matrix-based",
+     "maximal-color",
+     "maximal-color"
+    ],
+    "layers": [
+     "area+count+drift",
+     "area+count+drift",
+     "area+count+drift"
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/11-mix-palette.jpg",
+   "s": 23.7,
+   "newErrors": []
+  },
+  {
+   "n": 12,
+   "case": "D",
+   "name": "mix-compare",
+   "action": "Click \u201ccompare\u201d on two mix cards",
+   "expected": "Same-scale plan patches, sections and ribbons side by side",
+   "actual": {
+    "compare": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/12-mix-compare.jpg",
+   "s": 2.4,
+   "newErrors": []
+  },
+  {
+   "n": 13,
+   "case": "E",
+   "name": "brush-hover",
+   "action": "Click the Matrix mix card, move the mouse over bed B1 (no button)",
+   "expected": "Brush on (HUD), ghost candidates under the cursor, nothing written",
+   "actual": {
+    "brush": true,
+    "hud": true,
+    "ghost": 43,
+    "unchanged": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/13-brush-hover.jpg",
+   "s": 8.8,
+   "newErrors": []
+  },
+  {
+   "n": 14,
+   "case": "E",
+   "name": "brush-live-stroke",
+   "action": "Press on B1, drag across the walk to B2 (25 real mouse moves), release",
+   "expected": "Plants appear and increase WHILE the button is held (frames + staged counts, nothing committed); on release the same plants are committed in one undo step; no plant on the walk or outside a cell",
+   "actual": {
+    "stagedDuringDrag": [
+     49,
+     95,
+     141,
+     145,
+     189,
+     229
+    ],
+    "committedDuringDrag": [
+     0
+    ],
+    "committedAfter": 267,
+    "undoSteps": 1,
+    "beds": 2,
+    "cells": 7,
+    "plantsOutsideCells": 0,
+    "plantsOnWalk": 0,
+    "meanMoveMs": 10.6,
+    "maxMoveMs": 13.6,
+    "frames": [
+     {
+      "k": 6,
+      "staged": 108,
+      "committed": 0,
+      "frame": "docs/screenshots/v2/E-live-06-pressed.jpg"
+     },
+     {
+      "k": 12,
+      "staged": 143,
+      "committed": 0,
+      "frame": "docs/screenshots/v2/E-live-12-pressed.jpg"
+     },
+     {
+      "k": 18,
+      "staged": 200,
+      "committed": 0,
+      "frame": "docs/screenshots/v2/E-live-18-pressed.jpg"
+     },
+     {
+      "k": 24,
+      "staged": 267,
+      "committed": 0,
+      "frame": "docs/screenshots/v2/E-live-24-pressed.jpg"
+     },
+     {
+      "k": "released",
+      "frame": "docs/screenshots/v2/E-live-25-released.jpg"
+     }
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/14-brush-live-stroke.jpg",
+   "s": 33.5,
+   "newErrors": []
+  },
+  {
+   "n": 15,
+   "case": "E",
+   "name": "brush-esc-cancel",
+   "action": "Drag over B3N \u2192 B3S, press Esc before releasing",
+   "expected": "Staged plants discarded; design unchanged",
+   "actual": {
+    "stagedBeforeEsc": 333,
+    "unchanged": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/15-brush-esc-cancel.jpg",
+   "s": 10.5,
+   "newErrors": []
+  },
+  {
+   "n": 16,
+   "case": "E",
+   "name": "brush-undo-redo",
+   "action": "Click Undo, then Redo (dock)",
+   "expected": "The whole stroke disappears and comes back identically",
+   "actual": {
+    "undone": true,
+    "redoneSame": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/16-brush-undo-redo.jpg",
+   "s": 25.8,
+   "newErrors": []
+  },
+  {
+   "n": 17,
+   "case": "E",
+   "name": "brush-repeat-no-stacking",
+   "action": "Drag the same stroke again",
+   "expected": "Same world-anchored candidates: nothing added, nothing stacked",
+   "actual": {
+    "added": 0,
+    "same": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/17-brush-repeat-no-stacking.jpg",
+   "s": 44.4,
+   "newErrors": []
+  },
+  {
+   "n": 18,
+   "case": "E",
+   "name": "brush-zoom-metric",
+   "action": "Stroke B4 \u2192 B5 at two zoom levels (undo between)",
+   "expected": "The brush is in metres: at both zooms plants lie within the same radius of the stroke",
+   "actual": {
+    "runs": [
+     {
+      "r": 1.5,
+      "maxDist": 1.5,
+      "added": 585,
+      "scale": 11.3
+     },
+     {
+      "r": 1.5,
+      "maxDist": 0,
+      "added": 585,
+      "scale": 25
+     }
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/18-brush-zoom-metric.jpg",
+   "s": 40.6,
+   "newErrors": []
+  },
+  {
+   "n": 19,
+   "case": "E",
+   "name": "brush-fast-drag",
+   "action": "A fast drag: only 3 mouse moves over ~25 m",
+   "expected": "The stroke is densified (step \u2264 radius / 2): no gap along the path inside the beds",
+   "actual": {
+    "tot": 34,
+    "miss": 0,
+    "samples": 34,
+    "moves": 3
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/19-brush-fast-drag.jpg",
+   "s": 20.6,
+   "newErrors": []
+  },
+  {
+   "n": 20,
+   "case": "F",
+   "name": "brush-overlay-keeps-matrix",
+   "action": "Choose Colour blocks, switch the HUD to Overlay only, drag over the painted matrix",
+   "expected": "Emergents of the new mix appear over the existing matrix; the matrix (base) is kept exactly",
+   "actual": {
+    "slots": [
+     "overlay"
+    ],
+    "baseUnchanged": true,
+    "overlayBefore": 10,
+    "overlayAfter": 19
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/20-brush-overlay-keeps-matrix.jpg",
+   "s": 44.1,
+   "newErrors": []
+  },
+  {
+   "n": 21,
+   "case": "F",
+   "name": "cell-fill",
+   "action": "Esc (brush off), click a C3 cell, \u201cFill with Dropseed matrix\u201d in the inspector",
+   "expected": "The whole cell is filled by the same engine (whole-cell fragment, target vs placed shown)",
+   "actual": {
+    "cell": "c.C3.1",
+    "inst": {
+     "n": 153,
+     "target": 235.6,
+     "frag": [
+      "whole"
+     ]
+    }
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/21-cell-fill.jpg",
+   "s": 19.7,
+   "newErrors": []
+  },
+  {
+   "n": 22,
+   "case": "F",
+   "name": "freeze",
+   "action": "\u201cFreeze\u201d the filled cell, then brush across it",
+   "expected": "The frozen cell keeps every plant",
+   "actual": {
+    "frozen": true,
+    "unchanged": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/22-freeze.jpg",
+   "s": 25.2,
+   "newErrors": []
+  },
+  {
+   "n": 23,
+   "case": "F",
+   "name": "auto-compose",
+   "action": "Click \u201cAuto compose\u201d, check the dashed proposal, Accept",
+   "expected": "Unplanted cells get mixes by the documented greedy rule; previewed first; one undo step",
+   "actual": {
+    "proposals": 114,
+    "changed": true,
+    "planted": 130,
+    "cells": 130
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/23-auto-compose.jpg",
+   "s": 22.3,
+   "newErrors": []
+  },
+  {
+   "n": 24,
+   "case": "F",
+   "name": "shared-mix-edit",
+   "action": "Open the Matrix recipe, set its emergent layer to 1.4 / m\u00b2, read the impact, \u201cUpdate all\u201d",
+   "expected": "Impact previewed (cells, plants before \u2192 after, frozen excluded); only fragments of this mix re-filled",
+   "actual": {
+    "impact": {
+     "uses": 117,
+     "before": 15604,
+     "after": 17593,
+     "frozen": 1
+    },
+    "version": 2
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/24-shared-mix-edit.jpg",
+   "s": 28.1,
+   "newErrors": []
+  },
+  {
+   "n": 25,
+   "case": "F",
+   "name": "axo-same-instances",
+   "action": "Click Axo in the dock",
+   "expected": "The 3D view shows the same plant instances (model rows = project plants)",
+   "actual": {
+    "view": "3d",
+    "modelRows": 19356,
+    "projectPlants": 19356
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/25-axo-same-instances.jpg",
+   "s": 13.5,
+   "newErrors": []
+  },
+  {
+   "n": 26,
+   "case": "H",
+   "name": "explore-performance",
+   "action": "Plan, then Continue to Explore",
+   "expected": "Performance view: 1 m pixels of flowering plants / m\u00b2 for the month, unknown hatched, continuity links, short legend; timeline in the dock",
+   "actual": {
+    "stage": "explore",
+    "mode": "performance"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/26-explore-performance.jpg",
+   "s": 18.3,
+   "newErrors": []
+  },
+  {
+   "n": 27,
+   "case": "G",
+   "name": "regions-distribution",
+   "action": "Fill bed A2 with Colour blocks and A4 with Organic groups (select cells, Fill), shift-click both beds in Explore, June",
+   "expected": "Similar area and plant totals; presence can be similar, but flowering counts / fraction / per m\u00b2 differ; unknown apart",
+   "actual": {
+    "bed.A2": {
+     "area": 227,
+     "plants": 1632,
+     "flowering": 151,
+     "fraction": 0.093,
+     "perM2": 0.67,
+     "unknown": 1249,
+     "presence": "5/6"
+    },
+    "bed.A4": {
+     "area": 214,
+     "plants": 1383,
+     "flowering": 304,
+     "fraction": 0.22,
+     "perM2": 1.42,
+     "unknown": 464,
+     "presence": "5/6"
+    },
+    "table": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/27-regions-distribution.jpg",
+   "s": 179.7,
+   "newErrors": []
+  },
+  {
+   "n": 28,
+   "case": "G",
+   "name": "illustrative-off",
+   "action": "Define \u2192 untick the Illustrative layer, read June, tick it again",
+   "expected": "Without the teaching layer the unknown count rises and known flowering falls \u2014 shown as unknown, never as 0",
+   "actual": {
+    "unknownOn": 7522,
+    "unknownOff": 19003,
+    "floweringOn": 1339,
+    "floweringOff": 0
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/28-illustrative-off.jpg",
+   "s": 52.5,
+   "newErrors": []
+  },
+  {
+   "n": 29,
+   "case": "H",
+   "name": "views-and-months",
+   "action": "Dock: Plan \u2192 Axo \u2192 Plan \u2192 Diagram (structure \u00b7 mix \u00b7 arrangement) \u2192 Performance; months Apr / Jul / Sep; Play, Pause",
+   "expected": "Real visual differences, same coordinates; camera target kept; views and timeline never change the design",
+   "actual": {
+    "modes": {
+     "plan": "plan",
+     "axo": "axo",
+     "diagram": "diagram",
+     "performance": "performance"
+    },
+    "played": true,
+    "designUnchanged": true,
+    "cameraKept": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/29-views-and-months.jpg",
+   "s": 161.7,
+   "newErrors": []
+  },
+  {
+   "n": 30,
+   "case": "H",
+   "name": "issue-back-to-compose",
+   "action": "In \u201cTo look at\u201d, click \u201cRepaint these cells\u201d, paint, return to Explore",
+   "expected": "Compose opens with the issue's cells selected; the change is recomputed in Explore",
+   "actual": {
+    "issue": "split.5",
+    "stage": "compose",
+    "selected": 60,
+    "changed": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/30-issue-back-to-compose.jpg",
+   "s": 40.9,
+   "newErrors": []
+  },
+  {
+   "n": 31,
+   "case": "I",
+   "name": "knowledge-lenses",
+   "action": "Knowledge tab \u2192 Ecological association lens, click a plant node, click a line; Matrix, Table; Spatial function lens",
+   "expected": "X \u00b7 Plants \u2192 Z \u2192 Y network from real relations; focus dims the rest; a line shows its evidence; Matrix / Table read the same edges; V4.3 spatial-function relations are back",
+   "actual": {
+    "ecologyEdges": 36,
+    "dimmed": 11,
+    "evidence": true,
+    "matrixCells": 21,
+    "tableRows": 11,
+    "spatialEdges": 24
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/31-knowledge-lenses.jpg",
+   "s": 8.1,
+   "newErrors": []
+  },
+  {
+   "n": 32,
+   "case": "I",
+   "name": "knowledge-record",
+   "action": "Add a project record (flowering 6\u20137) for a placed plant with unknown flowering \u2192 preview the effect \u2192 Apply \u2192 Back to the design",
+   "expected": "The effect (metrics before \u2192 after) is shown before applying; after Apply the unknown count falls; the design (stage, selection) is where it was",
+   "actual": {
+    "plant": "sp.veronicastrum-cupid",
+    "preview": [
+     "Mar: plants in flower 0 \u2192 0, unknown 7577 \u2192 7568",
+     "Apr: plants in flower 0 \u2192 0, unknown 7577 \u2192 7568",
+     "May: plants in flower 2694 \u2192 2694, unknown 7577 \u2192 7568",
+     "Jun: plants in flower 1342 \u2192 1351, unknown 7577 \u2192 7568",
+     "Jul: plants in flower 503 \u2192 512, unknown 7577 \u2192 7568",
+     "Aug: plants in flower 503 \u2192 503, unknown 7577 \u2192 7568",
+     "Sep: plants in flower 478 \u2192 478, unknown 7577 \u2192 7568",
+     "Oct: plants in flower 0 \u2192 0, unknown 7577 \u2192 7568",
+     "Plant positions and mixes stay as they are; Rules suggestions will use the new value."
+    ],
+    "unknownJuneBefore": 7577,
+    "unknownJuneAfter": 7568,
+    "back": true,
+    "stage": "explore"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/32-knowledge-record.jpg",
+   "s": 30.3,
+   "newErrors": []
+  },
+  {
+   "n": 33,
+   "case": "J",
+   "name": "save-compare",
+   "action": "\u201cSave this option\u201d, change the design, \u201ccompare\u201d",
+   "expected": "Both options compared with the same definitions, month and scope (recomputed now)",
+   "actual": {
+    "snapshots": 1,
+    "compare": true
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/33-save-compare.jpg",
+   "s": 43.3,
+   "newErrors": []
+  },
+  {
+   "n": 34,
+   "case": "J",
+   "name": "export",
+   "action": "Export JSON (read)",
+   "expected": "Instances with x / y / z, slot, fragment and mix version; layered recipes; frozen cells; assumptions",
+   "actual": {
+    "schema": "gp.export/2",
+    "plants": 19008,
+    "z": true,
+    "slot": "base",
+    "frags": 130,
+    "mixes": 3,
+    "layers": 3,
+    "assumptions": 3,
+    "frozen": 1
+   },
+   "result": "pass",
+   "s": 0.0,
+   "newErrors": []
+  },
+  {
+   "n": 35,
+   "case": "J",
+   "name": "reload-resume",
+   "action": "Reload the page (resume)",
+   "expected": "Plants (ids, x, y), fragments, locks, strategy and stage restored",
+   "actual": {
+    "same": true,
+    "fragments": [
+     144,
+     144
+    ],
+    "locks": [
+     1,
+     1
+    ],
+    "stage": "explore"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/35-reload-resume.jpg",
+   "s": 62.0,
+   "newErrors": []
+  },
+  {
+   "n": 36,
+   "case": "K",
+   "name": "narrow-820",
+   "action": "Resize to 820 \u00d7 1000",
+   "expected": "Canvas above, panel below, dock in two rows; no horizontal overflow",
+   "actual": {
+    "dock": 112,
+    "panelTop": 520,
+    "overflowX": false
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/v2/36-narrow-820.jpg",
+   "s": 2.2,
+   "newErrors": []
+  }
+ ],
+ "pointerLog": [
+  {
+   "k": 1,
+   "x": 376.8,
+   "y": 324.0,
+   "buttons": 1,
+   "added": 49,
+   "staged": 49,
+   "cells": 3,
+   "committed": 0
+  },
+  {
+   "k": 2,
+   "x": 379.3,
+   "y": 336.1,
+   "buttons": 1,
+   "added": 58,
+   "staged": 58,
+   "cells": 3,
+   "committed": 0
+  },
+  {
+   "k": 3,
+   "x": 381.7,
+   "y": 348.3,
+   "buttons": 1,
+   "added": 71,
+   "staged": 71,
+   "cells": 3,
+   "committed": 0
+  },
+  {
+   "k": 4,
+   "x": 384.2,
+   "y": 360.5,
+   "buttons": 1,
+   "added": 83,
+   "staged": 83,
+   "cells": 3,
+   "committed": 0
+  },
+  {
+   "k": 5,
+   "x": 386.7,
+   "y": 372.6,
+   "buttons": 1,
+   "added": 95,
+   "staged": 95,
+   "cells": 3,
+   "committed": 0
+  },
+  {
+   "k": 6,
+   "x": 389.2,
+   "y": 384.8,
+   "buttons": 1,
+   "added": 108,
+   "staged": 108,
+   "cells": 4,
+   "committed": 0
+  },
+  {
+   "k": 7,
+   "x": 391.6,
+   "y": 396.9,
+   "buttons": 1,
+   "added": 121,
+   "staged": 121,
+   "cells": 4,
+   "committed": 0
+  },
+  {
+   "k": 8,
+   "x": 394.1,
+   "y": 409.1,
+   "buttons": 1,
+   "added": 129,
+   "staged": 129,
+   "cells": 4,
+   "committed": 0
+  },
+  {
+   "k": 9,
+   "x": 396.6,
+   "y": 421.2,
+   "buttons": 1,
+   "added": 141,
+   "staged": 141,
+   "cells": 4,
+   "committed": 0
+  },
+  {
+   "k": 10,
+   "x": 399.0,
+   "y": 433.4,
+   "buttons": 1,
+   "added": 142,
+   "staged": 142,
+   "cells": 4,
+   "committed": 0
+  },
+  {
+   "k": 11,
+   "x": 401.5,
+   "y": 445.5,
+   "buttons": 1,
+   "added": 143,
+   "staged": 143,
+   "cells": 5,
+   "committed": 0
+  },
+  {
+   "k": 12,
+   "x": 404.0,
+   "y": 457.7,
+   "buttons": 1,
+   "added": 143,
+   "staged": 143,
+   "cells": 5,
+   "committed": 0
+  },
+  {
+   "k": 13,
+   "x": 406.5,
+   "y": 469.8,
+   "buttons": 1,
+   "added": 145,
+   "staged": 145,
+   "cells": 5,
+   "committed": 0
+  },
+  {
+   "k": 14,
+   "x": 408.9,
+   "y": 482.0,
+   "buttons": 1,
+   "added": 154,
+   "staged": 154,
+   "cells": 5,
+   "committed": 0
+  },
+  {
+   "k": 15,
+   "x": 411.4,
+   "y": 494.1,
+   "buttons": 1,
+   "added": 166,
+   "staged": 166,
+   "cells": 5,
+   "committed": 0
+  },
+  {
+   "k": 16,
+   "x": 413.9,
+   "y": 506.3,
+   "buttons": 1,
+   "added": 177,
+   "staged": 177,
+   "cells": 6,
+   "committed": 0
+  },
+  {
+   "k": 17,
+   "x": 416.4,
+   "y": 518.4,
+   "buttons": 1,
+   "added": 189,
+   "staged": 189,
+   "cells": 6,
+   "committed": 0
+  },
+  {
+   "k": 18,
+   "x": 418.8,
+   "y": 530.6,
+   "buttons": 1,
+   "added": 200,
+   "staged": 200,
+   "cells": 6,
+   "committed": 0
+  },
+  {
+   "k": 19,
+   "x": 421.3,
+   "y": 542.7,
+   "buttons": 1,
+   "added": 211,
+   "staged": 211,
+   "cells": 7,
+   "committed": 0
+  },
+  {
+   "k": 20,
+   "x": 423.8,
+   "y": 554.9,
+   "buttons": 1,
+   "added": 221,
+   "staged": 221,
+   "cells": 7,
+   "committed": 0
+  },
+  {
+   "k": 21,
+   "x": 426.2,
+   "y": 567.1,
+   "buttons": 1,
+   "added": 229,
+   "staged": 229,
+   "cells": 7,
+   "committed": 0
+  },
+  {
+   "k": 22,
+   "x": 428.7,
+   "y": 579.2,
+   "buttons": 1,
+   "added": 242,
+   "staged": 242,
+   "cells": 7,
+   "committed": 0
+  },
+  {
+   "k": 23,
+   "x": 431.2,
+   "y": 591.4,
+   "buttons": 1,
+   "added": 254,
+   "staged": 254,
+   "cells": 8,
+   "committed": 0
+  },
+  {
+   "k": 24,
+   "x": 433.7,
+   "y": 603.5,
+   "buttons": 1,
+   "added": 267,
+   "staged": 267,
+   "cells": 8,
+   "committed": 0
+  }
+ ],
+ "liveStrokeWorld": [
+  [
+   -32.63422222222222,
+   -1.4444444444444442
+  ],
+  [
+   -29.44688888888889,
+   -17.112777777777776
+  ]
+ ],
+ "liveStroke": {
+  "stagedDuringDrag": [
+   49,
+   95,
+   141,
+   145,
+   189,
+   229
+  ],
+  "committedDuringDrag": [
+   0
+  ],
+  "committedAfter": 267,
+  "undoSteps": 1,
+  "beds": 2,
+  "cells": 7,
+  "plantsOutsideCells": 0,
+  "plantsOnWalk": 0,
+  "meanMoveMs": 10.6,
+  "maxMoveMs": 13.6,
+  "frames": [
+   {
+    "k": 6,
+    "staged": 108,
+    "committed": 0,
+    "frame": "docs/screenshots/v2/E-live-06-pressed.jpg"
+   },
+   {
+    "k": 12,
+    "staged": 143,
+    "committed": 0,
+    "frame": "docs/screenshots/v2/E-live-12-pressed.jpg"
+   },
+   {
+    "k": 18,
+    "staged": 200,
+    "committed": 0,
+    "frame": "docs/screenshots/v2/E-live-18-pressed.jpg"
+   },
+   {
+    "k": 24,
+    "staged": 267,
+    "committed": 0,
+    "frame": "docs/screenshots/v2/E-live-24-pressed.jpg"
+   },
+   {
+    "k": "released",
+    "frame": "docs/screenshots/v2/E-live-25-released.jpg"
+   }
+  ]
+ },
+ "consoleErrors": [],
+ "finished": "2026-11-27 05:28:04",
+ "passed": 36,
+ "failed": 0
+}

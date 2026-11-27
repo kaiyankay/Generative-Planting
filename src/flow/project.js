@@ -350,8 +350,8 @@ export class Project {
   // ================================================================ persistence
   save() {
     try {
-      const st = { ...this.state, savedAt: new Date().toISOString() };
-      localStorage.setItem(KEY, JSON.stringify(st)); this.storage = { ok: true, error: null, savedAt: st.savedAt, withInstances: true };
+      const st = { ...this.state, instances: undefined, packed: packInstances(this.state.instances), savedAt: new Date().toISOString() };
+      const raw = JSON.stringify(st); localStorage.setItem(KEY, raw); this.storage = { ok: true, error: null, savedAt: st.savedAt, withInstances: true, bytes: raw.length };
     } catch (e) {
       try { const { instances, ...rest } = this.state; localStorage.setItem(KEY, JSON.stringify({ ...rest, instances: {}, instancesOmitted: true, savedAt: new Date().toISOString() })); this.storage = { ok: true, error: 'storage full: plant positions are rebuilt from their fragments on reload (brushed areas are re-filled from their footprints)', savedAt: new Date().toISOString(), withInstances: false }; }
       catch (e2) { this.storage = { ok: false, error: 'not saved: this browser refused local storage (' + (e2.name || e2.message) + '). Export the design to keep it.', savedAt: null }; }
@@ -367,6 +367,7 @@ export class Project {
   restore(o) {
     if (!o || (o.schema !== SCHEMA && o.schema !== 'gp.project/1')) return { ok: false, error: 'no saved project of this version' };
     const migrated = o.schema === 'gp.project/1';
+    if (o.packed) { o = { ...o, instances: unpackInstances(o.packed) }; delete o.packed; }
     const base = emptyState(this.site); this.state = { ...base, ...o, schema: SCHEMA, locks: o.locks || {}, strategy: o.strategy || null, view: { ...base.view, ...(o.view || {}) }, brief: { ...base.brief, ...(o.brief || {}), objectives: { ...base.brief.objectives, ...((o.brief || {}).objectives || {}) } } };
     const ks = this.state.brief.knowledgeScopes; if (ks) { for (const [k, v] of Object.entries(ks)) if (k in this.K.scopes) this.K.scopes[k] = !!v; this.K.invalidate('restore'); }
     for (const p of this.state.plants) if (!this.s.speciesIndexById.has(p.id)) this.s.registerRuntimeSpecies(p);
@@ -379,13 +380,14 @@ export class Project {
     return { ok: true, migrated };
   }
   reset() { try { localStorage.removeItem(KEY); localStorage.removeItem(KEY_V1); } catch { /* */ } this.state = emptyState(this.site); this.past = []; this.future = []; if (this.s.draft) this.s.discardDraft(); this.recompute(); this.emit('change', { label: 'new project' }); }
-  snapshots() { try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '[]'); } catch { return []; } }
+  snapshots() { try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '[]').map((s) => (s.design && s.design.packed ? { ...s, design: { ...s.design, instances: unpackInstances(s.design.packed), packed: undefined } } : s)); } catch { return []; } }
   // named snapshots keep the design INCLUDING plant positions (brush strokes are not reproducible from seeds alone)
   saveSnapshot(name) {
-    const list = this.snapshots(); const design = this.snapshotDesign();
+    const list = this.snapshots(); const design = this.snapshotDesign(); design.packed = packInstances(design.instances); delete design.instances;
     const snap = { id: 'snap.' + Date.now().toString(36), name: String(name || `Option ${String.fromCharCode(65 + list.length % 26)}`).slice(0, 60), at: new Date().toISOString(), stage: this.state.stage, brief: structuredClone(this.state.brief), design, fingerprint: fingerprint(this.state.instances), totals: this.totals(), perf: summarize(this.perf), knowledgeVersion: this.K.version() };
-    list.unshift(snap); while (list.length > 6) list.pop();
-    try { localStorage.setItem(SNAP_KEY, JSON.stringify(list)); } catch (e) { list.pop(); try { localStorage.setItem(SNAP_KEY, JSON.stringify(list.slice(0, 2))); } catch { return { ok: false, error: 'snapshot not saved: storage refused (' + (e.name || e.message) + ')' }; } }
+    list.unshift(snap); while (list.length > 4) list.pop();
+    const enc = (l) => JSON.stringify(l.map((x) => (x.design && x.design.instances ? { ...x, design: { ...x.design, packed: packInstances(x.design.instances), instances: undefined } } : x)));
+    try { localStorage.setItem(SNAP_KEY, enc(list)); } catch (e) { list.pop(); try { localStorage.setItem(SNAP_KEY, enc(list.slice(0, 2))); } catch { return { ok: false, error: 'snapshot not saved: storage refused (' + (e.name || e.message) + ')' }; } }
     return { ok: true, snapshot: snap };
   }
   restoreSnapshot(id) {
@@ -419,6 +421,21 @@ export class Project {
       ],
     };
   }
+}
+// compact persistence of plant instances: string table + one tuple per plant (≈ 60 bytes instead of ≈ 250)
+export function packInstances(instances) {
+  const S = [], M = new Map(); const ix = (v) => { if (v == null) return -1; let k = M.get(v); if (k == null) { k = S.length; S.push(v); M.set(v, k); } return k; };
+  const cells = {};
+  for (const [c, i] of Object.entries(instances || {})) {
+    const { plants, ...meta } = i;
+    cells[c] = { m: meta, p: plants.map((q) => { const a = q.id.indexOf('/'); const b = q.id.indexOf('/', a + 1); return [ix(q.id.slice(0, b)), q.id.slice(b + 1), q.x, q.y, ix(q.plantId), ix(q.role), ix(q.slot), ix(q.layerId), ix(q.mixId), q.mixVersion, ix(q.frag), q.spacing, ix(q.fit), ix(q.sub || null)]; }) };
+  }
+  return { v: 1, s: S, c: cells };
+}
+export function unpackInstances(pk) {
+  if (!pk || pk.v !== 1) return {}; const S = pk.s; const g = (k) => (k < 0 ? null : S[k]); const out = {};
+  for (const [c, e] of Object.entries(pk.c)) out[c] = { ...e.m, plants: e.p.map((t) => { const q = { id: g(t[0]) + '/' + t[1], x: t[2], y: t[3], plantId: g(t[4]), role: g(t[5]), slot: g(t[6]), layerId: g(t[7]), mixId: g(t[8]), mixVersion: t[9], frag: g(t[10]), spacing: t[11], fit: g(t[12]) }; if (t[13] >= 0) q.sub = g(t[13]); return q; }) };
+  return out;
 }
 function countFit(plants) { const n = { match: 0, conflict: 0, unknown: 0, substituted: 0 }; for (const p of plants) { n[p.fit || 'unknown']++; if (p.sub) n.substituted++; } return n; }
 export function fingerprint(instances) { let h = 2166136261 >>> 0, n = 0; for (const c of Object.keys(instances).sort()) for (const p of instances[c].plants) { n++; for (const ch of `${c}|${p.plantId}|${p.x.toFixed(2)}|${p.y.toFixed(2)};`) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } } return `${n}:${h.toString(16)}`; }

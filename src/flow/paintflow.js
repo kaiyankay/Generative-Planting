@@ -54,7 +54,7 @@ export function paintFlow(F, c, T, o, phase) {
       if (!inView(o, c0.geometry)) continue; const inst = st.instances[c0.id];
       if (inst && inst.plants.length) { const m = P.mix(inst.mixId); if (m) fillG(c, T, c0.geometry, rgba(m.color, tex ? 0.16 : 0.13)); }
       else if (st.acknowledged[c0.id]) fillG(c, T, c0.geometry, 'rgba(255,255,255,.55)');
-      else hatch(c, T, c0.geometry, rgba(INK, tex ? 0.3 : 0.16), tex ? 10 : 6, tex ? 1.4 : 0.7);
+      else hatch(c, T, c0.geometry, rgba(INK, tex ? 0.22 : 0.08), tex ? 10 : 7, tex ? 1.2 : 0.6);
     }
     if (u.autoPreview) for (const p of u.autoPreview.proposals) { const c0 = st.cells[p.cellId]; const m = P.mix(p.mixId); if (c0 && m) { fillG(c, T, c0.geometry, rgba(m.color, 0.42)); strokeG(c, T, c0.geometry, INK, tex ? 2.5 : 1.2, tex ? [] : [5, 3]); } }
     return;
@@ -67,8 +67,8 @@ export function paintFlow(F, c, T, o, phase) {
   // live brush: staged plants (real candidates, validated) + ghost + cursor ring in metres
   const B = F.brush;
   if (B && B.active) {
-    if (B.stroke) {
-      for (const p of B.stagedPlants()) { if (o.vb && (p.x < o.vb[0] - 1 || p.x > o.vb[2] + 1 || p.y < o.vb[1] - 1 || p.y > o.vb[3] + 1)) continue; const sp = F.store.getObject(p.plantId); const q = T(p.x, p.y); if (sc < 3.2) { c.fillStyle = rgba(SLOT_COL[p.slot] || INK, 0.85); c.fillRect(q[0] - 1, q[1] - 1, 2, 2); continue; } plantSymbol(c, sp, q, Math.max(1.1, p.spacing * 0.47 * sc), sc, { rot: (p.x * 7.3 + p.y * 3.1) % 6.28 }); }
+    if (B.stroke) { const mixCol = (B.active.mixId && P.mix(B.active.mixId) || {}).color || INK;
+      for (const p of B.stagedPlants()) { if (o.vb && (p.x < o.vb[0] - 1 || p.x > o.vb[2] + 1 || p.y < o.vb[1] - 1 || p.y > o.vb[3] + 1)) continue; const sp = F.store.getObject(p.plantId); const q = T(p.x, p.y); if (sc < 3.2) { c.fillStyle = rgba(SLOT_COL[p.slot] || INK, 0.85); c.fillRect(q[0] - 1, q[1] - 1, 2, 2); continue; } const rr = Math.max(1.1, p.spacing * 0.47 * sc); plantSymbol(c, sp, q, rr, sc, { rot: (p.x * 7.3 + p.y * 3.1) % 6.28 }); c.beginPath(); c.arc(q[0], q[1], rr + 1, 0, 7); c.strokeStyle = rgba(mixCol, 0.55); c.lineWidth = 1; c.stroke(); }
     } else if (B.ghost) {
       for (const p of B.ghost.pts) { const q = T(p.x, p.y); c.beginPath(); c.arc(q[0], q[1], Math.max(1.4, Math.min(6, p.spacing * 0.3 * sc)), 0, 7); c.strokeStyle = rgba(SLOT_COL[p.slot] || INK, 0.55); c.lineWidth = 1; c.stroke(); }
     }
@@ -76,7 +76,7 @@ export function paintFlow(F, c, T, o, phase) {
     if (cur) { const q = T(cur[0], cur[1]); const m = B.active.mixId ? P.mix(B.active.mixId) : null; c.beginPath(); c.arc(q[0], q[1], B.active.r * sc, 0, 7); c.strokeStyle = m ? m.color : RUST; c.lineWidth = 2; c.setLineDash(B.active.mixId ? [] : [4, 3]); c.stroke(); c.setLineDash([]); c.beginPath(); c.arc(q[0], q[1], 2, 0, 7); c.fillStyle = INK; c.fill();
       if (B.ghost && !B.stroke && !B.ghost.cells.length) { c.font = '500 11px "DM Sans", sans-serif'; c.fillStyle = WARN; c.textAlign = 'left'; c.fillText('no plantable cell here', q[0] + B.active.r * sc + 6, q[1]); } }
   }
-  if (stage === 'compose' && sc > 2.6) for (const c0 of cells) if (inView(o, c0.geometry)) { const pc = perf && perf.perCell[c0.id]; const conflict = pc && pc.adaptability && pc.adaptability.fit && pc.adaptability.fit.conflict; label(c, T, c0, sc, (st.locks[c0.id] ? '❄ ' : '') + (conflict ? '! ' : '') + c0.n, { color: conflict ? WARN : INK, min: 3.5 }); }
+  if (stage === 'compose' && sc > 2.6) for (const c0 of cells) if (inView(o, c0.geometry) && (sc > 14 || u.cells.has(c0.id))) { const pc = perf && perf.perCell[c0.id]; const conflict = pc && pc.adaptability && pc.adaptability.fit && pc.adaptability.fit.conflict; label(c, T, c0, sc, (st.locks[c0.id] ? '❄ ' : '') + (conflict ? '! ' : '') + c0.n, { color: conflict ? WARN : INK, min: 3.5 }); }
 }
 
 // ---------------------------------------------------------------- Define: the strategy drawn on the map

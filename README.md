@@ -1,3 +1,24 @@
+# Generative Planting V2 · Integrated Design Experience
+
+> **Branch `feature/integrated-prototype` (PR #1, not merged; `main` and GitHub Pages unchanged).** V2 builds on the
+> Integrated Prototype (V1 kept as tag `v1/integrated-prototype-e64f437`): Introduction → choose a landscape (axonometric
+> cards; only Detroit has a real model) → **Define** one strategy for the whole site (zones = role · Planting System ·
+> spatial logic, drawn on the map, one confirm) → **Structure** every zone at once (curved bands along the paths, shared
+> axes, guide curves, honeycomb, organic, whole area) → **Compose** with layered Mixes of four Planting Systems and a
+> **live Generative Brush** (plants appear while you drag, across beds, paths skipped; Cell Fill and Auto Compose run on
+> the same engine) → **Explore** on the same canvas (bottom dock: Plan · Axo · Diagram · Performance, month timeline):
+> flowering-resource distribution from the placed plants, issues back to Compose, option comparison. **Knowledge** brings
+> back the V4.3 X · Plants → Z → Y network with four relationship lenses. Visual language: Planting Intelligence V4.3.
+>
+> Run: `python3 -I tools/flow_server.py --port 8796` → http://127.0.0.1:8796/ · tests: `python3 -I -u tools/v2_e2e.py`
+> (engine + real-mouse journey) then `python3 tools/v2_report.py` · read first: [HANDOFF.md](HANDOFF.md) (中文),
+> [docs/integrated/V2_REPORT.md](docs/integrated/V2_REPORT.md), [docs/integrated/ALGORITHMS_V2.md](docs/integrated/ALGORITHMS_V2.md),
+> [docs/integrated/DESIGN_CHANGES_V2.md](docs/integrated/DESIGN_CHANGES_V2.md), [docs/qa/V2_E2E.md](docs/qa/V2_E2E.md).
+> No language model is called (Rules mode, labelled). Detroit flowering / pollinator values come from the switchable,
+> labelled **illustrative teaching layer**.
+>
+> ![Live brush: frames while the mouse button is held](docs/screenshots/v2/live-stroke-strip.jpg)
+
 # Generative Planting · Integrated Prototype (Define → Structure → Compose → Explore)
 
 > **Branch `feature/integrated-prototype`** — one app, one project state, four stages on the real Detroit model:

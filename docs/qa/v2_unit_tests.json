@@ -1,0 +1,971 @@
+{
+ "tests": [
+  {
+   "id": "S1-honeycomb",
+   "gate": "G2",
+   "name": "Honeycomb in B1: valid cells (coverage, no overlap, inside, positive)",
+   "ok": true,
+   "detail": {
+    "A": 232.82,
+    "sum": 232.83,
+    "dropped": 0,
+    "overlap": 0,
+    "outside": 0.0089,
+    "positive": true,
+    "ok": true,
+    "cells": 26,
+    "explanation": "Cells lattice rotation candidate (30\u00b0), 3.5 m across."
+   }
+  },
+  {
+   "id": "S2-honeycomb",
+   "gate": "G2",
+   "name": "Honeycomb: same input gives identical cells and ids",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "cells": 23
+   }
+  },
+  {
+   "id": "S1-bands",
+   "gate": "G2",
+   "name": "Bands in B1: valid cells (coverage, no overlap, inside, positive)",
+   "ok": true,
+   "detail": {
+    "A": 232.82,
+    "sum": 232.82,
+    "dropped": 0,
+    "overlap": 0,
+    "outside": 0.0019,
+    "positive": true,
+    "ok": true,
+    "cells": 12,
+    "explanation": "Curved bands following the bed edge along the path (distance bands), 2.5 m wide, cut into segments of about 7.5 m."
+   }
+  },
+  {
+   "id": "S2-bands",
+   "gate": "G2",
+   "name": "Bands: same input gives identical cells and ids",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "cells": 6
+   }
+  },
+  {
+   "id": "S1-organic",
+   "gate": "G2",
+   "name": "Organic patches in B1: valid cells (coverage, no overlap, inside, positive)",
+   "ok": true,
+   "detail": {
+    "A": 232.82,
+    "sum": 232.82,
+    "dropped": 0,
+    "overlap": 0,
+    "outside": 0.0041,
+    "positive": true,
+    "ok": true,
+    "cells": 19,
+    "explanation": "19 patches from a clipped Voronoi partition (Lloyd relaxation, 2 steps) of seed layout 5 of 6: the layout whose patches mix the fewest known site conditions (tree crown, path edge, elevation tercile) and leave the fewest slivers."
+   }
+  },
+  {
+   "id": "S2-organic",
+   "gate": "G2",
+   "name": "Organic patches: same input gives identical cells and ids",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "cells": 11
+   }
+  },
+  {
+   "id": "S1-whole",
+   "gate": "G2",
+   "name": "Whole area in B1: valid cells (coverage, no overlap, inside, positive)",
+   "ok": true,
+   "detail": {
+    "A": 232.82,
+    "sum": 232.82,
+    "dropped": 0,
+    "overlap": 0,
+    "outside": 0,
+    "positive": true,
+    "ok": true,
+    "cells": 1,
+    "explanation": "Not divided: the plantable area (232.8 m\u00b2) is one cell."
+   }
+  },
+  {
+   "id": "S2-whole",
+   "gate": "G2",
+   "name": "Whole area: same input gives identical cells and ids",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "cells": 1
+   }
+  },
+  {
+   "id": "S3",
+   "gate": "G2",
+   "name": "Cells exclude a path inside a bed (holes): no cell contains a blocker point",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "checked": 2,
+    "bad": 0
+   }
+  },
+  {
+   "id": "S4",
+   "gate": "G2",
+   "name": "FIXTURE: hole is excluded and total area is conserved (bands, honeycomb, organic)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "honeycomb": {
+     "A": 236,
+     "sum": 236,
+     "dropped": 0,
+     "overlap": 0,
+     "outside": 0,
+     "positive": true,
+     "ok": true,
+     "inHole": false
+    },
+    "bands": {
+     "A": 236,
+     "sum": 236,
+     "dropped": 0,
+     "overlap": 0,
+     "outside": 0,
+     "positive": true,
+     "ok": true,
+     "inHole": false
+    },
+    "organic": {
+     "A": 236,
+     "sum": 236,
+     "dropped": 0,
+     "overlap": 0,
+     "outside": 0,
+     "positive": true,
+     "ok": true,
+     "inHole": false
+    },
+    "whole": {
+     "A": 236,
+     "sum": 236,
+     "dropped": 0,
+     "overlap": 0,
+     "outside": 0,
+     "positive": true,
+     "ok": true,
+     "inHole": false
+    }
+   }
+  },
+  {
+   "id": "S5",
+   "gate": "G2",
+   "name": "FIXTURE (30 \u00d7 7.5 m, path on the short west edge): straight bands (V2: guide \"straight\"; curved is the default) \u2014 continuity ON \u2192 parallel to the path (90\u00b0), OFF \u2192 along the long axis (0\u00b0)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "on": [
+     90,
+     "Bands parallel to the path along the bed (7.5 m of path edge) (90\u00b0), 2.5 m wide, cut into equal segments of about 7.5 m along their length."
+    ],
+    "off": [
+     0,
+     "Bands along the long axis of the bed (0\u00b0), 2.5 m wide, cut into equal segments of about 7.5 m along their length."
+    ]
+   }
+  },
+  {
+   "id": "S6",
+   "gate": "G2",
+   "name": "FIXTURE: context changes geometry \u2014 a 0.6 m slope across the bed turns bands to the contours; flat ground does not",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "flat": [
+     0,
+     "Bands along the long axis of the bed (0\u00b0), 2.5 m wide, cut into equal segments of about 7.5 m along their length."
+    ],
+    "sloped": [
+     90,
+     "Bands along the contours (relief 0.58 m in the bed) (90\u00b0), 2.5 m wide, cut into equal segments of about 7.5 m along their length."
+    ]
+   }
+  },
+  {
+   "id": "S7",
+   "gate": "G2",
+   "name": "FIXTURE: a tree crown changes the organic layout ranking (fewer cells mixing crown and open ground)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "seedOpen": 5,
+    "seedCrown": 6,
+    "mixedBest": 0.0505,
+    "mixedWorst": 0.1259
+   }
+  },
+  {
+   "id": "S8",
+   "gate": "G2",
+   "name": "Adjacency: neighbours share \u2265 0.3 m of boundary and are symmetric",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "cells": 26,
+    "links": 58
+   }
+  },
+  {
+   "id": "S9",
+   "gate": "G2",
+   "name": "Unknown site fields (sun, moisture, pH) stay unknown in cell conditions",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "u": [
+     "sun:unknown",
+     "moisture:unknown",
+     "ph:unknown"
+    ]
+   }
+  },
+  {
+   "id": "A1",
+   "gate": "G2",
+   "name": "Largest remainder: counts sum exactly to the target",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "c": [
+     12,
+     12,
+     13
+    ]
+   }
+  },
+  {
+   "id": "A2",
+   "gate": "G2",
+   "name": "Arrangement in a real cell: target = round(area \u00d7 density), all plants inside the cell, off trunks, deterministic",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "target": 51,
+    "placed": 46,
+    "missing": [
+     {
+      "plantId": "sp.cornus-sericea",
+      "requested": 5,
+      "placed": 0
+     }
+    ],
+    "notes": [
+     "13 plants placed with relaxed spacing (\u00d70.75 or \u00d70.5)",
+     "capacity: 5 plant(s) could not be placed at the spacing of their role \u2014 not removed from the target, reported"
+    ]
+   }
+  },
+  {
+   "id": "P1",
+   "gate": "G4",
+   "name": "FIXTURE known example: A {Apr,May} bees, B {Jun,Jul} butterflies \u2192 April bees only, June butterflies only, August no known flowering (traits complete)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "apr": [
+     1,
+     [
+      {
+       "group": "bees",
+       "instances": 1,
+       "cells": 1,
+       "species": [
+        "A"
+       ]
+      }
+     ]
+    ],
+    "jun": [
+     1,
+     [
+      {
+       "group": "butterflies",
+       "instances": 1,
+       "cells": 1,
+       "species": [
+        "B"
+       ]
+      }
+     ]
+    ],
+    "aug": [
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": "P2",
+   "gate": "G4",
+   "name": "FIXTURE: replacing B by A changes month and group coverage (June gone, April both cells)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "apr": 2,
+    "jun": 0
+   }
+  },
+  {
+   "id": "P3",
+   "gate": "G4",
+   "name": "FIXTURE: unknown flowering \u2192 uncertain, never \"no resource\"",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "state": "uncertain"
+   }
+  },
+  {
+   "id": "P4",
+   "gate": "G4",
+   "name": "FIXTURE: adjacent resource cells form 1 component; separated cells 2 isolated",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "adjacent": 1,
+    "separated": 2
+   }
+  },
+  {
+   "id": "P5",
+   "gate": "G4",
+   "name": "Empty design and no data: no error, no fabricated values",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "share": null
+   }
+  },
+  {
+   "id": "P6",
+   "gate": "G4",
+   "name": "FIXTURE adaptability (V2: per placed plant): a sun plant placed under a crown is a conflict; unknown light stays uncertain",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "known": "conflict",
+    "unknown": "uncertain"
+   }
+  },
+  {
+   "id": "K1",
+   "gate": "G3",
+   "name": "First use works with an empty personal layer (Rules mode suggests recipes from foundation + site + illustrative)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "recipes": [
+     "Season-long pollinator mix",
+     "Early and late season mix",
+     "Structure-led mix"
+    ],
+    "personal": 0
+   }
+  },
+  {
+   "id": "K2",
+   "gate": "G3",
+   "name": "Changing a known flowering month changes the suggestion: a TEST project record \"Salvia Mainacht flowers Oct\u2013Nov, bees, moths\" (a month no known plant covers) puts it into the recipe",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "before": [
+     "sp.deschampsia-goldtau",
+     "sp.m-pycnanthemum-virginianum",
+     "sp.aquilegia-canadensis",
+     "sp.m-geranium-maculatum",
+     "sp.m-physostegia-virginiana",
+     "sp.parthenium-integrifolium",
+     "sp.m-packera-aurea",
+     "sp.m-solidago-riddellii"
+    ],
+    "after": [
+     "sp.deschampsia-goldtau",
+     "sp.m-pycnanthemum-virginianum",
+     "sp.aquilegia-canadensis",
+     "sp.m-geranium-maculatum",
+     "sp.m-physostegia-virginiana",
+     "sp.salvia-mainacht",
+     "sp.parthenium-integrifolium",
+     "sp.m-packera-aurea"
+    ],
+    "trait": {
+     "status": "known",
+     "value": [
+      10,
+      11
+     ],
+     "source": "project",
+     "chosen": false,
+     "evidence": [
+      {
+       "id": "pk.mwyxu8bqc99g",
+       "statement": "TEST FIXTURE: flowers October to November, bees and moths visit",
+       "source": "project",
+       "at": "2026-11-27T12:08:52.646Z",
+       "uncertainty": "personal observation, not verified"
+      }
+     ],
+     "alternatives": []
+    }
+   }
+  },
+  {
+   "id": "K3",
+   "gate": "G3",
+   "name": "Scope isolation: the project record is not visible to another project; illustrative off \u2192 value unknown",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "other": "unknown",
+    "illustrativeOff": "unknown"
+   }
+  },
+  {
+   "id": "K4",
+   "gate": "G3",
+   "name": "Personal note saved without external verification, visible in the shared knowledge store, used by the design",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "source": "personal",
+    "statement": "Zizia aurea is visited by flies, bees \u2014 TEST: I saw hoverflies on it."
+   }
+  },
+  {
+   "id": "K5",
+   "gate": "G3",
+   "name": "Conflicting sources stay visible and a scoped choice selects one (no silent overwrite)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "before": [
+     "conflict",
+     "project",
+     [
+      7,
+      8,
+      9
+     ]
+    ],
+    "after": [
+     "illustrative",
+     [
+      6,
+      7,
+      8
+     ]
+    ]
+   }
+  },
+  {
+   "id": "K6",
+   "gate": "G3",
+   "name": "Rules-mode intent reading is explicit and does not invent (unused words reported)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "read": [
+     [
+      "pollinator / bee / butterfly",
+      "Pollinator resources (groups)"
+     ],
+     [
+      "spring / early",
+      "flowering from March"
+     ],
+     [
+      "autumn / late",
+      "flowering to October"
+     ],
+     [
+      "connected / corridor / along paths",
+      "Connected resources in space"
+     ]
+    ],
+    "unused": [
+     "maintenance (no maintenance data in the knowledge)"
+    ]
+   }
+  },
+  {
+   "id": "K7",
+   "gate": "G3",
+   "name": "Rules-mode edit: \"keep the grass matrix, increase spring bloom\" adds a spring plant and leaves matrix shares unchanged",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "matched": [
+     "keep the matrix: matrix members are not changed",
+     "spring bloom: add aquilegia-canadensis (known flowering Apr, May, Jun; source illustrative)"
+    ],
+    "added": [
+     "sp.aquilegia-canadensis"
+    ]
+   }
+  },
+  {
+   "id": "K8",
+   "gate": "G3",
+   "name": "Unrecognised edit request is refused in Rules mode, not faked",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "error": "Not interpreted in Rules mode. Rules mode understands: add / remove / replace a plant by name, more or less grass (matrix), keep the matrix, more spring / summer / autumn bloom, more for bees / butterflies / \u2026 \u2014 or edit the members directly."
+   }
+  },
+  {
+   "id": "L1",
+   "gate": "G3",
+   "name": "Model answers are validated: invented evidence id, unknown plant, coordinates and bad sums are refused; a valid answer passes",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "results": [
+     true,
+     false,
+     false,
+     false,
+     false
+    ],
+    "note": "TEST FIXTURE \u2014 not model output"
+   }
+  },
+  {
+   "id": "L2",
+   "gate": "G3",
+   "name": "No language model on a static page: the adapter reports Rules mode; no key in the client",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "status": {
+     "mode": "rules",
+     "live": false,
+     "checked": true,
+     "reasons": [
+      "no language-model server on this page (static hosting or not started)"
+     ],
+     "model": null
+    }
+   }
+  },
+  {
+   "id": "M1",
+   "gate": "G2",
+   "name": "Mix validation (V2 layers): a layer's proportions must sum to 100 %, density in range; normalise is exact",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "errors": [
+     "undefined: proportions sum to 80.0 %, not 100 %"
+    ],
+    "n": [
+     0.334,
+     0.333,
+     0.333
+    ]
+   }
+  },
+  {
+   "id": "D1",
+   "gate": "G2",
+   "name": "One paint gesture across several cells is one undo step; undo and redo restore the same plants",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "f0": "0:811c9dc5",
+    "f1": "121:3a704f3e",
+    "f2": "0:811c9dc5",
+    "f3": "121:3a704f3e",
+    "draftRows": 121
+   }
+  },
+  {
+   "id": "D2",
+   "gate": "G2",
+   "name": "Auto compose only fills the scope and never changes assigned cells",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "proposals": 22
+   }
+  },
+  {
+   "id": "D3",
+   "gate": "G2",
+   "name": "Edit shared mix \u2192 update all uses rearranges only cells of that mix",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "usesA": 13,
+    "usesB": 13,
+    "version": 2
+   }
+  },
+  {
+   "id": "D4",
+   "gate": "G2",
+   "name": "Local variant changes only the chosen cells; other cells of the shared mix are unchanged",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "variant": "mix.test.v1",
+    "others": 12
+   }
+  },
+  {
+   "id": "D5",
+   "gate": "G2",
+   "name": "Changing a bed's logic keeps the other bed and remaps by overlap; cancel = no change",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "carried": 16,
+    "affected": 12
+   }
+  },
+  {
+   "id": "D6",
+   "gate": "G1",
+   "name": "Reference planting is not overwritten; base model unchanged",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "baseline": 2041
+   }
+  },
+  {
+   "id": "D7",
+   "gate": "G1",
+   "name": "Export holds brief, site units, cell geometry, recipes, quantities, plant x/y/z, performance and caveats",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "instances": 1598,
+    "z": 175.7464
+   }
+  },
+  {
+   "id": "D8",
+   "gate": "G1",
+   "name": "Storage refused \u2192 save reports \"not saved\" and the design stays in memory",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "storage": {
+     "ok": false,
+     "error": "not saved: this browser refused local storage (QuotaExceededError). Export the design to keep it.",
+     "savedAt": null
+    }
+   }
+  },
+  {
+   "id": "D9",
+   "gate": "G4",
+   "name": "Timeline / view changes never change the design",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "f": "1598:be0cb74"
+   }
+  },
+  {
+   "id": "D10",
+   "gate": "G2",
+   "name": "A plant beyond the catalogue can be added (generic proxy, labelled) and placed",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "id": "sp.x-pycnanthemum-tenuifolium",
+    "placed": 124
+   }
+  },
+  {
+   "id": "V1",
+   "gate": "V2-B",
+   "name": "Strategy (Rules mode): the V2 intent over Main Garden gives \u2265 3 zones with different systems / logics; meadows kept; \u2265 15 beds; one confirm",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "zones": [
+     [
+      "Path matrix",
+      "matrix-based",
+      "bands",
+      8
+     ],
+     [
+      "Matrix beds",
+      "matrix-based",
+      "honeycomb",
+      5
+     ],
+     [
+      "Organic groups",
+      "maximal-color",
+      "organic",
+      4
+     ],
+     [
+      "Rain Garden",
+      "true-meadow",
+      "organic",
+      1
+     ]
+    ],
+    "kept": [
+     "bed.MW",
+     "bed.ME"
+    ],
+    "rules": [
+     "\u201ckeep the meadows\u201d",
+     "matrix / coherent",
+     "path / along the paths",
+     "trees / shade / beneath",
+     "early / spring",
+     "beneath trees"
+    ]
+   }
+  },
+  {
+   "id": "V2",
+   "gate": "V2-C",
+   "name": "Structure: every bed of the strategy previewed and committed in ONE undo step; cells valid (no overlap, inside plantable)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "beds": 18,
+    "cells": 220,
+    "bad": []
+   }
+  },
+  {
+   "id": "V3",
+   "gate": "V2-C",
+   "name": "Curved bands follow the path edge on real beds (curved flag, \u2265 2 cells) and size changes the candidates",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "bed": "bed.B1",
+    "curved": true,
+    "n25": 12,
+    "n45": 4,
+    "note": "Curved bands: distance bands from the 23.7 m of bed edge along the path; segments cut perpendicular to the guide."
+   }
+  },
+  {
+   "id": "V4",
+   "gate": "V2-C",
+   "name": "Straight bands of a zone share one world anchor: the band phase across two beds is identical (continues across the path)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "s1": 37,
+    "s2": 68
+   }
+  },
+  {
+   "id": "V5",
+   "gate": "V2-D",
+   "name": "Layered mixes: base (area shares + spacing), overlay (own density), drift (coverage); each layer is its own 100 %; 4 system templates exist",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "layers": [
+     [
+      "base",
+      "area",
+      9
+     ],
+     [
+      "emergents",
+      "count",
+      5
+     ],
+     [
+      "ephemeral",
+      "drift",
+      3
+     ]
+    ],
+    "density": {
+     "base": 6.13,
+     "emergents": 0.11,
+     "ephemeral": 1.92
+    }
+   }
+  },
+  {
+   "id": "V6",
+   "gate": "V2-D",
+   "name": "World-anchored lattice: the same mix gives identical candidates (ids and x/y) in overlapping windows; two mixes differ",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "shared": 36
+   }
+  },
+  {
+   "id": "V7",
+   "gate": "V2-D",
+   "name": "Cell Fill: counts follow each layer (base \u2248 area \u00d7 \u03a3 share \u00d7 hex density, overlay \u2248 area \u00d7 density); changing the overlay density changes overlay plants only",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "area": 19.3,
+    "base": 102,
+    "overlayBefore": 3,
+    "overlayAfter": 9,
+    "target": 168,
+    "placed": 111
+   }
+  },
+  {
+   "id": "V8",
+   "gate": "V2-E",
+   "name": "Live brush: staged instances grow DURING the drag (before pointer-up), the stroke crosses two beds and the walk, the commit is one undo step, no plant outside a cell",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "staged": 507,
+    "grewSteps": 22,
+    "committedAdded": 507,
+    "beds": 2,
+    "cells": 8,
+    "meanMoveMs": 15.6
+   }
+  },
+  {
+   "id": "V9",
+   "gate": "V2-E",
+   "name": "Repeating the same stroke adds nothing (same lattice ids, no stacking); Esc cancel leaves the state unchanged; undo / redo one stroke",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "repeatAdded": 0,
+    "f0": "618:81eb9e47",
+    "f1": "618:81eb9e47",
+    "f2": "618:81eb9e47",
+    "undone": "618:81eb9e47",
+    "redone": "618:81eb9e47"
+   }
+  },
+  {
+   "id": "V10",
+   "gate": "V2-F",
+   "name": "Brush affects only its footprint: plants of the same cells outside the stroke keep their coordinates; other beds untouched",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "keep": "519:e101fbda",
+    "keep2": "519:e101fbda",
+    "cells": 9
+   }
+  },
+  {
+   "id": "V11",
+   "gate": "V2-F",
+   "name": "Overlay-only stroke: the existing matrix (base) under the stroke is kept, only overlay plants change",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "base0": "1249:f3bd7fea",
+    "base1": "1249:f3bd7fea",
+    "ov0": "111:a3b82db4",
+    "ov1": "97:bb4d3d62"
+   }
+  },
+  {
+   "id": "V12",
+   "gate": "V2-F",
+   "name": "Freeze: a frozen cell is skipped by the brush, by Cell Fill and by a shared mix edit",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "f0": "111:49e62fba",
+    "f1": "111:49e62fba"
+   }
+  },
+  {
+   "id": "V13",
+   "gate": "V2-F",
+   "name": "Local variant changes only the selected cells; Auto Compose fills only unplanted cells with the same engine (plants carry lattice ids)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "variantCells": 2,
+    "auto": 6
+   }
+  },
+  {
+   "id": "V14",
+   "gate": "V2-G",
+   "name": "FIXTURE distribution: same area, same plant count, same presence \u2014 different flowering counts give different fraction and per m\u00b2 (unknown counted apart)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "x": [
+     6,
+     0.5,
+     0.38
+    ],
+    "y": [
+     1,
+     0.083,
+     0.06
+    ]
+   }
+  },
+  {
+   "id": "V15",
+   "gate": "V2-J",
+   "name": "Save \u2192 reload (restore) keeps fragments, layers, plant ids / x / y, locks and strategy; export has z per plant and assumptions",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "plants": 2939,
+    "fp": "2939:e31d87cf"
+   }
+  },
+  {
+   "id": "V16",
+   "gate": "V2-L",
+   "name": "Base model unchanged by the V2 design (baseline placements identical)",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "n": 2041
+   }
+  }
+ ],
+ "passed": 60,
+ "failed": 0,
+ "ms": 12982,
+ "when": "2026-11-27T12:09:00.352Z",
+ "runner": "headless Chrome (SwiftShader) over CDP, flow-tests.html",
+ "errors": [
+  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8798/favicon.ico",
+  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8798/Generative-Planting/api/flow/llm-absent/status"
+ ]
+}

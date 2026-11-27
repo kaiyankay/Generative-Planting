@@ -14,6 +14,7 @@ export function enter(F) {
   if (F.ctx.st.view !== 'plan') F.setMode('plan', { quiet: true });
   F.store.setViewState({ hidePlanting: false });
   if (!F.P.state.mixes.length) seedLibrary(F);
+  if (!F.u.cells.size) F.focusBeds(Object.keys(F.P.state.beds));
 }
 const legend = (F) => ((F.ctx.mixFile && F.ctx.mixFile.mixes) || []).map((m, i) => convertLegendRecipe(m, { colorIndex: i, exists: (id) => !!F.store.getObject(id) }));
 // the library starts with the Detroit legend recipe of each system the strategy uses (sourced, editable) — never invented
@@ -73,7 +74,7 @@ function bind(F, el) {
   a('brush', () => { const id = P.state.view.selectedMix || (P.state.mixes[0] && P.state.mixes[0].id); if (id) F.setBrush({ mixId: id, slots: null }); F.renderPanel(); });
   a('erase', () => { F.setBrush({ mixId: null, slots: null }); F.renderPanel(); });
   a('fill', () => { const id = (F.brush.active && F.brush.active.mixId) || P.state.view.selectedMix; const ids = [...F.u.cells]; const r = P.assign(ids, id, { layers: F.brush.active && F.brush.active.slots }); if (r.ok === false) F.toast(r.error, { err: true }); else F.toast(`${P.mix(id).name} fills ${ids.length} cell${ids.length === 1 ? '' : 's'} — same engine as the brush.`); });
-  a('auto', () => { const all = P.allCells(); const sel = [...F.u.cells]; const scope = (sel.length ? sel.map((id) => P.state.cells[id]) : all).filter((c) => !(P.state.instances[c.id] && P.state.instances[c.id].plants.length) && !P.state.locks[c.id]); if (!scope.length) { F.toast('No unplanted, unfrozen cell in the scope.'); return; } const r = autoCompose({ scopeCells: scope, allCells: all, assignments: P.state.assignments, mixes: P.state.mixes, K: F.K, brief: P.state.brief, links: P.links() }); F.u.autoPreview = { ...r, scopeLabel: sel.length ? 'selected cells' : 'all unplanted cells' }; F.render(); });
+  a('auto', () => { const all = P.allCells(); const sel = [...F.u.cells]; const free = (c) => !(P.state.instances[c.id] && P.state.instances[c.id].plants.length) && !P.state.locks[c.id]; let scope = (sel.length ? sel.map((id) => P.state.cells[id]) : all).filter(free); let label = sel.length ? 'selected cells' : 'all unplanted cells'; if (!scope.length && sel.length) { scope = all.filter(free); label = 'all unplanted cells (the selection has none)'; } if (!scope.length) { F.toast('No unplanted, unfrozen cell left.'); return; } const r = autoCompose({ scopeCells: scope, allCells: all, assignments: P.state.assignments, mixes: P.state.mixes, K: F.K, brief: P.state.brief, links: P.links() }); F.u.autoPreview = { ...r, scopeLabel: label }; F.render(); });
   a('autoaccept', () => { const map = Object.fromEntries(F.u.autoPreview.proposals.map((p) => [p.cellId, p.mixId])); F.u.autoPreview = null; const r = P.assignMany(map); if (r.ok === false) F.toast(r.error, { err: true }); });
   a('autocancel', () => { F.u.autoPreview = null; F.render(); });
   el.querySelectorAll('[data-sys]').forEach((b) => (b.onclick = () => addFromSystem(F, b.dataset.sys)));

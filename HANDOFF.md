@@ -1,3 +1,46 @@
+# Generative Planting V2 — 交接（HANDOFF，2026-11-27/28 overnight）
+
+分支 **`feature/integrated-prototype`**（在 V1 `e64f437` 之上追加 commit，已 push，PR #1 更新，**未合并**；`main` 与正式 Pages 未动）。
+V1 回退：tag `v1/integrated-prototype-e64f437`。开发包：`ARCH540/Generative_Planting_V2_Overnight`（00 为唯一入口；私有参考图与课件未提交）。
+
+先读：本节 → [docs/integrated/V2_REPORT.md](docs/integrated/V2_REPORT.md)（P0/P1 逐项结果、限制）→ [docs/integrated/ALGORITHMS_V2.md](docs/integrated/ALGORITHMS_V2.md)
+→ [docs/integrated/DESIGN_CHANGES_V2.md](docs/integrated/DESIGN_CHANGES_V2.md) → [docs/qa/V2_E2E.md](docs/qa/V2_E2E.md)（真实鼠标旅程，逐步截图，按住鼠标时的连续帧）。
+
+## 一句话
+入口：简介（真实植株实例生成的图形）→ 选择场地（统一轴测卡片；只有 Detroit 有真实模型，另两个明确为 Planned）→
+**Define** 一次给出全场策略（分区 = 角色 · 种植系统 · 空间逻辑，画在地图上，确认一次）→ **Structure** 全部分区一次预览、一次确认
+（沿路弯曲条带、共享轴、手绘引导曲线、蜂窝、有机、整块），点单床才是局部微调 → **Compose** 先看 Mix 调色板（计划小样来自同一引擎、剖面、物候带），
+选中即为画笔：**按住拖动时植物逐步生成**，可跨床、自动跳过道路；Cell Fill / Auto Compose 用同一引擎；分层配方（基础层面积比+间距、叠加层独立密度、球根漂移覆盖率）
+→ **Explore** 同一画布底部 Dock：Plan · Axo · Diagram · Performance + 月份播放；按实际植株算的开花资源分布（1 m 像素）、区域对比、问题回到 Compose、方案对比、导出。
+**Knowledge** 恢复 V4.3 的 X · 植物 → Z → Y 分类网络，四个关系 lens，Network/Matrix/Table 同一数据，记录先预览影响再应用。
+
+## 运行与测试
+```
+python3 -I tools/flow_server.py --port 8796        # http://127.0.0.1:8796/  （?fresh=1 忽略已存设计，?intro=0 跳过简介，?resume=1 直接恢复，?classic=1 = 更早的原型）
+python3 -I -u tools/v2_e2e.py --serve <rsync 快照>   # 引擎 60 项 + 真实鼠标旅程 36 步 → docs/qa/v2_*.json + docs/screenshots/v2/
+python3 tools/v2_report.py                          # docs/qa/V2_E2E.md、live-stroke-strip.jpg、journey.gif
+python3 -I -u tools/run_browser_tests.py            # 原有场地组件 177 项（classic）
+```
+在线预览（第三方 raw.githack，不是 GitHub Pages）：见 V2_REPORT.md 的固定 SHA 链接。
+
+## 数据诚实性
+- 没有调用任何语言模型；Rules mode 在界面上标明，列出“读到了什么 / 没用上什么”。
+- Detroit 植物的花期 / 传粉类群 / 光照多数来自 **illustrative 教学层**（可在 Define 关闭；关闭后 unknown 上升，旅程第 28 步验证）。
+- 主花园没有任何床 ≥ 30 % 树冠覆盖（最大 6 %），所以 “beneath trees” 不会生成 Under Trees 分区——策略里如实写出。
+- 模板层密度、颗粒度、漂移覆盖率、弯曲条带分段长度、强资源阈值 1 株/m² 等都是原型假设（ALGORITHMS_V2.md 标 assumption）。
+
+## 需要你决定
+1. 教学层保留 / 替换为有来源数据 / 默认关闭。 2. 原型参数（ALGORITHMS_V2 §4–7）。 3. 是否接真实 LLM（需 key + 明确付费许可）。
+4. 是否合并 PR #1 并部署（合并后 `index.html` 即为 V2）。 5. 第二、第三个真实场地模型何时提供。
+
+## 给下一个 Agent
+- 植株是权威状态：`instances[cell].plants`（带 lattice id、slot、fragment），`assignments[cell].fragments` 记录几何；模型 draft 由它派生。
+- 候选点是世界坐标锚定的格网（盐 = mix id + 层签名），所以同一 mix 重复画不会叠加、编辑一层不移动其他层。
+- localStorage 用紧凑编码（`packInstances`），约 60 字节/株；快照最多 4 个。
+- 测试时保持浏览器面板空闲（WebGL 页面会拖慢 headless）；在 rsync 快照上跑 e2e。
+
+---
+
 # Generative Planting · Integrated Prototype — 交接（HANDOFF）
 
 日期 2026-11-27 · 分支 **`feature/integrated-prototype`**（已 push 到 kaiyankay/Generative-Planting，未合并 main，GitHub Pages 未改动）
