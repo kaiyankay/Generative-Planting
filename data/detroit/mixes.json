@@ -1,0 +1,779 @@
+{
+ "schema": "generative-planting/mixes",
+ "version": "0.1",
+ "site": "detroit",
+ "units": {
+  "share": "fraction of the planted base area (base roles add up to 1)",
+  "density": "plants per m² of planted area; an overlay plant takes the place of a base plant",
+  "coverage": "fraction of the area covered by drifts",
+  "densityInDrift": "plants per m² inside a drift (bulbs grow among the perennials)",
+  "spacingM": "planned distance between plants of the role (m)",
+  "patchM2": "target size of one block or group (m²)"
+ },
+ "arrangements": {
+  "matrix": "continuous base; several species are intermingled plant by plant",
+  "intermingled": "plant-by-plant mix of the role's species (meadow)",
+  "blocks": "the role tessellates its area into blocks of one species",
+  "groups": "groups of one species set into the matrix (or tessellating when the mix has no matrix)",
+  "scatter": "single plants over the base, one per cell at the given density, kept apart by minDistM",
+  "drift": "elongated drifts at the given coverage"
+ },
+ "note": "Initial palette for the Detroit preset. Every mix is an editable, versioned design object; the four systems of the research basis are starting points, not closed options.",
+ "mixes": [
+  {
+   "id": "mix.dropseed-matrix",
+   "name": "Dropseed matrix",
+   "color": "#B8AE72",
+   "system": "matrix-based",
+   "status": "executable",
+   "basis": {
+    "summary": "From the B-bed legend (Matrix plan): Sporobolus heterolepis is the documented matrix grass; groups and emergents sit in it. Eight of the 18 legend groups and five of the 14 emergents, three of the nine bulbs.",
+    "recipe": "mix.B-matrix",
+    "sourceRefs": [
+     "S-OGD-FB-2019",
+     "S-OGD-BB-2020",
+     "S-OGD-PL-2026"
+    ],
+    "notes": [
+     "Species weights are equal, as in the schematic reconstruction: the plans' real proportions are not published.",
+     "Spacing and densities are design inputs (assumptions), editable; they are not taken from the plans."
+    ]
+   },
+   "drift": {
+    "angleDeg": 25
+   },
+   "roles": [
+    {
+     "id": "matrix",
+     "name": "Long-lived matrix",
+     "layer": "base",
+     "arrangement": "matrix",
+     "share": 0.72,
+     "spacingM": 0.45,
+     "designRole": "matrix",
+     "designRoleBasis": "legend",
+     "functionalRole": "long-lived matrix",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.sporobolus-heterolepis",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "groups",
+     "name": "Groups",
+     "layer": "base",
+     "arrangement": "groups",
+     "share": 0.28,
+     "spacingM": 0.4,
+     "patchM2": 1.6,
+     "designRole": "group",
+     "designRoleBasis": "legend",
+     "functionalRole": "clumping companions",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.sedum-matrona",
+       "weight": 1
+      },
+      {
+       "id": "sp.salvia-crystal-blue",
+       "weight": 1
+      },
+      {
+       "id": "sp.monarda-bradburiana",
+       "weight": 1
+      },
+      {
+       "id": "sp.pycnanthemum-muticum",
+       "weight": 1
+      },
+      {
+       "id": "sp.lythrum-alatum",
+       "weight": 1
+      },
+      {
+       "id": "sp.iris-perrys-blue",
+       "weight": 1
+      },
+      {
+       "id": "sp.helenium-moerheim",
+       "weight": 1
+      },
+      {
+       "id": "sp.amsonia-hubrichtii",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "emergents",
+     "name": "Emergents",
+     "layer": "overlay",
+     "arrangement": "scatter",
+     "density": 0.11,
+     "spacingM": 0.6,
+     "minDistM": 1.6,
+     "designRole": "emergent",
+     "designRoleBasis": "legend",
+     "functionalRole": "emergent forbs",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.baptisia-leucantha",
+       "weight": 1
+      },
+      {
+       "id": "sp.veronicastrum-challenger",
+       "weight": 1
+      },
+      {
+       "id": "sp.asclepias-purpurascens",
+       "weight": 1
+      },
+      {
+       "id": "sp.phlomis-prima-donna",
+       "weight": 1
+      },
+      {
+       "id": "sp.aster-little-carlow",
+       "weight": 1
+      }
+     ],
+     "rules": {
+      "minPathM": 0.6,
+      "minPathBasis": "design rule: tall emergents keep off the path edge (role-based, not a measured plant height)"
+     }
+    },
+    {
+     "id": "bulbs",
+     "name": "Spring bulbs",
+     "layer": "ephemeral",
+     "arrangement": "drift",
+     "coverage": 0.12,
+     "densityInDrift": 16,
+     "spacingM": 0.25,
+     "driftM2": 2.2,
+     "designRole": "bulb-drift",
+     "designRoleBasis": "legend",
+     "functionalRole": "ephemerals",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.camassia-semiplena",
+       "weight": 1
+      },
+      {
+       "id": "sp.narcissus-poeticus",
+       "weight": 1
+      },
+      {
+       "id": "sp.allium-carinatum-pulchellum",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    }
+   ],
+   "version": 1
+  },
+  {
+   "id": "mix.block-colour",
+   "name": "Colour blocks",
+   "color": "#B7A2C4",
+   "system": "maximal-color",
+   "status": "executable",
+   "basis": {
+    "summary": "From the A-bed legend (Block plan): base blocks tessellate the bed, emergents are placed over the blocks, bulbs are independent. Ten of the 28 block entries, six of the 15 emergents, three of the ten bulbs. Block size follows the research basis (roughly 20–50 plants per block).",
+    "recipe": "mix.A-block",
+    "sourceRefs": [
+     "S-OGD-FA-2019",
+     "S-OGD-BA-2020",
+     "S-OGD-PL-2026"
+    ],
+    "notes": [
+     "Species weights are equal, as in the schematic reconstruction: the plans' real proportions are not published.",
+     "Spacing and densities are design inputs (assumptions), editable; they are not taken from the plans."
+    ]
+   },
+   "drift": {
+    "angleDeg": -20
+   },
+   "roles": [
+    {
+     "id": "blocks",
+     "name": "Base blocks",
+     "layer": "base",
+     "arrangement": "blocks",
+     "share": 1.0,
+     "spacingM": 0.45,
+     "patchM2": 6,
+     "designRole": "block",
+     "designRoleBasis": "legend",
+     "functionalRole": "base blocks",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.sedum-matrona",
+       "weight": 1
+      },
+      {
+       "id": "sp.vernonia-summers-swan-song",
+       "weight": 1
+      },
+      {
+       "id": "sp.stachys-pink",
+       "weight": 1
+      },
+      {
+       "id": "sp.veronica-goodnight-irene",
+       "weight": 1
+      },
+      {
+       "id": "sp.echinacea-fatal-attraction",
+       "weight": 1
+      },
+      {
+       "id": "sp.schizachyrium-smoke-signal",
+       "weight": 1
+      },
+      {
+       "id": "sp.phlox-sweet-laura",
+       "weight": 1
+      },
+      {
+       "id": "sp.penstemon-digitalis",
+       "weight": 1
+      },
+      {
+       "id": "sp.monarda-bradburiana",
+       "weight": 1
+      },
+      {
+       "id": "sp.amsonia-hubrichtii",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "emergents",
+     "name": "Emergents",
+     "layer": "overlay",
+     "arrangement": "scatter",
+     "density": 0.18,
+     "spacingM": 0.6,
+     "minDistM": 1.3,
+     "designRole": "emergent",
+     "designRoleBasis": "legend",
+     "functionalRole": "emergents",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.asclepias-tuberosa",
+       "weight": 1
+      },
+      {
+       "id": "sp.achillea-parkers",
+       "weight": 1
+      },
+      {
+       "id": "sp.aster-october-skies",
+       "weight": 1
+      },
+      {
+       "id": "sp.parthenium-integrifolium",
+       "weight": 1
+      },
+      {
+       "id": "sp.veronicastrum-cupid",
+       "weight": 1
+      },
+      {
+       "id": "sp.molinia-crystal-veil",
+       "weight": 1
+      }
+     ],
+     "rules": {
+      "minPathM": 0.5,
+      "minPathBasis": "design rule: emergents keep off the path edge (role-based)"
+     }
+    },
+    {
+     "id": "bulbs",
+     "name": "Ephemerals",
+     "layer": "ephemeral",
+     "arrangement": "drift",
+     "coverage": 0.14,
+     "densityInDrift": 16,
+     "spacingM": 0.25,
+     "driftM2": 2.0,
+     "designRole": "bulb-drift",
+     "designRoleBasis": "legend",
+     "functionalRole": "ephemerals",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.allium-christophii",
+       "weight": 1
+      },
+      {
+       "id": "sp.narcissus-lemon-drops",
+       "weight": 1
+      },
+      {
+       "id": "sp.tulipa-spring-green",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    }
+   ],
+   "version": 1
+  },
+  {
+   "id": "mix.organic-groups",
+   "name": "Organic groups",
+   "color": "#C79C70",
+   "system": "custom",
+   "status": "executable",
+   "basis": {
+    "summary": "From the C-bed legend (Organic grouping plan): groups tessellate the bed, individual plants and small groups are set among them. Nine of the 16 groups, five of the 13 individuals, three of the ten bulbs.",
+    "recipe": "mix.C-grouping",
+    "sourceRefs": [
+     "S-OGD-FC-2019",
+     "S-OGD-BC-2020",
+     "S-OGD-PL-2026"
+    ],
+    "notes": [
+     "Species weights are equal, as in the schematic reconstruction: the plans' real proportions are not published.",
+     "Spacing and densities are design inputs (assumptions), editable; they are not taken from the plans."
+    ]
+   },
+   "drift": {
+    "angleDeg": 60
+   },
+   "roles": [
+    {
+     "id": "groups",
+     "name": "Groups",
+     "layer": "base",
+     "arrangement": "blocks",
+     "share": 1.0,
+     "spacingM": 0.42,
+     "patchM2": 3.2,
+     "designRole": "group",
+     "designRoleBasis": "legend",
+     "functionalRole": "clumping species",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.deschampsia-goldtau",
+       "weight": 1
+      },
+      {
+       "id": "sp.sedum-matrona",
+       "weight": 1
+      },
+      {
+       "id": "sp.schizachyrium-blue-paradise",
+       "weight": 1
+      },
+      {
+       "id": "sp.echinacea-hula-dancer",
+       "weight": 1
+      },
+      {
+       "id": "sp.amsonia-hubrichtii",
+       "weight": 1
+      },
+      {
+       "id": "sp.stokesia-peachies-pick",
+       "weight": 1
+      },
+      {
+       "id": "sp.monarda-bradburiana",
+       "weight": 1
+      },
+      {
+       "id": "sp.eragrostis-spectabilis",
+       "weight": 1
+      },
+      {
+       "id": "sp.aster-twilight",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "individuals",
+     "name": "Individuals",
+     "layer": "overlay",
+     "arrangement": "scatter",
+     "density": 0.14,
+     "spacingM": 0.55,
+     "minDistM": 1.4,
+     "designRole": "individual",
+     "designRoleBasis": "legend",
+     "functionalRole": "individual plants / small groups",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.amsonia-salicifolia",
+       "weight": 1
+      },
+      {
+       "id": "sp.rudbeckia-little-henry",
+       "weight": 1
+      },
+      {
+       "id": "sp.thalictrum-thundercloud",
+       "weight": 1
+      },
+      {
+       "id": "sp.asclepias-incarnata",
+       "weight": 1
+      },
+      {
+       "id": "sp.aster-october-skies",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "bulbs",
+     "name": "Ephemerals",
+     "layer": "ephemeral",
+     "arrangement": "drift",
+     "coverage": 0.12,
+     "densityInDrift": 16,
+     "spacingM": 0.25,
+     "driftM2": 1.8,
+     "designRole": "bulb-drift",
+     "designRoleBasis": "legend",
+     "functionalRole": "ephemerals",
+     "functionalBasis": "legend",
+     "species": [
+      {
+       "id": "sp.narcissus-segovia",
+       "weight": 1
+      },
+      {
+       "id": "sp.muscari-valerie-finnis",
+       "weight": 1
+      },
+      {
+       "id": "sp.allium-caeruleum",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    }
+   ],
+   "version": 1
+  },
+  {
+   "id": "mix.native-meadow",
+   "name": "Native meadow",
+   "color": "#8FA47A",
+   "system": "true-meadow",
+   "status": "executable",
+   "basis": {
+    "summary": "Species from the official 2026 East / West Meadow lists, with the hydrology zone printed for each (S-OGD-MEADOW). The four functional roles follow the research basis for true meadows; which species fills which role is a design assumption (general botanical grouping, not yet a sourced record).",
+    "recipe": null,
+    "sourceRefs": [
+     "S-OGD-MEADOW"
+    ],
+    "notes": [
+     "Functional roles here are design assumptions: confirm them with records in the Knowledge workspace.",
+     "Spacing and densities are design inputs (assumptions), editable; they are not taken from the plans."
+    ]
+   },
+   "drift": {
+    "angleDeg": 0
+   },
+   "roles": [
+    {
+     "id": "warm",
+     "name": "Warm-season grasses",
+     "layer": "base",
+     "arrangement": "intermingled",
+     "share": 0.42,
+     "spacingM": 0.45,
+     "designRole": "meadow",
+     "designRoleBasis": "list",
+     "functionalRole": "warm season growers",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-schizachyrium-scoparium",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-sporobolus-heterolepis",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-sorghastrum-nutans",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-andropogon-gerardii",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "cool",
+     "name": "Cool-season grasses and sedges",
+     "layer": "base",
+     "arrangement": "intermingled",
+     "share": 0.24,
+     "spacingM": 0.4,
+     "designRole": "meadow",
+     "designRoleBasis": "list",
+     "functionalRole": "cool season growers",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-elymus-virginicus",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-carex-vulpinoidea",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-carex-bebbii",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-glyceria-striata",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-carex-stricta",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "fixers",
+     "name": "Nitrogen fixers",
+     "layer": "base",
+     "arrangement": "intermingled",
+     "share": 0.08,
+     "spacingM": 0.6,
+     "designRole": "meadow",
+     "designRoleBasis": "list",
+     "functionalRole": "nitrogen fixers",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-baptisia-lactea",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-baptisia-australis",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-desmodium-canadense",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "forbs",
+     "name": "Meadow forbs",
+     "layer": "base",
+     "arrangement": "intermingled",
+     "share": 0.26,
+     "spacingM": 0.45,
+     "designRole": "meadow",
+     "designRoleBasis": "list",
+     "functionalRole": "dynamic fillers",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-echinacea-purpurea",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-zizia-aurea",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-penstemon-digitalis",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-pycnanthemum-virginianum",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-asclepias-incarnata",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-lobelia-cardinalis",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-verbena-hastata",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-liatris-spicata",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-solidago-rigida",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-symphyotrichum-oolentangiense",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    }
+   ],
+   "version": 1
+  },
+  {
+   "id": "mix.under-trees",
+   "name": "Under trees",
+   "color": "#6F8A86",
+   "system": "under-trees",
+   "status": "template",
+   "basis": {
+    "summary": "Template from the research basis for planting under trees (clumping, clonal spreading, winter-present, colour theme, ephemerals). Candidates are Detroit-list species; most have no recorded shade tolerance yet, so under existing tree crowns only species with shade knowledge that applies in Detroit are planted.",
+    "recipe": null,
+    "sourceRefs": [
+     "S-OGD-MEADOW",
+     "S-OGD-PL-2026"
+    ],
+    "notes": [
+     "Pending template: add exposure knowledge for the candidates (Knowledge, or the plant card here) to complete it.",
+     "Spacing and densities are design inputs (assumptions), editable; they are not taken from the plans."
+    ]
+   },
+   "rules": {
+    "crown": "require-shade-knowledge",
+    "crownBasis": "design rule: under an existing tree crown (field.canopy, NAIP) only species whose recorded exposure includes part shade or shade, from a record that applies in Detroit"
+   },
+   "drift": {
+    "angleDeg": 10
+   },
+   "roles": [
+    {
+     "id": "clumping",
+     "name": "Clumping shrubs and perennials",
+     "layer": "base",
+     "arrangement": "groups",
+     "share": 0.3,
+     "spacingM": 0.8,
+     "patchM2": 3,
+     "designRole": null,
+     "designRoleBasis": null,
+     "functionalRole": "clumping species",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-cornus-sericea",
+       "weight": 1
+      },
+      {
+       "id": "sp.aquilegia-canadensis",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "clonal",
+     "name": "Clonal spreading groundcover",
+     "layer": "base",
+     "arrangement": "matrix",
+     "share": 0.45,
+     "spacingM": 0.4,
+     "designRole": null,
+     "designRoleBasis": null,
+     "functionalRole": "clonal spreading species",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-geranium-maculatum",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-packera-aurea",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "winter",
+     "name": "Winter-present sedges and ferns",
+     "layer": "base",
+     "arrangement": "groups",
+     "share": 0.25,
+     "spacingM": 0.45,
+     "patchM2": 2,
+     "designRole": null,
+     "designRoleBasis": null,
+     "functionalRole": "winter present species",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.m-carex-radiata",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-carex-sprengelii",
+       "weight": 1
+      },
+      {
+       "id": "sp.m-onoclea-sensibilis",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    },
+    {
+     "id": "ephemerals",
+     "name": "Spring ephemerals",
+     "layer": "ephemeral",
+     "arrangement": "drift",
+     "coverage": 0.1,
+     "densityInDrift": 12,
+     "spacingM": 0.29,
+     "driftM2": 1.6,
+     "designRole": null,
+     "designRoleBasis": null,
+     "functionalRole": "ephemerals",
+     "functionalBasis": "assumption",
+     "species": [
+      {
+       "id": "sp.mertensia-virginica",
+       "weight": 1
+      }
+     ],
+     "rules": {}
+    }
+   ],
+   "version": 1
+  }
+ ]
+}

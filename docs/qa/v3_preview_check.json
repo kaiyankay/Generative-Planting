@@ -1,0 +1,14 @@
+{
+ "url": "https://raw.githack.com/kaiyankay/Generative-Planting/003b5b281feb3805fd96c6a66ded15c5dd142826/index.html?fresh=1",
+ "host": "raw.githack.com (third-party CDN over the GitHub commit; not GitHub Pages)",
+ "browser": "Claude desktop in-app browser (Chromium), 1440 x 900; headless Chrome is refused by the CDN's Cloudflare front (HTTP 403 challenge), so this check used a normal browser",
+ "checked": "2026-11-27",
+ "steps": [
+  {"action": "open the fixed-SHA URL", "result": "page ready, V3.1 modules loaded (KnowledgeView.relationsView present), introduction shown"},
+  {"action": "click Start, click the Detroit card (real clicks)", "result": "stage define"},
+  {"action": "strategy confirmed and the whole scope structured through the Project API (setup only)", "result": "209 cells"},
+  {"action": "click the first mix card, real mouse drag from bed B1 across the walk into B2", "result": "+421 plants committed in one stroke, beds B1 and B2"},
+  {"action": "Continue to Explore (click)", "result": "explore; top bar visible; scope-only clip on; 12 months on the dock; result revision 6"}
+ ],
+ "ok": true
+}

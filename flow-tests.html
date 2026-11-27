@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Generative Planting — workflow engine tests</title>
+<style>body{font:13px/1.45 -apple-system,Helvetica,Arial,sans-serif;margin:24px;color:#252A25}td{border-bottom:1px solid #E1E4E0;padding:4px 8px;vertical-align:top}.f{color:#9A4F2E;font-weight:600}.p{color:#56694F}pre{white-space:pre-wrap;font-size:11px;margin:0;max-width:820px}</style></head>
+<body><h1>Workflow engine tests</h1><p id="s">running…</p><table id="t"></table>
+<script type="module">
+import { run } from './src/flow/tests.js';
+const out = await run(); window.__flowTests = out;
+document.getElementById('s').textContent = `${out.passed} passed, ${out.failed} failed, ${out.ms} ms`;
+document.getElementById('t').innerHTML = out.tests.map((t) => `<tr><td class="${t.ok ? 'p' : 'f'}">${t.ok ? 'pass' : 'FAIL'}</td><td>${t.gate}</td><td>${t.id}</td><td>${t.name}<pre>${JSON.stringify(t.detail)}</pre></td></tr>`).join('');
+document.documentElement.dataset.done = '1';
+</script></body></html>

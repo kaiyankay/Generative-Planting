@@ -1,0 +1,259 @@
+{
+ "runs": {
+  "fingerprints": [
+   "3072:b0b02472",
+   "3072:b0b02472"
+  ],
+  "fill": [
+   "3079:a4322aad",
+   "3079:a4322aad"
+  ],
+  "ms": [
+   5034,
+   3672
+  ],
+  "identical": true
+ },
+ "pages": [
+  {
+   "shot": "01-project",
+   "path": "about/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "02-project-cover",
+   "path": "about/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "03-project-agents",
+   "path": "about/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "10-how-define",
+   "path": "about/how-it-works/?stage=define",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "11-how-structure-organic",
+   "path": "about/how-it-works/?stage=structure&structure=organic",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "12-how-compose-paint",
+   "path": "about/how-it-works/?stage=compose&compose=paint",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "13-how-compose-layers",
+   "path": "about/how-it-works/?stage=compose&compose=layers",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "14-how-compose-brush",
+   "path": "about/how-it-works/?stage=compose&compose=brush",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "15-how-explore-axo",
+   "path": "about/how-it-works/?stage=explore&explore=axo&month=7",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "16-how-explore-season",
+   "path": "about/how-it-works/?stage=explore&explore=season&month=6",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "17-how-chain",
+   "path": "about/how-it-works/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "18-how-brush-steps",
+   "path": "about/how-it-works/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "20-method",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "21-method-knowledge",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "22-method-knowledge-change",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "23-method-modules",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "24-method-systems",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "25-method-layers",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "26-method-rules",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "27-method-ai",
+   "path": "about/method/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "30-data",
+   "path": "about/data/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "31-data-coverage",
+   "path": "about/data/",
+   "size": [
+    1920,
+    1080
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "40-laptop-how",
+   "path": "about/how-it-works/?stage=compose&compose=brush",
+   "size": [
+    1440,
+    900
+   ],
+   "errors": [],
+   "missing": []
+  },
+  {
+   "shot": "41-laptop-method",
+   "path": "about/method/",
+   "size": [
+    1440,
+    900
+   ],
+   "errors": [],
+   "missing": []
+  }
+ ]
+}

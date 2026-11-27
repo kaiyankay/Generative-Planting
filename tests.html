@@ -42,7 +42,7 @@ async function boot(frame, url) {
 try {
   try { localStorage.clear(); } catch {} // same origin as the app: start without a persisted working design
   const t0 = performance.now();
-  const { w, errors, GP } = await boot(document.getElementById('desk'), base + 'index.html?view=3d');
+  const { w, errors, GP } = await boot(document.getElementById('desk'), base + 'index.html?classic=1&view=3d');
   const loadMs = performance.now() - t0;
   log('app loads and exposes window.GP', !!GP, 'no GP');
   log('loaded under base path ' + base, w.location.pathname.startsWith(base));
@@ -542,7 +542,7 @@ try {
   log('no runtime errors (desktop)', errors.length === 0, errors.slice(0, 3).join(' | '));
 
   // ---- phone viewport
-  const P = await boot(document.getElementById('phone'), base + 'index.html?view=plan');
+  const P = await boot(document.getElementById('phone'), base + 'index.html?classic=1&view=plan');
   log('phone: app loads', !!P.GP);
   const d = P.w.document.documentElement;
   log('phone: no horizontal overflow (390 px)', d.scrollWidth <= P.w.innerWidth + 1, d.scrollWidth + ' > ' + P.w.innerWidth);
@@ -552,7 +552,7 @@ try {
   log('no runtime errors (phone)', P.errors.length === 0, P.errors.slice(0, 3).join(' | '));
 
   // ---- embedded: product chrome hidden, the parent drives the component only through postMessage
-  const E = await boot(document.getElementById('embed'), base + 'index.html?embed=1');
+  const E = await boot(document.getElementById('embed'), base + 'index.html?classic=1&embed=1');
   const callE = (method, args = []) => new Promise((res) => { const id = Math.random(); const h = (e) => { if (e.data && e.data.gp === 'result' && e.data.id === id) { removeEventListener('message', h); res(e.data); } }; addEventListener('message', h); E.w.postMessage({ gp: 'call', id, method, args }, '*'); });
   const where = E.w.document.querySelector('.where .product');
   log('embed: product name hidden, site chip and design selector kept', E.w.getComputedStyle(where).display === 'none' && E.w.getComputedStyle(E.w.document.getElementById('btnSite')).display !== 'none' && !!E.w.document.querySelector('.design .seg'));
@@ -562,7 +562,7 @@ try {
   log('embed: the computational space answers over postMessage (plain data)', e1.ok && e1.value.fields['field.slope'].known && e2.ok && e2.value.zones.every((z) => z.geometry.type === 'MultiPolygon') && e3.ok && e3.value.bedId === 'bed.B1', JSON.stringify([e1.ok, e2.ok, e3.ok]));
   log('no runtime errors (embed)', E.errors.length === 0, E.errors.slice(0, 3).join(' | '));
   // ---- entry: a first visit shows the site preset, then the same workspace
-  const N = await boot(document.getElementById('phone'), base + 'index.html');
+  const N = await boot(document.getElementById('phone'), base + 'index.html?classic=1');
   const en = N.w.document.getElementById('entry');
   log('entry: a plain visit shows the site preset first; tools appear after Open site', N.w.document.getElementById('app').getBoundingClientRect().width === N.w.innerWidth && !en.hidden && /Oudolf Garden Detroit/.test(en.innerText) && N.w.getComputedStyle(N.w.document.querySelector('.toolbar')).visibility === 'hidden' && N.GP.entered() === false);
   N.w.document.getElementById('btnEnter').click(); await sleep(30);

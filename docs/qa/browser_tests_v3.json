@@ -1,0 +1,975 @@
+{
+ "ok": 177,
+ "total": 177,
+ "loadMs": 358.5,
+ "results": [
+  {
+   "name": "app loads and exposes window.GP",
+   "ok": true,
+   "detail": "no GP"
+  },
+  {
+   "name": "loaded under base path /Generative-Planting/",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 enters on the canonical axonometric (default view, home pose)",
+   "ok": true,
+   "detail": "{\"view\":\"axo\",\"design\":\"reference\",\"filter\":\"all\",\"solo\":null,\"panel\":false,\"axoHome\":true}"
+  },
+  {
+   "name": "UX \u00b7 site comes from a preset, named in the bar (Detroit is one preset)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "15 main beds with unique ids",
+   "ok": true,
+   "detail": "15"
+  },
+  {
+   "name": "all assets resolved by relative URL (model, instances, terrain)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "sun / moisture / pH return null + unknown (not 0)",
+   "ok": true,
+   "detail": "{\"value\":null,\"units\":null,\"status\":\"unknown\",\"note\":\"No measured or modelled insolation is available. Returns null (unknown), never 0.\"}"
+  },
+  {
+   "name": "elevation sampled from 3DEP inside extent",
+   "ok": true,
+   "detail": "176.45"
+  },
+  {
+   "name": "elevation outside extent is unknown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "getBedAt(centroid of A1) = bed.A1",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "queryObjects(type bed, style B) = 6",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "getPlantingContext(B1) lists Sporobolus matrix",
+   "ok": true,
+   "detail": "{\"group\":38,\"matrix\":1,\"emergent\":25,\"scatter\":3,\"bulb-scatter\":20,\"bulb-drift\":18,\"bulb-cluster\":13,\"bulb-line\":7}"
+  },
+  {
+   "name": "hide trees: 3D tree meshes hidden",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hide trees: tree data not deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hide trees: grasses still visible",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "show trees again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "group toggle hides children (forbs)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "locked bed layer: click does not select the bed",
+   "ok": true,
+   "detail": "district.main-garden"
+  },
+  {
+   "name": "locked layer stays visible",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "click selects bed A1",
+   "ok": true,
+   "detail": "bed.A1"
+  },
+  {
+   "name": "3D shows the selection outline",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D dims plants outside A1",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "second click drills down to a patch / plant of A1",
+   "ok": true,
+   "detail": "pl.A1.b28"
+  },
+  {
+   "name": "switching to Plan keeps the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "inspector open",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "select parent climbs to the bed",
+   "ok": true,
+   "detail": "bed.A1"
+  },
+  {
+   "name": "Esc clears the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "wheel zooms the plan",
+   "ok": true,
+   "detail": "16.34977033717693 vs 7.958287596048298"
+  },
+  {
+   "name": "drag pans the plan",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "fit resets the plan view",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D home() resets the camera",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "exploded: vegetation lifted, structure plane shown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "exploded off: back to ground and previous camera",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "applyPatch changes the draft",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "baseline unchanged after patch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "exportModel() returns the baseline by default",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "resetDraft restores",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "baseline model.json SHA-256 unchanged",
+   "ok": true,
+   "detail": "b7bc3689929d91f469a58a6592aee689048a671fbcff1d499729ccf641ce7d7b"
+  },
+  {
+   "name": "baseline instances.bin SHA-256 unchanged",
+   "ok": true,
+   "detail": "1bf31385f064f540d3ec68d4855fe92eaf370af7f21ca16da5cb2b8d9483bdf7"
+  },
+  {
+   "name": "starts in Reference (reference scenario)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Hide reference planting = visibility only (placements kept, still queryable)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "blank-design preview lists what will be cleared before it runs",
+   "ok": true,
+   "detail": "{\"units\":[\"bed.C1\",\"bed.C2\",\"bed.B1\",\"bed.B2\",\"bed.A1\",\"bed.A2\",\"bed.B3N\",\"bed.B3S\",\"bed.A3N\",\"bed.A3S\",\"bed.C3\",\"bed.C4"
+  },
+  {
+   "name": "New design without a draft opens the start dialog (nothing created yet)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Start design (blank) -> Canvas on a working scenario",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "blank canvas: B1 has no active placements or proxies",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "name": "blank canvas: cleared proxies leave queries and counts",
+   "ok": true,
+   "detail": "6109 vs 6109"
+  },
+  {
+   "name": "blank canvas keeps site trees, Rain Garden, paths, bed framework",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D follows the working design (rendered proxies = live rows in view)",
+   "ok": true,
+   "detail": "6109 / 6109"
+  },
+  {
+   "name": "site model not reloaded when the design state changes (same terrain mesh)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Reference still complete after a blank draft exists",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Terrain: plants and built forms hidden in 3D, contours on, nothing deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Terrain: hidden boardwalk (inside East Meadow) still blocks planting",
+   "ok": true,
+   "detail": "{\"value\":false,\"unitId\":\"bed.ME\",\"reason\":\"inside boardwalk built.east-meadow-boardwalk\"}"
+  },
+  {
+   "name": "draft survives Reference/Terrain switches",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B1 group chosen from data: pl.B1.g27 (sp.monarda-bradburiana, 6 proxies)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: patch ok, same proxy ids changed species",
+   "ok": true,
+   "detail": "{\"placementsAdded\":[],\"placementsRemoved\":[],\"placementsModified\":[\"pl.B1.g27\"],\"instancesAdded\":[],\"instancesRemoved\":0,\"instancesChanged\":6}"
+  },
+  {
+   "name": "replace: model tally in B1 moved 6 proxies",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: 3D rendered species counts changed the same way",
+   "ok": true,
+   "detail": "[105,111,304,298]"
+  },
+  {
+   "name": "replace: 3D form and colour of the proxy changed (not a label)",
+   "ok": true,
+   "detail": "[\"whorl\",\"umbel\"]"
+  },
+  {
+   "name": "replace: plan symbol colour at the proxy changed",
+   "ok": true,
+   "detail": "[[175,164,171],[178,176,128]]"
+  },
+  {
+   "name": "replace: point query + species query return the new species",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: inspector shows the new species",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "replace: export carries the instance change",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "remove: placement + proxies gone from model, index, render",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "remove: not returned by queries or picking",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "add: new placement with seeded proxies",
+   "ok": true,
+   "detail": "[\"pi.20788\",\"pi.20789\",\"pi.20790\",\"pi.20791\",\"pi.20792\",\"pi.20793\",\"pi.20794\"]"
+  },
+  {
+   "name": "add: clickable (picker returns it) and rendered",
+   "ok": true,
+   "detail": "{\"id\":\"pl.B1.d2041\"}"
+  },
+  {
+   "name": "add outside the bed is rejected (E_OUTSIDE)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "atomic: one bad op rolls back the whole batch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "site objects are read-only in a planting draft",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "unknown species rejected",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UI layer lock != model permission; model edit-lock blocks patches",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "dryRun validates without changing anything",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "export -> import rebuilds the same instance state",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "reset: working design equals the reference again (rows, species, placements)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "reference rows never touched by any edit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "polygon crossing a bed edge (centroid outside) intersects it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "\u2026 but A1 is not within that polygon",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "polygon hole: a bed entirely inside the hole is not returned",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "MultiPolygon query returns both beds",
+   "ok": true,
+   "detail": "bed.A1,bed.C3"
+  },
+  {
+   "name": "LineString query returns every bed it crosses",
+   "ok": true,
+   "detail": "bed.A1,bed.B3N,bed.A3N,bed.C3"
+  },
+  {
+   "name": "MultiLineString query",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "boundary contact counts as intersecting (bed outline as a line)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "point + 7 m radius = brute-force set incl. the 1 mm boundary tolerance (radius-correct index)",
+   "ok": true,
+   "detail": "609 vs 609"
+  },
+  {
+   "name": "nearestInstance with a large radius finds instances beyond the 3\u00d73 cells",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bbox candidates are flagged as not exact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "outside the extent: elevation / slope / distance null + unknown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "conditions carry definitions, units and sources",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "distance-to-path set comes from case.json path types, not hard-coded ids",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "vertical exaggeration never enters the data (z in m NAVD88)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "hidden layer still blocks planting; plantable / hidden / locked are separate",
+   "ok": true,
+   "detail": "[{\"value\":false,\"unitId\":\"bed.ME\",\"reason\":\"inside boardwalk built.east-meadow-boardwalk\"},{\"value\":true,\"unitId\":\"bed.ME\",\"editLocked\":false}]"
+  },
+  {
+   "name": "matrix and group overlap at a point (no one-plant-per-cell)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 layers panel hidden by default, exploded view off by default",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Layers view: six physical plates, analysis as plan-only entry",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Layers view: no cross-layer shadows",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "click on the composition plate focuses it, others dim",
+   "ok": true,
+   "detail": "composition"
+  },
+  {
+   "name": "click on the infrastructure plate moves the focus",
+   "ok": true,
+   "detail": "infrastructure"
+  },
+  {
+   "name": "Open in Plan: isolated orthographic layer, marked in the panel, with its key",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "isolated layer: selection limited to that layer (path, not bed)",
+   "ok": true,
+   "detail": "{\"id\":\"built.gravel-walks\"}"
+  },
+  {
+   "name": "reference overlay (framework) does not steal the click",
+   "ok": true,
+   "detail": "{\"id\":\"pl.A1.b28\"}"
+  },
+  {
+   "name": "overlay opacity is applied",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 in solo the other layers become trace overlays (one place for overlay control)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Back returns to the Layers overview with its camera",
+   "ok": true,
+   "detail": "{\"view\":\"layers\",\"d\":0,\"iso\":null}"
+  },
+  {
+   "name": "Esc returns to World and restores the world camera",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "layer visibility restored after leaving the isolated plan",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Analysis isolated: real slope shown, sun / moisture / pH marked no data",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "view switch and design switch are separate controls; Terrain is a view, not a design",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Reference status keeps \u201cschematic reconstruction, not a survey\u201d",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no inspector without a selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "model keeps \u2265 80% of the screen by default",
+   "ok": true,
+   "detail": "97.3%"
+  },
+  {
+   "name": "key 3 opens Layers, Esc goes back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 Axo \u2192 Plan keeps the same place and scale (one canvas)",
+   "ok": true,
+   "detail": "[{\"cx\":4,\"cy\":-20,\"scale\":7.2},{\"x\":4,\"y\":-20,\"ppm\":7.2}]"
+  },
+  {
+   "name": "UX \u00b7 Plan \u2192 Axo keeps the same place and scale",
+   "ok": true,
+   "detail": "[{\"cx\":16,\"cy\":-26,\"scale\":14.4},{\"x\":16,\"y\":-26,\"ppm\":14.4}]"
+  },
+  {
+   "name": "UX \u00b7 Terrain filter leaves the design alone",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 switching design leaves the view filter alone",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 reference is kept when a working design is deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 selection card is compact by default (no ids, no record)",
+   "ok": true,
+   "detail": "Main Garden\nBed B1\nBed \u00b7 Matrix (B)\n232.8 m\u00b2 \u00b7 code B1 \u00b7 125 patches\n\nElevation 175.97\u2013176.47 m \u00b7 slope 0.2\u20133.4\u00b0 \u00b7 0\u20135.3"
+  },
+  {
+   "name": "UX \u00b7 Details opens the full record with data & sources",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "UX \u00b7 coordinates only in Plan, compass only in Axo",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 five model levels exposed; the computation never reads the planting",
+   "ok": true,
+   "detail": "{\"beds\":20,\"mainBeds\":15,\"designBeds\":20,\"designAreaM2\":8635.6,\"ok\":true}"
+  },
+  {
+   "name": "CS \u00b7 one lattice aligned with the 3DEP DEM (origin and 1 m cells)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a grid finer than the terrain data is refused (no false precision); 2 m allowed",
+   "ok": true,
+   "detail": "cellSize 0.5 m is finer than the terrain data (1 m): refused, a finer grid would suggest a precision the sources do not have"
+  },
+  {
+   "name": "CS \u00b7 B1 domain: cells clipped to the real outline, area = bed area, bed untouched",
+   "ok": true,
+   "detail": "[232.821,232.82084050000012,274]"
+  },
+  {
+   "name": "CS \u00b7 every design bed (20) is its own domain; areas match the beds to 1 mm\u00b2",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 whole cells carry the DEM value at their node exactly",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 distribution over the whole bed (min \u2264 p10 \u2264 median \u2264 p90 \u2264 max; histogram areas add up)",
+   "ok": true,
+   "detail": "{\"field\":\"field.elevation\",\"name\":\"Elevation\",\"units\":\"m\",\"status\":\"source\",\"dataKind\":\"source\",\"hypothetical\":false,\"source\":\"S-3DEP\",\"method\":\"Bilinear sample"
+  },
+  {
+   "name": "CS \u00b7 B1 real ranges: elevation, slope and distance to path vary inside the bed",
+   "ok": true,
+   "detail": "[0.4959,3.2266,5.3043]"
+  },
+  {
+   "name": "CS \u00b7 sun, moisture and pH stay unknown over the whole area (null, never 0)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 planting context carries the distribution in the bed, not only the centre point",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 two conditions overlaid: B1 splits into zones that tile the bed exactly",
+   "ok": true,
+   "detail": "[[\"0|0\",72.26],[\"0|1\",137],[\"1|0\",15.56],[\"1|1\",8]]"
+  },
+  {
+   "name": "CS \u00b7 zones never overlap and never leave the bed outline (vector check)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 a point\u2019s zone agrees with its own cell values (zoneAt \u2194 fields)",
+   "ok": true,
+   "detail": "39/39"
+  },
+  {
+   "name": "CS \u00b7 moving the slope threshold moves the zones (steeper area 1\u00b0 > 2\u00b0 > 3\u00b0)",
+   "ok": true,
+   "detail": "[155.62,23.560000000000002,1.67]"
+  },
+  {
+   "name": "CS \u00b7 uniform ground is not split: TN elevation varies < 0.1 m, a threshold inside its range gives one zone",
+   "ok": true,
+   "detail": "[0.0552,1]"
+  },
+  {
+   "name": "CS \u00b7 a threshold outside the bed\u2019s range gives one zone (no artificial split)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a rule on an unknown field gives \u201cno data\u201d, never a value class",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 three conditions incl. a hypothetical test field: flagged hypothetical in every result",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a hypothetical field cannot pose as site data (id must be hyp.*)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 several beds: one computation, every zone keeps its bed id, each bed tiled exactly",
+   "ok": true,
+   "detail": "{\"bed.B1\":4,\"bed.A1\":4,\"bed.B2\":3}"
+  },
+  {
+   "name": "CS \u00b7 all 20 design beds classified together",
+   "ok": true,
+   "detail": "70 zones, 0 ms"
+  },
+  {
+   "name": "CS \u00b7 an arbitrary area as scope: cells clipped to bed \u2229 area",
+   "ok": true,
+   "detail": "[85.356,85.35626428732046,[\"bed.B1\"]]"
+  },
+  {
+   "name": "CS \u00b7 sampleAt: exact point values + the lattice cell + its zone",
+   "ok": true,
+   "detail": "{\"id\":\"zone.B1.0-1\",\"key\":\"0|1\",\"label\":\"Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m\",\"computation\":\"cmp.8651b0e0\"}"
+  },
+  {
+   "name": "CS \u00b7 position sampling for point planting: hex points all inside B1, about one per 0.87 m\u00b2",
+   "ok": true,
+   "detail": "266 vs 269"
+  },
+  {
+   "name": "CS \u00b7 zones are queryable with any geometry (a line across B1)",
+   "ok": true,
+   "detail": "0|0,0|1"
+  },
+  {
+   "name": "CS \u00b7 an area patch over the boardwalk inside East Meadow is refused (exact overlap test)",
+   "ok": true,
+   "detail": "[{\"index\":0,\"op\":\"add\",\"code\":\"E_NOT_PLANTABLE\",\"message\":\"overlaps boardwalk built.east-meadow-boardwalk\"}]"
+  },
+  {
+   "name": "CS \u00b7 the space carries point, line, area/block, matrix, grouping and mixed planting (validated dry runs)",
+   "ok": true,
+   "detail": "{\"point\":\"ok\",\"line\":\"ok\",\"area / block\":\"ok\",\"matrix\":\"ok\",\"grouping\":\"ok\",\"mixed\":\"ok\"}"
+  },
+  {
+   "name": "CS \u00b7 with every design bed empty, levels 1\u20134 still work and compute the same",
+   "ok": true,
+   "detail": "placements left in design beds: 0"
+  },
+  {
+   "name": "CS \u00b7 the bed framework (ids, outlines, areas) is never changed by computing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 1 \u00b7 click B1 in Axo selects the bed; its card shows the bed\u2019s condition ranges",
+   "ok": true,
+   "detail": "Main Garden\nBed B1\nBed \u00b7 Matrix (B)\n232.8 m\u00b2 \u00b7 code B1 \u00b7 125 patches\n\nElevation 175.97\u2013176.47 m \u00b7 slope 0.2\u20133.4\u00b0 \u00b7 0\u20135.3 m to path\n\nReference\nDocumented\nConditi"
+  },
+  {
+   "name": "ACC 1 \u00b7 Conditions opens on B1 (card gives way to the panel)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 2 \u00b7 Plan keeps the same selection, scope and place",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 3 \u00b7 Hide planting hides, it does not clear: placements kept, bed outline still drawn",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 4 \u00b7 Elevation: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[159,136,115],\"#977C68\"]"
+  },
+  {
+   "name": "ACC 4 \u00b7 Slope: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[196,169,108],\"#C3A35F\"]"
+  },
+  {
+   "name": "ACC 4 \u00b7 To path: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[118,166,167],\"#67A0A6\"]"
+  },
+  {
+   "name": "ACC 5 \u00b7 Zones: slope \u00d7 distance to path computed and drawn (pixel in a 0|0 cell is its zone colour)",
+   "ok": true,
+   "detail": "[[\"0|0\",72.26],[\"0|1\",137],[\"1|0\",15.56],[\"1|1\",8]]"
+  },
+  {
+   "name": "ACC 6 \u00b7 changing the slope threshold to 1\u00b0 recomputes the zones and the list",
+   "ok": true,
+   "detail": "[23.560000000000002,155.62]"
+  },
+  {
+   "name": "ACC 7 \u00b7 blank working design in B1 only: B1 empty, other beds kept, zones and fields unchanged",
+   "ok": true,
+   "detail": "[\"bed.B1\"]"
+  },
+  {
+   "name": "ACC 8 \u00b7 Axo: zones are painted on the terrain at the right place (texture pixel = zone colour; screen \u2194 ground round trip < 5 cm)",
+   "ok": true,
+   "detail": "[[135,145,189,255],[133,145,201],[-34.99999998891697,-9.000000030450508]]"
+  },
+  {
+   "name": "ACC 9 \u00b7 back to Reference: the original planting is complete (instance fingerprint, B1 patches)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 10 \u00b7 shift-click A1 and B2: one computation over three beds, zones per bed",
+   "ok": true,
+   "detail": "[\"bed.B1\",\"bed.A1\",\"bed.B2\"]"
+  },
+  {
+   "name": "ACC 10 \u00b7 All design beds: 20 beds in one computation",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 URL keeps the conditions state (scope, display, thresholds)",
+   "ok": true,
+   "detail": "?classic=1&view=plan&cond=all&rules=slope%3A2%2Cdistance-to-path%3A1.5&filter=site&show=zones"
+  },
+  {
+   "name": "CS \u00b7 closing Conditions clears the overlay (view state only)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3D renders triangles",
+   "ok": true,
+   "detail": "{\"fps\":2.8,\"triangles\":1184347,\"calls\":204,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
+  },
+  {
+   "name": "no horizontal overflow at 1440\u00d7900",
+   "ok": true,
+   "detail": "1440"
+  },
+  {
+   "name": "no runtime errors (desktop)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone: app loads",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone: no horizontal overflow (390 px)",
+   "ok": true,
+   "detail": "390 > 390"
+  },
+  {
+   "name": "phone: layer panel fits the width",
+   "ok": true,
+   "detail": "{\"x\":8,\"y\":298.625,\"width\":374,\"height\":485.375,\"top\":298.625,\"right\":382,\"bottom\":784,\"left\":8}"
+  },
+  {
+   "name": "no runtime errors (phone)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "embed: product name hidden, site chip and design selector kept",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "embed: postMessage bridge works (read, view, design data) and refuses unlisted methods",
+   "ok": true,
+   "detail": "[{\"gp\":\"result\",\"id\":0.07650836853067178,\"ok\":true,\"value\":{\"view\":\"axo\",\"design\":\"reference\",\"filter\":\"all\",\"solo\":null,\"panel\":false,\"axoHome\":true}},true,\"not available: exportModel\"]"
+  },
+  {
+   "name": "embed: the computational space answers over postMessage (plain data)",
+   "ok": true,
+   "detail": "[true,true,true]"
+  },
+  {
+   "name": "no runtime errors (embed)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "entry: a plain visit shows the site preset first; tools appear after Open site",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "entry: Open site enters the same Axo workspace",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no runtime errors (entry)",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+ "compute": {
+  "zonesB1": [
+   {
+    "key": "0|0",
+    "label": "Slope < 2\u00b0 \u00b7 To path < 1.5 m",
+    "areaM2": 72.26,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.3104
+   },
+   {
+    "key": "0|1",
+    "label": "Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m",
+    "areaM2": 137,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.5884
+   },
+   {
+    "key": "1|0",
+    "label": "Slope \u2265 2\u00b0 \u00b7 To path < 1.5 m",
+    "areaM2": 15.56,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.0668
+   },
+   {
+    "key": "1|1",
+    "label": "Slope \u2265 2\u00b0 \u00b7 To path \u2265 1.5 m",
+    "areaM2": 8,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.0344
+   }
+  ],
+  "thresholds": {
+   "1\u00b0": 155.62,
+   "2\u00b0": 23.560000000000002,
+   "3\u00b0": 1.67
+  },
+  "allBeds": {
+   "zones": 70,
+   "ms": 0,
+   "summary": [
+    [
+     "Slope < 2\u00b0 \u00b7 To path < 1.5 m",
+     1012.76,
+     19
+    ],
+    [
+     "Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m",
+     6336.67,
+     19
+    ],
+    [
+     "Slope \u2265 2\u00b0 \u00b7 To path < 1.5 m",
+     226.93,
+     14
+    ],
+    [
+     "Slope \u2265 2\u00b0 \u00b7 To path \u2265 1.5 m",
+     1059.23,
+     18
+    ]
+   ]
+  },
+  "carry": {
+   "point": "ok",
+   "line": "ok",
+   "area / block": "ok",
+   "matrix": "ok",
+   "grouping": "ok",
+   "mixed": "ok"
+  }
+ },
+ "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
+ "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
+ "wallSeconds": 865.9
+}

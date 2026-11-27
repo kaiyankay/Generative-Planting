@@ -1,0 +1,877 @@
+{
+ "runner": "headless Chrome (SwiftShader) over the DevTools protocol; real mouse input events for brushes and panels",
+ "url": "http://127.0.0.1:8794/Generative-Planting/",
+ "knowledgeDb": "gp-knowledge-e2e-1795755977",
+ "started": "2026-11-26 22:06:17",
+ "experiments": {
+  "A": {
+   "assignments": [
+    {
+     "id": "as.1",
+     "type": "fill",
+     "label": "Dropseed matrix · 6 beds",
+     "mixId": "mix.dropseed-matrix",
+     "frozen": false,
+     "areaM2": 1160,
+     "perennials": 6681,
+     "bulbs": 2554,
+     "density": 5.76,
+     "beds": [
+      "bed.B1",
+      "bed.B2",
+      "bed.B3N",
+      "bed.B3S",
+      "bed.B4",
+      "bed.B5"
+     ],
+     "outsideBedsM2": 0,
+     "validation": {
+      "checked": 9236,
+      "dropped": 1,
+      "why": {
+       "outside": 1
+      },
+      "rule": "inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer"
+     },
+     "ms": 509.9
+    },
+    {
+     "id": "as.2",
+     "type": "fill",
+     "label": "Colour blocks · 9 beds",
+     "mixId": "mix.block-colour",
+     "frozen": false,
+     "areaM2": 1775.9,
+     "perennials": 9550,
+     "bulbs": 4558,
+     "density": 5.378,
+     "beds": [
+      "bed.C1",
+      "bed.C2",
+      "bed.A1",
+      "bed.A2",
+      "bed.A3N",
+      "bed.A3S",
+      "bed.C3",
+      "bed.C4",
+      "bed.A4"
+     ],
+     "outsideBedsM2": 0,
+     "validation": {
+      "checked": 14108,
+      "dropped": 0,
+      "why": {},
+      "rule": "inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer"
+     },
+     "ms": 882.2
+    }
+   ],
+   "totals": {
+    "perennials": 16231,
+    "bulbs": 7112,
+    "areaM2": 2935.8,
+    "density": 5.529,
+    "species": 33,
+    "assignments": 2
+   },
+   "mixes": [
+    {
+     "name": "Dropseed matrix",
+     "roles": [
+      {
+       "id": "matrix",
+       "name": "Long-lived matrix",
+       "layer": "base",
+       "unit": "share of planted area",
+       "target": 0.72,
+       "actual": 0.712,
+       "count": 4757
+      },
+      {
+       "id": "groups",
+       "name": "Groups",
+       "layer": "base",
+       "unit": "share of planted area",
+       "target": 0.28,
+       "actual": 0.274,
+       "count": 1829
+      },
+      {
+       "id": "emergents",
+       "name": "Emergents",
+       "layer": "overlay",
+       "unit": "plants / m²",
+       "target": 0.11,
+       "actual": 0.082,
+       "count": 95
+      },
+      {
+       "id": "bulbs",
+       "name": "Spring bulbs",
+       "layer": "ephemeral",
+       "unit": "drift coverage",
+       "target": 0.12,
+       "actual": 0.138,
+       "count": 2554
+      }
+     ],
+     "areaM2": 1160
+    },
+    {
+     "name": "Colour blocks",
+     "roles": [
+      {
+       "id": "blocks",
+       "name": "Base blocks",
+       "layer": "base",
+       "unit": "share of planted area",
+       "target": 1,
+       "actual": 0.975,
+       "count": 9308
+      },
+      {
+       "id": "emergents",
+       "name": "Emergents",
+       "layer": "overlay",
+       "unit": "plants / m²",
+       "target": 0.18,
+       "actual": 0.136,
+       "count": 242
+      },
+      {
+       "id": "bulbs",
+       "name": "Ephemerals",
+       "layer": "ephemeral",
+       "unit": "drift coverage",
+       "target": 0.14,
+       "actual": 0.16,
+       "count": 4558
+      }
+     ],
+     "areaM2": 1775.9
+    }
+   ],
+   "openM2": 0,
+   "validation": {
+    "rows": 23343,
+    "checkedPlantable": 3334,
+    "notPlantable": 0,
+    "examples": [],
+    "zMismatch": 0,
+    "maxdz": 0
+   }
+  },
+  "B": {
+   "line": [
+    {
+     "id": "as.3",
+     "type": "line",
+     "label": "Organic groups · curve drifts",
+     "mixId": "mix.organic-groups",
+     "frozen": false,
+     "areaM2": 105.2,
+     "perennials": 672,
+     "bulbs": 270,
+     "density": 6.385,
+     "beds": [
+      "bed.C1",
+      "bed.B1",
+      "bed.A1",
+      "bed.B3N"
+     ],
+     "outsideBedsM2": 30.584,
+     "validation": {
+      "checked": 942,
+      "dropped": 0,
+      "why": {},
+      "rule": "inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer"
+     },
+     "ms": 130.4
+    }
+   ],
+   "check": {
+    "plants": 942,
+    "onPathOrOutside": 0
+   },
+   "area": [
+    {
+     "id": "as.4",
+     "type": "area",
+     "label": "Native meadow · painted area",
+     "mixId": "mix.native-meadow",
+     "frozen": false,
+     "areaM2": 163.6,
+     "perennials": 874,
+     "bulbs": 0,
+     "density": 5.341,
+     "beds": [
+      "bed.C1",
+      "bed.B1",
+      "bed.B2",
+      "bed.RG"
+     ],
+     "outsideBedsM2": 133.903,
+     "validation": {
+      "checked": 874,
+      "dropped": 0,
+      "why": {},
+      "rule": "inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer"
+     },
+     "ms": 53.4
+    }
+   ]
+  },
+  "C": {
+   "underTrees": {
+    "as.4": {
+     "plants": 936,
+     "underCrown": 4,
+     "speciesUnderCrown": {
+      "sp.m-cornus-sericea": 4
+     },
+     "unplanted": {
+      "crown": 20
+     },
+     "rules": [
+      {
+       "rule": "role-preference",
+       "label": "Roles shifted by a site rule",
+       "effect": "2 cells took another role than without the rule"
+      },
+      {
+       "rule": "crown-shade-knowledge",
+       "label": "Under tree crowns: shade knowledge required",
+       "basis": "design rule: under an existing tree crown (field.canopy, NAIP) only species whose recorded exposure includes part shade or shade, from a record that applies in Detroit",
+       "field": "field.canopy",
+       "effect": "4 plants under crowns; 20 positions left unplanted"
+      }
+     ],
+     "minTrunkM": 5.78,
+     "z": [
+      175.951,
+      176.679
+     ],
+     "beds": [
+      "bed.TE"
+     ]
+    },
+    "as.5": {
+     "plants": 2052,
+     "underCrown": 33,
+     "speciesUnderCrown": {
+      "sp.m-cornus-sericea": 33
+     },
+     "unplanted": {
+      "blocked": 103,
+      "trunk": 4,
+      "crown": 131
+     },
+     "rules": [
+      {
+       "rule": "role-preference",
+       "label": "Roles shifted by a site rule",
+       "effect": "10 cells took another role than without the rule"
+      },
+      {
+       "rule": "crown-shade-knowledge",
+       "label": "Under tree crowns: shade knowledge required",
+       "basis": "design rule: under an existing tree crown (field.canopy, NAIP) only species whose recorded exposure includes part shade or shade, from a record that applies in Detroit",
+       "field": "field.canopy",
+       "effect": "33 plants under crowns; 131 positions left unplanted"
+      }
+     ],
+     "minTrunkM": 0.63,
+     "z": [
+      175.55,
+      175.849
+     ],
+     "beds": [
+      "bed.ME"
+     ]
+    },
+    "shadeOK": {
+     "sp.m-cornus-sericea": true,
+     "sp.m-geranium-maculatum": null,
+     "sp.m-packera-aurea": null,
+     "sp.aquilegia-canadensis": null,
+     "sp.m-carex-radiata": null
+    }
+   },
+   "hypotheticalWetness": {
+    "off": {
+     "plants": 7726,
+     "knownHydrology": 6187,
+     "meanZ": {
+      "dry": 175.607,
+      "moist": 175.606,
+      "wet": 175.608
+     },
+     "n": {
+      "dry": 3769,
+      "moist": 2011,
+      "wet": 407
+     }
+    },
+    "on": {
+     "plants": 7737,
+     "knownHydrology": 5119,
+     "meanZ": {
+      "dry": 175.717,
+      "moist": 175.609,
+      "wet": 175.48
+     },
+     "n": {
+      "dry": 1593,
+      "moist": 2504,
+      "wet": 1022
+     }
+    },
+    "rules": [
+     {
+      "rule": "role-preference",
+      "label": "Roles shifted by a site rule",
+      "effect": "1703 cells took another role than without the rule"
+     },
+     {
+      "rule": "hyp-wetness",
+      "label": "Hypothetical: lower ground is wetter",
+      "basis": "hydrology zone per species, official meadow lists (S-OGD-MEADOW); wetness = relative elevation within the space (175.38–175.87 m), NOT site data",
+      "field": "hyp.low-ground-wetter",
+      "hypothetical": true,
+      "effect": "0 same-role substitutions, 0 positions unplanted"
+     }
+    ],
+    "substitutions": 41,
+    "fields": [
+     {
+      "field": "field.elevation",
+      "use": "z of every plant: bilinear DEM at the plant position (display exaggeration never used)"
+     },
+     {
+      "field": "field.distance-to-edge",
+      "use": "plants stay ≥ 0.18 m inside the bed outline"
+     },
+     {
+      "field": "field.canopy",
+      "use": "existing tree positions: plants keep 0.6 m from crown centres"
+     },
+     {
+      "field": "hyp.low-ground-wetter",
+      "use": "HYPOTHETICAL scenario relative to this space (z 175.38–175.87 m, 3DEP): lowest third wet, middle moist, highest third dry; species placed by the hydrology zone printed on the meadow lists",
+      "hypothetical": true
+     }
+    ]
+   },
+   "edgeRule": {
+    "emergents": 88,
+    "minDistanceToPathM": 0.61,
+    "rule": 0.6
+   }
+  },
+  "D": {
+   "before": {
+    "roles": [
+     {
+      "id": "matrix",
+      "name": "Long-lived matrix",
+      "layer": "base",
+      "unit": "share of planted area",
+      "target": 0.72,
+      "actual": 0.717,
+      "count": 3511
+     },
+     {
+      "id": "groups",
+      "name": "Groups",
+      "layer": "base",
+      "unit": "share of planted area",
+      "target": 0.28,
+      "actual": 0.27,
+      "count": 1321
+     },
+     {
+      "id": "emergents",
+      "name": "Emergents",
+      "layer": "overlay",
+      "unit": "plants / m²",
+      "target": 0.11,
+      "actual": 0.076,
+      "count": 65
+     },
+     {
+      "id": "bulbs",
+      "name": "Spring bulbs",
+      "layer": "ephemeral",
+      "unit": "drift coverage",
+      "target": 0.12,
+      "actual": 0.133,
+      "count": 1817
+     }
+    ],
+    "version": 1,
+    "plants": 4897
+   },
+   "after": {
+    "roles": [
+     {
+      "id": "matrix",
+      "name": "Long-lived matrix",
+      "layer": "base",
+      "unit": "share of planted area",
+      "target": 0.5,
+      "actual": 0.511,
+      "count": 2975
+     },
+     {
+      "id": "groups",
+      "name": "Groups",
+      "layer": "base",
+      "unit": "share of planted area",
+      "target": 0.5,
+      "actual": 0.479,
+      "count": 2789
+     },
+     {
+      "id": "emergents",
+      "name": "Emergents",
+      "layer": "overlay",
+      "unit": "plants / m²",
+      "target": 0.11,
+      "actual": 0.073,
+      "count": 62
+     },
+     {
+      "id": "bulbs",
+      "name": "Spring bulbs",
+      "layer": "ephemeral",
+      "unit": "drift coverage",
+      "target": 0.12,
+      "actual": 0.133,
+      "count": 1817
+     }
+    ],
+    "version": 3,
+    "plants": 5826
+   },
+   "hashesBefore": {
+    "mix.dropseed-matrix": 3260767223,
+    "mix.block-colour": 3426639566,
+    "mix.organic-groups": 83350861,
+    "mix.under-trees": 3066024866,
+    "kept": 1749648819
+   },
+   "hashesAfter": {
+    "mix.block-colour": 3426639566,
+    "mix.organic-groups": 83350861,
+    "mix.under-trees": 3066024866,
+    "kept": 1749648819,
+    "mix.dropseed-matrix": 2684354654
+   },
+   "kept": [
+    [
+     2462,
+     1749648819
+    ],
+    [
+     2462,
+     1749648819
+    ]
+   ],
+   "localEdit": {
+    "outsideBefore": [
+     24632,
+     1148101423
+    ],
+    "outsideAfter": [
+     24632,
+     1148101423
+    ]
+   }
+  },
+  "E": {
+   "before": {
+    "underCrown": {
+     "sp.m-cornus-sericea": 4
+    },
+    "unplantedCrown": 20
+   },
+   "geraniumExposureBefore": "unknown",
+   "afterAddingGeraniumRecord": {
+    "underCrown": {
+     "sp.m-geranium-maculatum": 19,
+     "sp.m-cornus-sericea": 4
+    },
+    "unplantedCrown": 1
+   },
+   "addResult": {
+    "ok": true,
+    "said": [
+     "knowledge: exposure of sp.m-geranium-maculatum"
+    ],
+    "results": [
+     {
+      "ok": true,
+      "recordId": "my-rec-mwyjbfnc-2f647eb7",
+      "eventId": "ev-mwyjbfnc-a82ab19c",
+      "revision": "base-ebbbf3db18e5+1e:51a5b42d"
+     }
+    ],
+    "errors": [],
+    "plantsAfter": 25141
+   },
+   "afterNarrowingScope": {
+    "underCrown": {
+     "sp.m-geranium-maculatum": 34
+    },
+    "unplantedCrown": 3
+   },
+   "usdaRecord": "cornus-sericea:exposure:usdaplants01",
+   "afterApplyingUSDAHere": {
+    "underCrown": {
+     "sp.m-geranium-maculatum": 19,
+     "sp.m-cornus-sericea": 4
+    },
+    "unplantedCrown": 1
+   },
+   "missing": [
+    [
+     "sp.m-packera-aurea",
+     "unknown",
+     "unknown"
+    ],
+    [
+     "sp.m-carex-radiata",
+     "unknown",
+     "unknown"
+    ],
+    [
+     "sp.sporobolus-heterolepis",
+     "unknown",
+     "unknown"
+    ]
+   ]
+  },
+  "F": {
+   "seasonMay": {
+    "total": 25141,
+    "known": 33,
+    "coverage": 0.001,
+    "blooming": 33,
+    "speciesKnown": 1,
+    "speciesUnknown": 53
+   }
+  }
+ },
+ "checks": [
+  {
+   "experiment": "F",
+   "name": "entry shows the site preset and the design choices",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "experiment": "F",
+   "name": "Empty beds starts a working design in the same workspace (plan, palette, brushes)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "experiment": "A",
+   "name": "Shift-click selects six beds before filling",
+   "ok": true,
+   "detail": "Dropseed matrix\n· 6 beds selected\nFill B1, B2, B3N, B3S, B4, B5\nClear\nPan: right-drag, or Space + drag"
+  },
+  {
+   "experiment": "A",
+   "name": "two assignments, each spanning several beds, cover all 15 main beds (no open bed area)",
+   "ok": true,
+   "detail": "[[\"Dropseed matrix \\u00b7 6 beds\", [\"bed.B1\", \"bed.B2\", \"bed.B3N\", \"bed.B3S\", \"bed.B4\", \"bed.B5\"]], [\"Colour blocks \\u00b7 9 beds\", [\"bed.C1\", \"bed.C2\", \"bed.A1\", \"bed.A2\", \"bed.A3N\", \"bed.A3S\", \"bed.C3\", \"bed.C4\", \"bed.A4\"]]]"
+  },
+  {
+   "experiment": "A",
+   "name": "real plants written to the working design (> 12,000 perennials)",
+   "ok": true,
+   "detail": "{'perennials': 16231, 'bulbs': 7112, 'areaM2': 2935.8, 'density': 5.529, 'species': 33, 'assignments': 2}"
+  },
+  {
+   "experiment": "A",
+   "name": "base-role proportions within 5 points of the target",
+   "ok": true,
+   "detail": "[[\"Long-lived matrix\", 0.72, 0.712], [\"Groups\", 0.28, 0.274], [\"Base blocks\", 1, 0.975]]"
+  },
+  {
+   "experiment": "A",
+   "name": "every sampled design plant is plantable and inside its own bed (paths, structures excluded)",
+   "ok": true,
+   "detail": "{'rows': 23343, 'checkedPlantable': 3334, 'notPlantable': 0, 'examples': [], 'zMismatch': 0, 'maxdz': 0}"
+  },
+  {
+   "experiment": "A",
+   "name": "every design plant record carries its DEM elevation (bilinear 3DEP, no display exaggeration)",
+   "ok": true,
+   "detail": "{'rows': 23343, 'checkedPlantable': 3334, 'notPlantable': 0, 'examples': [], 'zMismatch': 0, 'maxdz': 0}"
+  },
+  {
+   "experiment": "A",
+   "name": "3D renders the same design plants (rendered instances = live rows)",
+   "ok": true,
+   "detail": "[29452, 29452]"
+  },
+  {
+   "experiment": "B",
+   "name": "a curve drawn with the mouse becomes ONE assignment across ≥ 3 beds",
+   "ok": true,
+   "detail": "[{'id': 'as.3', 'type': 'line', 'label': 'Organic groups · curve drifts', 'mixId': 'mix.organic-groups', 'frozen': False, 'areaM2': 105.2, 'perennials': 672, 'bulbs': 270, 'density': 6.385, 'beds': ['bed.C1', 'bed.B1', 'bed.A1', 'bed.B3N'], 'outsideBedsM2': 30.584, 'validation': {'checked': 942, 'dropped': 0, 'why': {}, 'rule': 'inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer'}, 'ms': 130.4}]"
+  },
+  {
+   "experiment": "B",
+   "name": "no plant of the curve band on a path or outside a bed; the path part is reported as unplanted space",
+   "ok": true,
+   "detail": "{'plants': 942, 'onPathOrOutside': 0, 'outsideBedsM2': 30.584}"
+  },
+  {
+   "experiment": "B",
+   "name": "an area drawn across beds is clipped to the beds (one assignment, several beds, path area unplanted)",
+   "ok": true,
+   "detail": "[{'id': 'as.4', 'type': 'area', 'label': 'Native meadow · painted area', 'mixId': 'mix.native-meadow', 'frozen': False, 'areaM2': 163.6, 'perennials': 874, 'bulbs': 0, 'density': 5.341, 'beds': ['bed.C1', 'bed.B1', 'bed.B2', 'bed.RG'], 'outsideBedsM2': 133.903, 'validation': {'checked': 874, 'dropped': 0, 'why': {}, 'rule': 'inside its bed part · not in a path / structure · ≥ 0.55 × spacing from the nearest plant of the same layer'}, 'ms': 53.4}]"
+  },
+  {
+   "experiment": "C",
+   "name": "Under trees in TE: under the existing crown only species with shade knowledge applying in Detroit (Cornus sericea, USDA North America record)",
+   "ok": true,
+   "detail": "{'plants': 936, 'underCrown': 4, 'speciesUnderCrown': {'sp.m-cornus-sericea': 4}, 'unplanted': {'crown': 20}, 'rules': [{'rule': 'role-preference', 'label': 'Roles shifted by a site rule', 'effect': '2 cells took another role than without the rule'}, {'rule': 'crown-shade-knowledge', 'label': 'Under tree crowns: shade knowledge required', 'basis': 'design rule: under an existing tree crown (field.canopy, NAIP) only species whose recorded exposure includes part shade or shade, from a record that applies in Detroit', 'field': 'field.canopy', 'effect': '4 plants under crowns; 20 positions left un"
+  },
+  {
+   "experiment": "C",
+   "name": "positions under the crown with no qualified species are left unplanted, with the reason",
+   "ok": true,
+   "detail": "{'crown': 20}"
+  },
+  {
+   "experiment": "C",
+   "name": "plants keep ≥ 0.6 m from existing tree centres (approximate trunks)",
+   "ok": true,
+   "detail": "[5.78, 0.63]"
+  },
+  {
+   "experiment": "C",
+   "name": "the same mix in an East Meadow area with a crown: Cornus under the crown, unqualified positions unplanted, open ground planted with every role",
+   "ok": true,
+   "detail": "{'plants': 2052, 'underCrown': 33, 'speciesUnderCrown': {'sp.m-cornus-sericea': 33}, 'unplanted': {'blocked': 103, 'trunk': 4, 'crown': 131}, 'rules': [{'rule': 'role-preference', 'label': 'Roles shifted by a site rule', 'effect': '10 cells took another role than without the rule'}, {'rule': 'crown-shade-knowledge', 'label': 'Under tree crowns: shade knowledge required', 'basis': 'design rule: under an existing tree crown (field.canopy, NAIP) only species whose recorded exposure includes part shade or shade, from a record that applies in Detroit', 'field': 'field.canopy', 'effect': '33 plants "
+  },
+  {
+   "experiment": "C",
+   "name": "the East Meadow area: the boardwalk inside it stays unplanted",
+   "ok": true,
+   "detail": "{'blocked': 103, 'trunk': 4, 'crown': 131}"
+  },
+  {
+   "experiment": "C",
+   "name": "scenario OFF: species of every hydrology class are spread over the same ground (mean z of wet ≈ dry, within 0.05 m)",
+   "ok": true,
+   "detail": "{'plants': 7726, 'knownHydrology': 6187, 'meanZ': {'dry': 175.607, 'moist': 175.606, 'wet': 175.608}, 'n': {'dry': 3769, 'moist': 2011, 'wet': 407}}"
+  },
+  {
+   "experiment": "C",
+   "name": "scenario ON (hypothetical, flagged): species sort along the ground — mean z wet < moist < dry, wet ≥ 0.10 m below dry",
+   "ok": true,
+   "detail": "{'plants': 7737, 'knownHydrology': 5119, 'meanZ': {'dry': 175.717, 'moist': 175.609, 'wet': 175.48}, 'n': {'dry': 1593, 'moist': 2504, 'wet': 1022}}"
+  },
+  {
+   "experiment": "C",
+   "name": "the scenario is labelled hypothetical in the result and its basis is the official list attribute",
+   "ok": true,
+   "detail": "[{'rule': 'role-preference', 'label': 'Roles shifted by a site rule', 'effect': '1703 cells took another role than without the rule'}, {'rule': 'hyp-wetness', 'label': 'Hypothetical: lower ground is wetter', 'basis': 'hydrology zone per species, official meadow lists (S-OGD-MEADOW); wetness = relative elevation within the space (175.38–175.87 m), NOT site data', 'field': 'hyp.low-ground-wetter', 'hypothetical': True, 'effect': '0 same-role substitutions, 0 positions unplanted'}]"
+  },
+  {
+   "experiment": "C",
+   "name": "role rule on a real field: Dropseed emergents all ≥ 0.6 m from paths (distance-to-path, OSM)",
+   "ok": true,
+   "detail": "{'emergents': 88, 'minDistanceToPathM': 0.61, 'rule': 0.6}"
+  },
+  {
+   "experiment": "D",
+   "name": "Keep brush: B5 kept as a frozen snapshot",
+   "ok": true,
+   "detail": "[{'id': 'as.7', 'order': 5, 'frozen': True, 'created': '2026-11-27T05:20:41.168Z', 'params': {'seed': 0, 'densityScale': 1}, 'type': 'keep', 'geometry': {'type': 'MultiPolygon', 'coordinates': [[[[27.091, -11.497], [42.841, -11.497], [43.036, -11.238], [43.203, -10.93], [43.369, -10.622], [43.406, -10.281], [43.406, 17.719], [43.265, 18.033], [43.099, 18.341], [42.933, 18.649], [42.623, 18.717], [27.923, 18.717], [27.588, 18.693], [27.421, 18.385], [27.255, 18.077], [27.091, 17.768], [27.091, -11.497]]]]}, 'mixId': None, 'label': 'kept 2462 plants', 'frozenPlants': 2462}]"
+  },
+  {
+   "experiment": "D",
+   "name": "mix edit is held as pending changes and previewed (plants and role shares before → after) before it is applied",
+   "ok": true,
+   "detail": "{'pending': 2, 'text': '2 changes not applied yet\\nLong-lived matrix: share 0.72 → 0.5\\nGroups: + sp.echinacea-hula-dancer\\n\\nPreview: 24,192 → 25,121 plants in 1 space; the new plants are outlined on the plan.\\n\\nPreview\\nApply to 1 space\\nDiscard', 'roles': ['planted area: 72 % → 51 %', 'planted area: 27 % → 48 %', 'plants / m²: 0.08 → 0.07', 'drift coverage: 0.13 → 0.13']}"
+  },
+  {
+   "experiment": "D",
+   "name": "every non-frozen Dropseed space follows the new version (groups share rises, version + 2)",
+   "ok": true,
+   "detail": "[[{'id': 'matrix', 'name': 'Long-lived matrix', 'layer': 'base', 'unit': 'share of planted area', 'target': 0.72, 'actual': 0.717, 'count': 3511}, {'id': 'groups', 'name': 'Groups', 'layer': 'base', 'unit': 'share of planted area', 'target': 0.28, 'actual': 0.27, 'count': 1321}, {'id': 'emergents', 'name': 'Emergents', 'layer': 'overlay', 'unit': 'plants / m²', 'target': 0.11, 'actual': 0.076, 'count': 65}, {'id': 'bulbs', 'name': 'Spring bulbs', 'layer': 'ephemeral', 'unit': 'drift coverage', 'target': 0.12, 'actual': 0.133, 'count': 1817}], [{'id': 'matrix', 'name': 'Long-lived matrix', 'lay"
+  },
+  {
+   "experiment": "D",
+   "name": "the kept B5 snapshot is byte-identical after the mix edit",
+   "ok": true,
+   "detail": "[[2462, 1749648819], [2462, 1749648819]]"
+  },
+  {
+   "experiment": "D",
+   "name": "spaces of another mix (Colour blocks) are untouched",
+   "ok": true,
+   "detail": "[3426639566, 3426639566]"
+  },
+  {
+   "experiment": "D",
+   "name": "a local repaint changes nothing outside its area (plants outside identical)",
+   "ok": true,
+   "detail": "[[24632, 1148101423], [24632, 1148101423]]"
+  },
+  {
+   "experiment": "E",
+   "name": "before: Geranium maculatum has no exposure record (unknown) and is never planted under the crown",
+   "ok": true,
+   "detail": "['unknown', {'underCrown': {'sp.m-cornus-sericea': 4}, 'unplantedCrown': 20}]"
+  },
+  {
+   "experiment": "E",
+   "name": "adding a personal Detroit record makes the engine plant Geranium under the crown and leaves fewer positions unplanted",
+   "ok": true,
+   "detail": "{'underCrown': {'sp.m-geranium-maculatum': 19, 'sp.m-cornus-sericea': 4}, 'unplantedCrown': 1}"
+  },
+  {
+   "experiment": "E",
+   "name": "narrowing the knowledge scope to Detroit-only removes Cornus sericea (its record is for North America) from under the crown",
+   "ok": true,
+   "detail": "[{'underCrown': {'sp.m-cornus-sericea': 4}, 'unplantedCrown': 20}, {'underCrown': {'sp.m-geranium-maculatum': 34}, 'unplantedCrown': 3}]"
+  },
+  {
+   "experiment": "E",
+   "name": "applying the North America record to Detroit (a stored scope decision) brings Cornus back",
+   "ok": true,
+   "detail": "{'underCrown': {'sp.m-geranium-maculatum': 19, 'sp.m-cornus-sericea': 4}, 'unplantedCrown': 1}"
+  },
+  {
+   "experiment": "E",
+   "name": "missing knowledge is reported as unknown, never invented",
+   "ok": true,
+   "detail": "[['sp.m-packera-aurea', 'unknown', 'unknown'], ['sp.m-carex-radiata', 'unknown', 'unknown'], ['sp.sporobolus-heterolepis', 'unknown', 'unknown']]"
+  },
+  {
+   "experiment": "F",
+   "name": "Undo and Redo through the bar buttons",
+   "ok": true,
+   "detail": "[17840, 17843, 17840]"
+  },
+  {
+   "experiment": "F",
+   "name": "Reference ↔ Working design switch keeps both intact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "experiment": "F",
+   "name": "season feedback uses only applicable phenology records and reports the coverage",
+   "ok": true,
+   "detail": "{'total': 25141, 'known': 33, 'coverage': 0.001, 'blooming': 33, 'speciesKnown': 1, 'speciesUnknown': 53}"
+  },
+  {
+   "experiment": "F",
+   "name": "free language is not faked: without a connected model the request is reported as not interpreted",
+   "ok": true,
+   "detail": "Not interpreted. No language model is connected, so the request was not turned into operations. Write them on the right, or copy the context to an external model and paste its operations back."
+  },
+  {
+   "experiment": "F",
+   "name": "structured operations preview, then apply through the same engine",
+   "ok": true,
+   "detail": "['Preview (not applied): point group of 7 (Colour blocks) · edit Colour blocks: Emergents: density 0.18 → 0.24\\nplants 25141 → 25141', 'Applied: point group of 7 (Colour blocks) · edit Colour blocks: Emergents: density 0.18 → 0.24\\nplants 25141 → 25141']"
+  },
+  {
+   "experiment": "F",
+   "name": "after a reload the design document is restored and rebuilt to the same plants",
+   "ok": true,
+   "detail": "[17840, 17840]"
+  },
+  {
+   "experiment": "F",
+   "name": "no runtime errors",
+   "ok": true,
+   "detail": "[]"
+  }
+ ],
+ "shots": [
+  {
+   "file": "docs/screenshots/integrated/F01-entry.png",
+   "caption": "Entry: the Detroit site preset in the canonical axonometric, with the two ways to start designing"
+  },
+  {
+   "file": "docs/screenshots/integrated/F02-workspace.png",
+   "caption": "The design workspace: mixes on the left, brushes in the canvas toolbar, the 15 empty main beds hatched"
+  },
+  {
+   "file": "docs/screenshots/integrated/A01-select-beds.png",
+   "caption": "Experiment A: six B beds selected with the Fill brush (Shift-click)"
+  },
+  {
+   "file": "docs/screenshots/integrated/A02-filled-plan.png",
+   "caption": "Experiment A: the 15 main beds painted with two executable mixes — real plants, 2D plan"
+  },
+  {
+   "file": "docs/screenshots/integrated/A03-filled-axo.png",
+   "caption": "Experiment A: the same design in the axonometric 3D view, on the 3DEP terrain"
+  },
+  {
+   "file": "docs/screenshots/integrated/B01-curve-across-beds.png",
+   "caption": "Experiment B: one curve band (Organic groups, drifts) across B1, A1 and B3N; the gravel paths it crosses stay unplanted"
+  },
+  {
+   "file": "docs/screenshots/integrated/B02-area-across-beds.png",
+   "caption": "Experiment B: a lasso area (Native meadow) across C2, B2 and the path between them — clipped to the beds"
+  },
+  {
+   "file": "docs/screenshots/integrated/C01-under-trees-crowns.png",
+   "caption": "Experiment C: Under trees in TE and part of the East Meadow — under existing crowns only species with applicable shade knowledge; × = left unplanted (no qualified species), boardwalk excluded"
+  },
+  {
+   "file": "docs/screenshots/integrated/C02-wetness-on.png",
+   "caption": "Experiment C: Native meadow in the West Meadow with the HYPOTHETICAL 'lower ground is wetter' scenario — wet-listed species gather on low ground"
+  },
+  {
+   "file": "docs/screenshots/integrated/C03-wetness-off.png",
+   "caption": "Experiment C: the same space and mix with the scenario off — the same species intermingled regardless of elevation"
+  },
+  {
+   "file": "docs/screenshots/integrated/D01-mix-preview.png",
+   "caption": "Experiment D: Dropseed matrix edited (matrix 72 % → 50 %, + Echinacea pallida 'Hula Dancer' in the groups) — preview, not applied yet"
+  },
+  {
+   "file": "docs/screenshots/integrated/D02-mix-applied.png",
+   "caption": "Experiment D: after Apply — every Dropseed space updated, kept B5 and the Colour blocks spaces unchanged"
+  },
+  {
+   "file": "docs/screenshots/integrated/E01-knowledge-card.png",
+   "caption": "Experiment E: a Geranium maculatum planted under the TE crown after the personal Detroit exposure record — its knowledge card"
+  },
+  {
+   "file": "docs/screenshots/integrated/F03-reference.png",
+   "caption": "Reference comparison: the reconstructed reference planting in the same canvas (palette hidden, nothing changed)"
+  },
+  {
+   "file": "docs/screenshots/integrated/F04-feedback-season.png",
+   "caption": "Feedback: totals, target vs actual per mix, unfilled space, site rules, May — bloom known only where a record applies (coverage shown)"
+  },
+  {
+   "file": "docs/screenshots/integrated/F05-ops-preview.png",
+   "caption": "Ask · Operate: the structured design operations (the same interface the brushes use) previewed — hollow circles, nothing applied"
+  },
+  {
+   "file": "docs/screenshots/integrated/F06-final-axo.png",
+   "caption": "The iterated design in 3D"
+  },
+  {
+   "file": "docs/screenshots/integrated/F07-final-plan.png",
+   "caption": "The iterated design in plan"
+  }
+ ],
+ "finished": "2026-11-26 22:28:18",
+ "summary": "39/39 checks passed"
+}

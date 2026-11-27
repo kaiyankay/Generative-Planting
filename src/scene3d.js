@@ -354,10 +354,12 @@ export class Scene3D {
       const L = s.instanceLayer(i); const k = L + '|' + sp.formProxy;
       let g = groups.get(k); if (!g) groups.set(k, (g = [])); g.push(i);
       const sc = t.sc[i]; const woody = L === 'veg.trees' || L === 'veg.shrubs' || L === 'siteveg.trees';
-      const spread = sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.8));
+      // design plants (k = 1) carry their planned spacing in sc: a render proxy as wide as the spacing, nominal height
+      const design = t.k[i] === 1; const hj = design ? 0.88 + (((i * 2246822519) >>> 0) % 1000) / 1000 * 0.24 : 1;
+      const spread = design ? (woody ? Math.max(sc, sp.nominalSpreadM * 0.8) : L === 'veg.bulbs' ? sp.nominalSpreadM : sc * 1.2) : sp.nominalSpreadM * sc * (woody ? 1 : (L === 'veg.bulbs' ? 1 : 1.8));
       dummy.position.set(x, this.hY(x, y) - 0.03, -y);
       dummy.rotation.set(0, t.rot[i], 0);
-      dummy.scale.set(spread, Math.max(0.05, sp.nominalHeightM * sc), spread);
+      dummy.scale.set(spread, Math.max(0.05, sp.nominalHeightM * (design ? hj : sc)), spread);
       dummy.updateMatrix(); dummy.matrix.toArray(this.iMat, i * 16);
       const jit = 0.94 + (((i * 2654435761) >>> 0) % 1000) / 1000 * 0.12;
       col.set(speciesLeaf(sp)); this.iLeaf[i * 3] = col.r * jit; this.iLeaf[i * 3 + 1] = col.g * jit; this.iLeaf[i * 3 + 2] = col.b * jit;
@@ -392,17 +394,45 @@ export class Scene3D {
     this.lodNear = false;
     this.plantBuildRev = s.revision;
   }
+  // V3: the month in 3D — design plants known to flower keep their flower colour, known not in flower show leaf only,
+  // unknown flowering turns neutral grey (never shown as flowering). Same Map as the plan (speciesIndex → true|false|null).
+  setPhenology(ph) {
+    this._ph = ph || null; if (!this.iFlower || !this.plantMeshes) return;
+    if (this.active === false) { this._phStale = true; return; } this._phStale = false;
+    const t = this.s.inst; if (!this._iFlower0 || this._iFlower0.length !== this.iFlower.length) { this._iFlower0 = this.iFlower.slice(); this._iLeaf0 = this.iLeaf.slice(); } else { this.iFlower.set(this._iFlower0); this.iLeaf.set(this._iLeaf0); }
+    let n = 0;
+    if (this._ph) for (let i = 0; i < t.n; i++) {
+      if (!t.alive[i] || t.k[i] !== 1) continue; const b = this._ph.get(t.sp[i]); if (b === true) continue; n++;
+      if (b === false) { this.iFlower[i * 3] = this.iLeaf[i * 3]; this.iFlower[i * 3 + 1] = this.iLeaf[i * 3 + 1]; this.iFlower[i * 3 + 2] = this.iLeaf[i * 3 + 2]; }
+      else { for (let k = 0; k < 3; k++) { this.iFlower[i * 3 + k] = 0.6; this.iLeaf[i * 3 + k] = 0.52; } }
+    }
+    for (const m of this.plantMeshes) { const g = m.geometry; const F = g.attributes.iFlower.array, L = g.attributes.iLeaf.array; const list = m.userData.list || []; for (let j = 0; j < list.length; j++) { const i = list[j]; for (let k = 0; k < 3; k++) { F[j * 3 + k] = this.iFlower[i * 3 + k]; L[j * 3 + k] = this.iLeaf[i * 3 + k]; } } g.attributes.iFlower.needsUpdate = true; g.attributes.iLeaf.needsUpdate = true; }
+    this.phenologyChanged = n; this._dirty = true;
+  }
+  // V3 Explore: only the instances that pass a filter (the design's plants, trees around it); null = everything again
+  setScopeFilter(fn) {
+    this._scopeFn = fn || null; if (!this.plantMeshes) return;
+    if (this.active === false) { this._scopeStale = true; return; } this._scopeStale = false;
+    for (const m of this.plantMeshes) {
+      if (m.userData.lod === 'near') { m.userData.allFull ||= m.userData.all; m.userData.all = fn ? m.userData.allFull.filter(fn) : m.userData.allFull; continue; }
+      m.userData.full ||= m.userData.list.slice(); this._fill(m, fn ? m.userData.full.filter(fn) : m.userData.full);
+    }
+    this._applySelection(); this._lodDone = false; this._updateLOD(true); this._dirty = true;
+  }
   _disposePlants() {
     for (const m of this.plantMeshes || []) { this.scene.remove(m); m.geometry.dispose(); m.dispose && m.dispose(); }
     this.plantMeshes = []; this.nearMeshes = [];
   }
   // model changed (draft patch, scenario switch): rebuild plant geometry + ground, keep camera / selection / view
   _onModel() {
+    if (this.deferWhenHidden && this.active === false && this._built3d) { this._stale = true; return; } // V3 workflow (opt-in): rebuilt when the 3D view is shown, not on every edit in Plan; the classic app rebuilds at once
+    this._built3d = true; this._stale = false;
     const t0 = performance.now();
     this._disposePlants(); this._plants();
     this._applyLayers(); this._applySelection(); this._applyExplodePositions(); if (this.layersView) this._cropFill(true);
     this._lodDone = false; this._lastMove = performance.now(); this._updateLOD(true);
     if (this._plates) this._repaintPlates();
+    this._iFlower0 = null; if (this._ph) this.setPhenology(this._ph); if (this._scopeFn) this.setScopeFilter(this._scopeFn);
     this.lastRebuildMs = performance.now() - t0; this._dirty = true;
   }
   _fill(mesh, idxs, twin = false) {
@@ -749,10 +779,20 @@ export class Scene3D {
     if (this.onLabels) this.onLabels();
   }
 
+  // a design tool (brush) takes the left button: OrbitControls keep wheel zoom and right-drag rotate
+  setTool(tool) {
+    this.tool = tool || null;
+    if (this.controls && this.controls.mouseButtons) { if (!this._mb) this._mb = { ...this.controls.mouseButtons }; this.controls.mouseButtons.LEFT = this.tool ? null : this._mb.LEFT; }
+  }
   _bind() {
-    const c = this.c; let down = null;
-    c.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+    const c = this.c; let down = null; let toolDown = false;
+    c.addEventListener('pointerdown', (e) => {
+      if (this.tool && e.button === 0 && !this.layersView) { const p = this._ground(e); toolDown = true; this.tool.down && this.tool.down(p ? p[0] : null, p ? p[1] : null, e); return; }
+      down = { x: e.clientX, y: e.clientY };
+    });
+    c.addEventListener('pointermove', (e) => { if (toolDown && this.tool) { const p = this._ground(e); if (p) this.tool.move && this.tool.move(p[0], p[1], e); } });
     c.addEventListener('pointerup', (e) => {
+      if (toolDown) { toolDown = false; const p = this._ground(e); this.tool && this.tool.up && this.tool.up(p ? p[0] : null, p ? p[1] : null, e); return; }
       if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4; down = null;
       if (moved) return;
       if (this.layersView) { const g = this.plateAt(e); if (this.onPlateClick) this.onPlateClick(g, e); return; }
@@ -764,6 +804,7 @@ export class Scene3D {
     c.addEventListener('dblclick', (e) => { if (this.layersView && this.onPlateOpen) { const g = this.plateAt(e); if (g) this.onPlateOpen(g); } });
     c.addEventListener('pointermove', (e) => {
       if (e.buttons) return;
+      if (this.tool && this.tool.hover) { const p = this._ground(e); if (p) this.tool.hover(p[0], p[1], e); }
       if (this._hovT && performance.now() - this._hovT < 50) return; this._hovT = performance.now();
       if (this.layersView) { const g = this.plateAt(e); if (g !== this._hovPlate) { this._hovPlate = g; this.onPlateHover && this.onPlateHover(g); c.style.cursor = g ? 'pointer' : ''; } return; }
       const p = this._ground(e); if (p) { this.picker.hoverAt(p[0], p[1], this._pxPerM()); this.onCursor && this.onCursor(p[0], p[1]); }
@@ -787,7 +828,7 @@ export class Scene3D {
 
   setActive(a) {
     const was = this.active; this.active = a;
-    if (a) { this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
+    if (a) { if (this._stale) this._onModel(); if (this._phStale) this.setPhenology(this._ph); if (this._scopeStale) this.setScopeFilter(this._scopeFn); this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
   }
   _loop() {
     if (!this.active) return;

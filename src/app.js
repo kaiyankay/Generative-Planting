@@ -14,12 +14,20 @@ import { getRaster } from './paint.js';
 import { renderInspector, renderAbout } from './inspector.js';
 import { ComputeSpace } from './compute.js';
 import { createConditions } from './conditions.js';
+import { PlantLibrary } from './design/library.js';
+import { DesignDoc } from './design/doc.js';
+import { DesignOps, OPS } from './design/ops.js';
+import { feedback, season, compareReference } from './design/feedback.js';
+import { createDesignUI } from './design/ui.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const params = new URLSearchParams(location.search);
 const DEV = params.get('dev') === '1';
 const EMBED = params.get('embed') === '1';
+// Integrated Prototype: the Define → Structure → Compose → Explore workflow is the default; ?classic=1 opens the previous
+// site-setup + brush prototype (kept, not in the main path)
+const FLOW = params.get('classic') !== '1' && !EMBED;
 const FALLBACK_PRESET = { id: 'detroit', name: 'Oudolf Garden Detroit', location: 'Belle Isle, Detroit, Michigan', base: 'data/detroit/' };
 
 async function loadPreset() {
@@ -35,9 +43,16 @@ async function main() {
   // computational space (levels 1–4): built from the site, never from the planting design
   let csCfg = null; try { const r = await fetch('data/compute.json'); if (r.ok) csCfg = await r.json(); } catch { /* built-in defaults */ }
   const cs = new ComputeSpace(store, csCfg); store.compute = cs;
+  // design layer: plant library (site attributes + Planting Intelligence knowledge), mixes, design document, operations
+  const getJson = async (u) => { try { const r = await fetch(u); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [mixFile, libFile] = await Promise.all([getJson(preset.base + 'mixes.json'), getJson(preset.base + 'design-library.json')]);
+  const library = new PlantLibrary(store, { place: (libFile && libFile.place) || 'place:detroit', library: libFile });
+  const doc = new DesignDoc({ store, cs, library, site: preset, initialMixes: (mixFile && mixFile.mixes) || [] });
+  const dops = new DesignOps(doc);
   const picker = new Picker(store);
   const app = $('#app');
   if (EMBED) app.classList.add('embed');
+  if (FLOW) app.classList.add('flow');
   $('#siteName').textContent = preset.name;
   const plan = new Plan2D($('#c2d'), store, picker);
   let scene = null;
@@ -47,7 +62,7 @@ async function main() {
   } catch (err) { console.error('3D unavailable', err); }
 
   const st = { view: scene ? '3d' : 'plan', explode: false, design: 'reference', filter: 'all', solo: null, soloFrom: null, autoOn: [], plateFocus: null, panel: false, inspectorOpen: false, entered: true };
-  const ctx = { store, plan, scene, picker, st, dev: DEV, cs, app };
+  const ctx = { store, plan, scene, picker, st, dev: DEV, cs, app, doc, dops, library, preset, mixFile };
   const bus = new EventTarget();
   const emit = (type, detail) => { bus.dispatchEvent(new CustomEvent(type, { detail })); if (EMBED && window.parent !== window) { try { window.parent.postMessage({ gp: 'event', type, detail: JSON.parse(JSON.stringify(detail ?? null)) }, '*'); } catch { /* not serialisable */ } } };
   ctx.emit = emit;
@@ -98,9 +113,12 @@ async function main() {
     const want = d === 'working' ? 'working' : 'reference';
     if (store.scenario !== want) store.setScenario(want);
     renderDesign(); renderStatus(); renderPanel(); syncUrl();
+    document.querySelector('.where .module').textContent = d === 'working' && doc.active() ? 'Planting design' : 'Site setup';
+    if (ctx.dui) ctx.dui.refresh();
     emit('design', { design: d, draft: store.draftInfo() });
     return true;
   }
+  ctx.toggleReference = () => setDesign(st.design === 'working' ? 'reference' : 'working');
   function renderDesign() {
     const has = !!store.draft;
     document.querySelectorAll('.design .seg button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.d === st.design && (b.dataset.d === 'reference' || has))));
@@ -116,10 +134,11 @@ async function main() {
   document.addEventListener('click', (e) => { if (!menu.hidden && !e.target.closest('#designMenu')) closeMenu(); });
   menu.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
     closeMenu(); const a = b.dataset.a;
-    if (a === 'reset') { if (confirm('Undo every change in this working design? It goes back to how it started. The reference is not affected.')) { store.resetDraft(); setDesign('working'); } }
+    if (a === 'reset') { if (confirm('Undo every change in this working design? It goes back to how it started. The reference is not affected.')) { if (doc.active()) doc.start({ from: store.draft.from, scope: store.draft.scope }); else store.resetDraft(); setDesign('working'); } }
     else if (a === 'export') exportDraft();
     else if (a === 'new') openDraftDialog();
-    else if (a === 'discard') { if (confirm('Delete the working design? This cannot be undone unless you exported it. The reference is not affected.')) { store.discardDraft(); setDesign('reference'); } }
+    else if (a === 'discard') { if (confirm('Delete the working design? This cannot be undone unless you exported it. The reference is not affected.')) { store.discardDraft(); doc.discard(); setDesign('reference'); } }
+    else if (a === 'knowledge') window.open('knowledge/index.html', '_blank', 'noopener');
   }));
   function exportDraft() {
     const data = store.exportDraft(); if (!data) return;
@@ -149,13 +168,13 @@ async function main() {
     dlg.querySelector('[data-a=cancel]').onclick = () => { dlg.hidden = true; renderDesign(); };
     const go = (from) => {
       const scope = from === 'blank' ? [...def, ...[...dlg.querySelectorAll('input[data-u]:checked')].map((i) => i.dataset.u)] : undefined;
-      const r = store.createDraft({ from: from === 'blank' ? 'blank' : 'reference', scope });
+      const r = doc.start({ from: from === 'blank' ? 'blank' : 'reference', scope });
       if (!r.ok) { const e = dlg.querySelector('.err'); e.textContent = `Could not start the design: ${r.error}`; e.hidden = false; return; }
       dlg.hidden = true; setDesign('working');
     };
     dlg.querySelector('[data-a=copy]').onclick = () => go('copy');
     dlg.querySelector('[data-a=blank]').onclick = () => go('blank');
-    const bs = dlg.querySelector('[data-a=blanksel]'); if (bs) bs.onclick = () => { const r = store.createDraft({ from: 'blank', scope: selBeds }); if (!r.ok) { const e = dlg.querySelector('.err'); e.textContent = `Could not start the design: ${r.error}`; e.hidden = false; return; } dlg.hidden = true; setDesign('working'); };
+    const bs = dlg.querySelector('[data-a=blanksel]'); if (bs) bs.onclick = () => { const r = doc.start({ from: 'blank', scope: selBeds }); if (!r.ok) { const e = dlg.querySelector('.err'); e.textContent = `Could not start the design: ${r.error}`; e.hidden = false; return; } dlg.hidden = true; setDesign('working'); };
     dlg.querySelector('[data-a=copy]').focus();
   }
 
@@ -172,7 +191,7 @@ async function main() {
   // ================================================================ status (always says which design, and how certain)
   function renderStatus() {
     const n = $('#note'); const d = store.draftInfo();
-    let t = st.design === 'working' && d ? `Working design, ${d.from === 'blank' ? 'started from blank beds' : 'started from the reference'}: ${d.changes} change${d.changes === 1 ? '' : 's'}, kept in this browser.` : 'Reference: schematic reconstruction, not a survey.';
+    let t = st.design === 'working' && d ? (doc.active() ? `Working design, ${d.from === 'blank' ? 'started from blank beds' : 'started from the reference'}: ${doc.state.assignments.length} painted space${doc.state.assignments.length === 1 ? '' : 's'}, kept in this browser.` : `Working design, ${d.from === 'blank' ? 'started from blank beds' : 'started from the reference'}: ${d.changes} change${d.changes === 1 ? '' : 's'}, kept in this browser.`) : 'Reference: schematic reconstruction, not a survey.';
     if (st.filter === 'terrain') t += ' Showing terrain only.'; else if (st.filter === 'site') t += ' Planting hidden.';
     n.textContent = t;
   }
@@ -382,7 +401,7 @@ async function main() {
   let shiftDown = false;
   window.addEventListener('pointerdown', (e) => { shiftDown = e.shiftKey; }, true);
   const bedOfSel = (sel) => { if (!sel) return null; const o = store.getObject(sel.id); if (!o) return null; const id = o.type === 'bed' ? o.id : o.bedId || null; return id && cs.designBeds().some((b) => b.id === id) ? id : null; };
-  const showCard = (sel) => { if (st.an.open) { $('#inspector').hidden = true; return; } renderInspector(store, sel, ctx); };
+  const showCard = (sel) => { if (st.an.open || (ctx.claimsSelection && ctx.claimsSelection(sel))) { $('#inspector').hidden = true; return; } renderInspector(store, sel, ctx); };
   store.on('selection', (sel) => {
     if (st.an.open && sel) {
       const b = bedOfSel(sel) || (sel.at ? (cs.designBeds().find((q) => store.getBedAt(sel.at[0], sel.at[1])?.id === q.id) || {}).id : null);
@@ -433,7 +452,7 @@ async function main() {
     else if (e.key === '3' && scene) setExplode(true);
     else if ((e.key === 'e' || e.key === 'E') && scene) setExplode(!st.explode);
     else if (e.key === 'l' || e.key === 'L') setPanel(!st.panel);
-    else if (e.key === 'c' || e.key === 'C') { if (st.an.open) cond.close(); else { const b = bedOfSel(store.selection); if (b) ctx.openConditions([b]); } }
+    else if (!FLOW && (e.key === 'c' || e.key === 'C')) { if (st.an.open) cond.close(); else { const b = bedOfSel(store.selection); if (b) ctx.openConditions([b]); } }
   });
 
   // ================================================================ URL state
@@ -461,7 +480,7 @@ async function main() {
   function startBlank(scope, { confirmReplace = true } = {}) {
     const sc = cs.resolveScope(scope); if (!sc.ok) return sc;
     if (confirmReplace && store.draft && store.draft.ops.length && !confirm(`Replace your working design (${store.draft.ops.length} change${store.draft.ops.length === 1 ? '' : 's'}) with a new one in which ${sc.bedIds.map((b) => b.replace('bed.', '')).join(', ')} ${sc.bedIds.length === 1 ? 'is' : 'are'} empty? The reference is not affected.`)) return { ok: false, error: 'cancelled' };
-    const r = store.createDraft({ from: 'blank', scope: sc.bedIds });
+    const r = doc.start({ from: 'blank', scope: sc.bedIds });
     if (r.ok) setDesign('working', { silent: true });
     if (st.an.open) cond.render();
     return r;
@@ -524,9 +543,32 @@ async function main() {
     showField: (id) => cond.show(id ? 'field' : null, id), showZones: () => cond.show('zones'), hideConditionDisplay: () => cond.show(null),
     setConditionRules: (rules) => cond.setRules(rules), startBlank: (scope) => startBlank(scope, { confirmReplace: false }),
     enter: () => enterSite(), entered: () => st.entered,
+    // ---- design (Integrated Design Prototype): mixes, assignments, brushes and AI share these calls
+    _designNS: {
+      start: (o) => { const r = doc.start(o || {}); if (r.ok) setDesign('working', { silent: true }); return r; },
+      active: () => doc.active(), state: () => (doc.state ? JSON.parse(JSON.stringify(doc.state)) : null),
+      operations: () => JSON.parse(JSON.stringify(OPS)),
+      run: (ops, o) => { const r = dops.run(ops, o); if (r.ok && !r.preview && st.design !== 'working') setDesign('working', { silent: true }); if (r.preview) { const { comp, target, state, ...rest } = r; return { ...rest, plantsByPlacement: target.map((p) => [p.id, p.plants.length]) }; } return r; },
+      preview: (ops) => api.design.run(ops, { preview: true }),
+      runAsync: (ops) => dops.runAsync(ops),
+      undo: () => doc.undo(), redo: () => doc.redo(), canUndo: () => doc.past.length > 0, canRedo: () => doc.future.length > 0,
+      feedback: () => { const f = feedback(doc); f.open = f.open.map(({ geometry, ...o }) => o); return f; },
+      season: (m) => season(doc, m), compare: (beds) => compareReference(doc, beds || cs.designBeds().filter((b) => 'ABC'.includes(b.props.style)).map((b) => b.id)),
+      context: (o) => dops.context(o), assignments: () => (doc.state ? doc.state.assignments.map(({ snapshot, ...a }) => ({ ...a, frozenPlants: snapshot ? snapshot.plants.x.length : null })) : []),
+      mixes: () => (doc.state ? JSON.parse(JSON.stringify(doc.state.mixes)) : JSON.parse(JSON.stringify((mixFile && mixFile.mixes) || []))),
+      generated: (id) => { const a = doc.state && doc.state.assignments.find((q) => q.id === id); if (!a) return null; const g = doc.generated(a); return { diag: g.diag, plants: g.plants.x.length, region: g.region }; },
+      plants: (id) => { const comp = doc.compose(); const c = comp.assignments.find((q) => q.a.id === id); if (!c) return null; const P = c.gen.plants; return c.keep.map((k) => ({ x: P.x[k], y: P.y[k], z: store.sampleElevation(P.x[k], P.y[k]), speciesId: P.sp[k], role: P.role[k], spacingM: P.size[k], bedId: P.bed[k], layer: P.layer[k] })); },
+      library: { load: (o) => library.loadKnowledge(o), status: () => library.status, profile: (id) => library.profile(id), policy: () => [...library.policy.accept], setAccept: (l) => library.setAccept(l), revision: () => library.revision },
+      _doc: doc, _ops: dops, _lib: library,
+    },
     _store: store, _plan: plan, _scene: scene, _ui: st, _cs: cs,
   };
+  // GP.design() still answers which design is shown ('reference' | 'working'); its properties are the design calls
+  Object.assign(api.design, api._designNS); delete api._designNS;
   window.GP = api;
+  ctx.api = api;
+  ctx.dui = FLOW ? { refresh() {}, setTool() {}, flow: true } : createDesignUI(ctx);
+  Object.assign(ctx, { setObs, fit, setPanel, renderPanel, setExplode, exitSolo, goBack });
   // embedded in a workflow: the parent calls the same API by message; only plain-data methods are exposed
   const BRIDGE = new Set(['site', 'sites', 'getObject', 'getBedAt', 'queryObjects', 'query', 'sampleConditions', 'getPlantingContext', 'plantableAt', 'speciesTally', 'instancesOfPlacement',
     'design', 'setDesign', 'createDraft', 'blankScopePreview', 'draftInfo', 'draftSummary', 'applyPatch', 'resetDraft', 'discardDraft', 'exportDraft', 'importDraft', 'diffDraft',
@@ -542,7 +584,8 @@ async function main() {
   });
 
   // ================================================================ initial state (URL; Phase 01.1 URLs still work)
-  const restored = store.restorePersisted();
+  const restored = FLOW ? null : store.restorePersisted(); // the workflow rebuilds the draft from its own project state
+  if (!FLOW && store.draft) { const rr = doc.restore(); if (!rr.ok) console.warn('design document not restored', rr); }
   st._noSync = true;
   const pv = params.get('view'); const pm = params.get('mode');
   for (const tok of (params.get('layers') || '').split(',').filter(Boolean)) { const id = tok.replace(/^[+-]/, ''); if (store.layerState[id]) store.setLayer(id, { visible: !tok.startsWith('-'), external: true }); }
@@ -579,21 +622,38 @@ async function main() {
   }
   if (params.get('about') === '1') $('#btnSite').click();
   // first visit without any state in the URL: the site preset is shown first, then entered
-  if (!EMBED && ![...params.keys()].length) {
+  if (!FLOW && !EMBED && ![...params.keys()].filter((k) => !['kdb', 'knowledge', 'classic'].includes(k)).length) {
     st.entered = false; app.classList.add('at-entry'); // not 'entry': that is the card's own class
     const e = $('#entry'); const beds = cs.designBeds(); const main = beds.filter((b) => 'ABC'.includes(b.props.style)).length;
     e.innerHTML = `<p class="kicker">Site preset</p><h1>${esc(preset.name)}</h1><p class="loc">${esc(preset.location || '')}</p>
       <ul class="facts"><li><b>${main}</b> planting beds${beds.length > main ? `, plus ${beds.length - main} meadow, rain-garden and edge beds` : ''}</li><li><b>1 m</b> terrain grid (USGS 3DEP)</li><li>Reference planting, reconstructed from the designer's plans</li></ul>
-      <button class="btn primary" id="btnEnter">Open site</button>`;
-    e.hidden = false; $('#btnEnter').onclick = enterSite; $('#btnEnter').focus();
+      <p class="d-entry-q">Design on this site</p>
+      <div class="d-entry-c"><button class="btn primary" id="btnStartBlank" title="The 15 main beds are emptied; terrain, paths, trees and bed outlines stay">Empty beds</button><button class="btn" id="btnStartRef" title="Start from the reconstructed planting and paint over it">From the reference</button></div>
+      <button class="lnk" id="btnEnter">Open site</button>`;
+    e.hidden = false; $('#btnEnter').onclick = enterSite; $('#btnStartBlank').focus();
+    const startFrom = (from) => { enterSite(); const r = doc.start({ from }); if (r.ok) { setDesign('working', { silent: true }); setObs('plan'); fit(); ctx.dui.setTool('fill'); } };
+    $('#btnStartBlank').onclick = () => startFrom('blank'); $('#btnStartRef').onclick = () => startFrom('reference');
   }
   if (params.get('newdesign') === '1') openDraftDialog();
+  if (params.get('demo') === '1') {
+    doc.start({ from: 'blank' });
+    dops.run([{ op: 'fill', beds: ['bed.B1', 'bed.B2', 'bed.B3N', 'bed.B3S', 'bed.B4', 'bed.B5'], mix: 'mix.dropseed-matrix' }, { op: 'fill', beds: ['bed.A1', 'bed.A2', 'bed.A3N', 'bed.A3S', 'bed.A4', 'bed.C1', 'bed.C2', 'bed.C3', 'bed.C4'], mix: 'mix.block-colour' },
+      { op: 'line', coordinates: [[-48, 6], [-42, 8.5], [-36, 9.5], [-30, 9], [-24, 10.5], [-18, 12], [-12, 12.5], [-6, 13]], widthM: 3, mode: 'drifts', mix: 'mix.organic-groups' }, { op: 'fill', beds: ['bed.TE'], mix: 'mix.under-trees' }], { label: 'demo design' });
+    setDesign('working', { silent: true }); if (pv !== 'axo' && pv !== '3d') setObs('plan'); fit();
+  }
   st._noSync = false; syncUrl();
   renderDesign(); renderStatus();
   if (restored && st.design === 'reference') $('#btnWorking').title = 'Your working design from last time is kept. Open it.';
+  if (FLOW) { const { startFlow } = await import('./flow/shell.js'); await startFlow(ctx); }
   $('#loading').classList.add('done');
   document.documentElement.dataset.ready = '1';
   emit('ready', { site: preset.id, api: api.api });
+  if (params.get('knowledge') !== '0') library.loadKnowledge({ db: params.get('kdb') || undefined }).then((r) => {
+    document.documentElement.dataset.knowledge = r.ok ? 'loaded' : 'unavailable';
+    if (!r.ok) { const k = document.querySelector('#designMenu [data-a=knowledge]'); if (k) k.hidden = true; } // a checkout without the knowledge module
+    if (r.ok && doc.active()) doc.commit(doc.clone(), { label: 'plant knowledge loaded', history: false });
+    emit('knowledge', r);
+  });
 }
 
 // a reproducible demo change for screenshots (?draft=demo): one real B1 group replaced in a copy of the reference

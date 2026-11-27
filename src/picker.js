@@ -53,6 +53,7 @@ export class Picker {
 
   // what a click would select now (used for hover feedback too)
   resolve(x, y, scale) {
+    if (this.pre && !this.scope) { const r = this.pre(x, y, scale); if (r) return r; } // design mode: painted spaces first
     const s = this.s; const cur = s.selection;
     if (this.scope) return this._resolveScoped(x, y, scale);
     const w = this._woodyAt(x, y);
