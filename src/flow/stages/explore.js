@@ -18,14 +18,21 @@ export function enter(F) {
   F.u.inspect = null; F.u.panelOpen = false; F.u.cells.clear();
   setClip(F); F.applyPhenology(); fitResult(F, { animate: false });
 }
-export function leave(F) { F.plan.clipFn = null; F.u.inspect = null; F.plan.request(); }
+export function leave(F) { F.plan.clipFn = null; F.u.inspect = null; if (F.scene && F.scene.setScopeFilter) F.scene.setScopeFilter(null); F.plan.request(); F.repaint(); }
 // the design extent: scope beds' union, buffered 2 m so the real path gaps between beds stay readable
 function scopeArea(F) {
   const ids = F.scopeBeds(); const key = ids.join(','); if (F._scopeArea && F._scopeArea.key === key) return F._scopeArea.g;
   const parts = []; for (const id of ids) { const g = F.bedGeom(id); if (!g) continue; parts.push(g); for (const poly of g.coordinates) { const ring = poly[0]; if (ring && ring.length > 2) { const b = bufferLine(ring.concat([ring[1]]), 4); if (b) parts.push(b); } } }
   let g = null; try { g = union(parts); } catch { g = null; } F._scopeArea = { key, g }; return g;
 }
-function setClip(F) { const g = F.u.context ? null : scopeArea(F); F.plan.clipFn = g ? (ctx, T) => { ctx.beginPath(); tracePoly(ctx, g, T); ctx.clip('nonzero'); } : null; F.plan.request(); }
+function setClip(F) {
+  const g = F.u.context ? null : scopeArea(F); F.plan.clipFn = g ? (ctx, T) => { ctx.beginPath(); tracePoly(ctx, g, T); ctx.clip('nonzero'); } : null; F.plan.request();
+  // 3D: the design's plants and the trees around them only (terrain and built forms stay as ground); the ground texture
+  // outside the scope is veiled by the flow painter
+  if (F.scene && F.scene.setScopeFilter) { const s = F.store; const b = F.boundsOf(F.scopeBeds().map((id) => F.bedGeom(id))); F.scene.setScopeFilter(g && b ? (i) => { if (s.inst.k[i] === 1) return true; const L = s.instanceLayer(i); if (L !== 'veg.trees' && L !== 'siteveg.trees') return false; const x = s.ix(i), y = s.iy(i); return x > b[0] - 4 && x < b[2] + 4 && y > b[1] - 4 && y < b[3] + 4; } : null); }
+  F.repaint();
+}
+export function scopeVeil(F) { return F.u.context ? null : (F._scopeArea && F._scopeArea.g) || null; }
 function fitResult(F, opts) { const b = F.boundsOf(F.scopeBeds().map((id) => F.bedGeom(id))); if (b) F.focusBounds(b, 3, opts); }
 
 export function bottom() { return { msg: '', next: null }; }
@@ -105,7 +112,7 @@ export function inspector(F) {
     const rows = Ld.members.map((q) => ({ id: q.plantId, plan: q[key] || 0, act: (L.sp.get(q.plantId) || 0) / L.n, n: L.sp.get(q.plantId) || 0, role: q.role, sp: q.spacingM }));
     for (const [id, n] of L.sp) if (!rows.some((r) => r.id === id)) rows.push({ id, plan: 0, act: n / L.n, n, role: '(swapped in)', extra: true });
     const area = g.frags.filter((q) => q.f.mixId === L.mixId).reduce((s, q) => s + ((st.instances[q.cellId].byFrag[q.f.id] || {}).areaM2 || 0), 0) || g.areaM2;
-    h += `<details ${byLayer.size <= 2 ? 'open' : ''}><summary><b>${esc(Ld.name)}</b> <span class="tag">${L.slot}</span> <span class="mono xs">${L.n} · ${(L.n / Math.max(0.01, area)).toFixed(2)} / m² · ${esc((ARRANGEMENTS[Ld.arrangement] || {}).name || Ld.arrangement)}</span></summary>
+    h += `<details ${byLayer.size <= 2 ? 'open' : ''}><summary>${g.mixes.length > 1 ? `<span class="sw" style="background:${esc(mix.color)}" title="${esc(mix.name)}"></span>` : ''}<b>${esc(Ld.name)}</b> <span class="tag">${L.slot}</span> <span class="mono xs">${L.n} · ${(L.n / Math.max(0.01, area)).toFixed(2)} / m² · ${esc((ARRANGEMENTS[Ld.arrangement] || {}).name || Ld.arrangement)}</span></summary>
       <table class="members compact"><tr><th>plant</th><th>role</th><th>planned</th><th>placed</th><th class="num">n</th></tr>${rows.sort((a, b) => b.n - a.n).map((r) => `<tr${r.extra ? ' class="dim"' : ''}><td><i>${esc(K.traits(r.id).name)}</i></td><td class="xs">${esc(ROLE_DEF[r.role] ? ROLE_DEF[r.role].name : r.role)}</td><td>${pbar(r.plan)}</td><td>${pbar(r.act, r.act + 0.06 < r.plan ? 'short' : '')}</td><td class="num">${r.n}</td></tr>`).join('')}</table>
       <p class="xs dim">light: ${L.fit.match} fit · ${L.fit.conflict} conflict · ${L.fit.unknown} unknown${L.sub ? ` · ${L.sub} swapped for a layer-mate` : ''}${L.ls.a ? ' · from your assumption' : L.ls.p ? ' · from the crown proxy' : ''}</p></details>`;
   }

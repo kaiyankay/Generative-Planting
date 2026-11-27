@@ -51,7 +51,7 @@ export function mixCard(F, mix, { active = false, compare = false, uses = 0 } = 
     ${lightProfile(F, mix)}
     ${active ? layerBars(mix) : ''}
     <footer><span class="sys">${esc(S ? S.name : 'Custom')}</span><span class="mono xs">${n} species · ${mix.density.value}/m²${uses ? ` · ${uses} cells` : ''}</span>${ill ? `<span class="tag illus" title="flowering of ${ill} members is an illustrative teaching value">illus. ${ill}</span>` : ''}</footer>
-    <div class="acts"><button class="lnk xs" data-edit="${esc(mix.id)}">recipe</button><button class="lnk xs" data-cmp="${esc(mix.id)}" aria-pressed="${compare}">compare</button></div>
+    <div class="acts"><button class="lnk xs" data-edit="${esc(mix.id)}">recipe</button><button class="lnk xs" data-cmp="${esc(mix.id)}" aria-pressed="${compare}">compare</button><button class="lnk xs" data-know="${esc(mix.id)}">plants</button></div>
   </article>`;
 }
 export function roleName(r) { return ROLE_DEF[r] ? ROLE_DEF[r].name : r; }

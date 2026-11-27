@@ -1,3 +1,26 @@
+# Generative Planting V3.1 · Integrated experience, refined and distilled
+
+> **Branch `feature/integrated-prototype` (PR #1, not merged; `main` and GitHub Pages unchanged).** V3.1 refines V2 (kept as
+> tag `v2/integrated-prototype-6fd9001`): the introduction is unchanged; each stage has its own working view (month,
+> performance and timeline only in Explore); the design **scope** (confirmed beds: click, Shift-click, Shift-drag, presets)
+> is separate from the camera **focus** (a bed, Overview, breadcrumb) and the camera fits the work automatically; the live
+> brush evaluates hover and stroke with ONE function (bed edge as the only hard inset, spacing across cells, light =
+> your assumption > crown proxy > unknown, conflicts swapped / skipped / explicitly allowed, soft edges, blocked reasons at
+> the cursor) and redraws only what it touches (19k-plant design: frame p95 283 → 17 ms on this Mac); **Explore** is its
+> own result space (scope only, Plan · 3D · Diagram · Performance, months in 2D and 3D, a community inspector computed from
+> the real instances); **Knowledge** reads the project's Detroit plants first (Plants · Seasons · Communities · Relations ·
+> Notebook), with Metro Vancouver records only on request and labelled.
+>
+> Run: `python3 -I tools/flow_server.py --port 8796` → http://127.0.0.1:8796/ · tests: `python3 -I -u tools/v3_unit.py`
+> (engine, 71) · `python3 -I -u tools/v3_e2e.py --serve <snapshot>` (real-mouse journey) · `python3 -I -u tools/v3_perf.py
+> --serve <snapshot> --label <name> --gpu` (brush trace) · `python3 tools/v3_report.py` · read first: [HANDOFF.md](HANDOFF.md) (中文),
+> [docs/integrated/V3_REPORT.md](docs/integrated/V3_REPORT.md), [docs/integrated/ALGORITHMS_V3.md](docs/integrated/ALGORITHMS_V3.md),
+> [docs/integrated/DESIGN_CHANGES_V3.md](docs/integrated/DESIGN_CHANGES_V3.md), [docs/qa/V3_E2E.md](docs/qa/V3_E2E.md).
+> No language model is called (Rules mode, labelled); Detroit flowering / pollinator / light values in use come mostly from
+> the switchable, labelled **illustrative teaching layer**.
+>
+> ![Live brush: frames while the mouse button is held](docs/screenshots/v3/live-stroke-strip.jpg)
+
 # Generative Planting V2 · Integrated Design Experience
 
 > **Branch `feature/integrated-prototype` (PR #1, not merged; `main` and GitHub Pages unchanged).** V2 builds on the

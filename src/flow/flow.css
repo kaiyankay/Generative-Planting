@@ -341,10 +341,10 @@ table.members.compact td { padding: 2px 4px; }
 .k-sys-col { padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; } .k-sys-col.off { opacity: .55; background: transparent; } .k-sys-col header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; } .k-sys-col header b { font: 600 16px var(--display); }
 .k-role { padding: 8px 0; border-top: 1px solid var(--line); } .k-role .ln { display: block; font-weight: 600; font-size: 12.5px; } .k-comp { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--mc); } .k-comp .mn { font-size: 11.5px; color: var(--ink-2); }
 .k-comp .cbar { display: flex; height: 10px; gap: 1px; margin: 3px 0; border-radius: 2px; overflow: hidden; } .k-comp .cbar i { cursor: pointer; } .k-comp ul { list-style: none; padding: 0; margin: 2px 0 0; columns: 2; } .k-comp li { cursor: pointer; } .k-comp li:hover { text-decoration: underline; }
-.k-lens { padding: 0 0 10px; border: 0; } .k-banner { margin: 0 0 8px; padding: 7px 12px; border-radius: 8px; background: var(--caramel-soft); color: var(--caramel-ink); font-size: 12.5px; }
+.k-lens { padding: 0 0 10px; border: 0; } .k-reltab { margin-left: auto; } .k-graph .k-mx, .k-graph .k-tb { margin: 6px; } .k-banner { margin: 0 0 8px; padding: 7px 12px; border-radius: 8px; background: var(--caramel-soft); color: var(--caramel-ink); font-size: 12.5px; }
 .k-graph { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 6px; } .k-legend { margin-top: 8px; border: 0; background: none; }
 .k-edge { margin-top: 10px; padding: 10px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; }
-.k-side header { display: flex; align-items: baseline; justify-content: space-between; } .k-side h4 { margin: 14px 0 6px; font: 600 13px var(--display); } .k-roles { list-style: none; padding: 0; } .k-roles li { margin: 3px 0; }
+.k-side header { display: flex; align-items: baseline; justify-content: space-between; } .k-side h4 { margin: 14px 0 6px; font: 600 13px var(--display); } .k-roles { list-style: none; padding: 0; } .k-roles li { margin: 3px 0; } .k-roles .sw { margin-right: 6px; } .k-roles .mono { font-size: 11px; }
 .k-pending { margin-top: 12px; } .k-nb { padding: 12px 22px 0; gap: 12px; } .k-recs { font-size: 13px; padding-left: 16px; }
 @media (max-width: 900px) {
   .f-crumb { max-width: calc(100% - 32px); } .f-hud { right: 10px; left: 10px; flex-wrap: wrap; border-radius: 14px; }

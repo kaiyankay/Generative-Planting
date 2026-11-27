@@ -12,7 +12,7 @@ import { generateCells, linkAcrossBeds, overlapMap, mpArea, inside, bbox } from 
 import { computePerformance, summarize } from './performance.js';
 import { editMix, makeMix, validateMix, migrateMix, finalize } from './mix.js';
 import { candidates, validate, makeEnv, PlantIndex, targetCount, slotOfRole } from './fill.js';
-import { diff, clip, union } from '../design/geo.js';
+import { diff, clip, union, safeClip, safeDiff, safeUnion } from '../design/geo.js';
 
 export const SCHEMA = 'gp.project/2';
 const KEY = 'gp.flow.project.v2', KEY_V1 = 'gp.flow.project.v1', SNAP_KEY = 'gp.flow.snapshots.v2';
@@ -305,12 +305,12 @@ export class Project {
    * Commit a brush stroke staged by the live brush (brush.js): per cell, the plants it added and the ids it removed, and
    * the swept footprint. Target slots are replaced inside the footprint only. mixId null = eraser.
    */
-  applyStroke({ mixId, slots, footprint, cells, label, stats = null }) {
+  applyStroke({ mixId, slots, footprint, cells, label, stats = null, edge = 'hard' }) {
     const mix = mixId ? this.mix(mixId) : null; if (mixId && !mix) return { ok: false, error: 'no mix' };
     const ids = Object.keys(cells).filter((c) => this.state.cells[c] && !this.state.locks[c]); if (!ids.length) return { ok: false, error: 'the stroke touched no unfrozen cell' };
     const r = this.commit(label || (mix ? `brush ${mix.name}: ${ids.length} cell${ids.length === 1 ? '' : 's'}` : `erase in ${ids.length} cell${ids.length === 1 ? '' : 's'}`), (st) => {
       for (const c of ids) {
-        const cell = st.cells[c]; const part = clip(cell.geometry, footprint); const s = cells[c];
+        const cell = st.cells[c]; const part = safeClip(cell.geometry, footprint, null); const s = cells[c]; // (if the boolean fails: no fragment geometry change, the plants are still applied)
         const a = this._ensureA(st, c); const inst = this._ensureI(st, c);
         const rm = new Set(s.remove || []); inst.plants = inst.plants.filter((p) => !rm.has(p.id));
         // existing fragments lose the footprint in the target slots (split by slot when needed)
@@ -318,15 +318,15 @@ export class Project {
         for (const f of a.fragments) {
           const hit = f.slots.filter((x) => slots.includes(x)); if (!hit.length) { next.push(f); continue; }
           const keep = f.slots.filter((x) => !slots.includes(x)); if (keep.length) next.push({ ...f, slots: keep });
-          const rest = part ? diff(f.geometry || cell.geometry, part) : (f.geometry || cell.geometry);
+          const rest = part ? safeDiff(f.geometry || cell.geometry, part) : (f.geometry || cell.geometry);
           if (rest && mpArea(rest) > 0.05) { const nf = { ...f, id: keep.length ? fragId() : f.id, slots: hit, geometry: rest }; if (nf.id !== f.id) for (const p of inst.plants) if (p.frag === f.id && hit.includes(p.slot)) p.frag = nf.id; next.push(nf); }
         }
         a.fragments = next;
         if (mix && part && mpArea(part) > 0.01) {
           const same = a.fragments.find((f) => f.mixId === mixId && f.mixVersion === mix.version && f.origin === 'brush' && f.slots.join() === slots.join());
           const add = (s.add || []).map((p) => ({ ...p })); const exists = new Set(inst.plants.map((p) => p.id));
-          if (same) { same.geometry = union([same.geometry || cell.geometry, part]); for (const p of add) p.frag = same.id; }
-          else { const f = { id: fragId(), mixId, mixVersion: mix.version, slots: slots.slice(), geometry: part, origin: 'brush', seed: 1, at: new Date().toISOString() }; a.fragments.push(f); for (const p of add) p.frag = f.id; }
+          if (same) { same.geometry = safeUnion([same.geometry || cell.geometry, part]); for (const p of add) p.frag = same.id; }
+          else { const f = { id: fragId(), mixId, mixVersion: mix.version, slots: slots.slice(), geometry: part, origin: 'brush', seed: 1, at: new Date().toISOString(), ...(edge === 'soft' ? { edge: 'soft' } : {}) }; a.fragments.push(f); for (const p of add) p.frag = f.id; }
           inst.plants.push(...add.filter((p) => !exists.has(p.id)));
           const fid = add.length ? add[0].frag : (same && same.id); if (fid) { const area = mpArea(a.fragments.find((f) => f.id === fid).geometry || cell.geometry); const layers = mix.layers.filter((L) => slots.includes(L.slot)).map((L) => L.id); const mine = inst.plants.filter((p) => p.frag === fid); inst.byFrag[fid] = { target: +targetCount(mix, area, layers).toFixed(1), placed: mine.length, rejected: (stats && stats[c]) || { edge: 0, trunk: 0, clearance: 0, light: 0 }, niche: countFit(mine), areaM2: +area.toFixed(2) }; }
         }
@@ -401,7 +401,7 @@ export class Project {
     if (a.fragments.some((f) => !f.geometry)) return cell.areaM2;
     const key = a.fragments.map((f) => f.id + ':' + (f.geometry ? JSON.stringify(f.geometry).length : 0)).join('|');
     this._fp ||= new Map(); const hit = this._fp.get(cell.id); if (hit && hit.key === key) return hit.area;
-    let area = cell.areaM2; try { const u = union(a.fragments.map((f) => f.geometry)); const c = u && clip(cell.geometry, u); area = c ? Math.min(cell.areaM2, mpArea(c)) : 0; } catch { area = cell.areaM2; }
+    let area = cell.areaM2; try { const u = union(a.fragments.map((f) => f.geometry)); const c = u && clip(cell.geometry, u); area = c ? Math.min(cell.areaM2, mpArea(c)) : 0; } catch { area = Math.min(cell.areaM2, a.fragments.reduce((s2, f) => s2 + mpArea(f.geometry), 0)); } // fallback: sum of fragments (may double count overlaps; capped at the cell)
     this._fp.set(cell.id, { key, area: +area.toFixed(2) }); return +area.toFixed(2);
   }
   totals() { let plants = 0; const bySp = {}; for (const [c, i] of Object.entries(this.state.instances)) { plants += i.plants.length; for (const p of i.plants) bySp[p.plantId] = (bySp[p.plantId] || 0) + 1; } return { plants, species: Object.keys(bySp).length, bySpecies: bySp, cells: this.allCells().length, assigned: Object.values(this.state.instances).filter((i) => i && i.plants.length).length }; }

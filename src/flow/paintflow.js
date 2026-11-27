@@ -47,7 +47,7 @@ export function paintFlow(F, c, T, o, phase) {
     return;
   }
   if (stage === 'define') return paintDefine(F, c, T, o, phase, tex, sc);
-  if (stage === 'structure') { paintStructure(F, c, T, o, phase, tex, sc, cells, lw); if (!tex && phase === 'top' && F.u.env) paintConditions(F, c, T, o, sc, 'light'); return; }
+  if (stage === 'structure') { if (!tex && phase === 'ground' && F.u.env) paintConditions(F, c, T, o, sc, 'light'); if (!tex && phase === 'top') quietOutside(F, c, T, o); paintStructure(F, c, T, o, phase, tex, sc, cells, lw); return; }
   if (stage === 'explore') return paintExplore(F, c, T, o, phase, tex, sc, cells);
   // compose: cells tinted by their dominant mix; unplanted hatched; frozen marked
   if (phase === 'ground') {
@@ -55,13 +55,15 @@ export function paintFlow(F, c, T, o, phase) {
       if (!inView(o, c0.geometry)) continue; const inst = st.instances[c0.id];
       if (inst && inst.plants.length) { const m = P.mix(inst.mixId); if (m) fillG(c, T, c0.geometry, rgba(m.color, tex ? 0.16 : 0.11)); }
       else if (st.acknowledged[c0.id]) fillG(c, T, c0.geometry, 'rgba(255,255,255,.55)');
-      else hatch(c, T, c0.geometry, rgba(INK, tex ? 0.22 : 0.08), tex ? 10 : 7, tex ? 1.2 : 0.6);
+      else if (!F.u.env || tex) hatch(c, T, c0.geometry, rgba(INK, tex ? 0.22 : 0.08), tex ? 10 : 7, tex ? 1.2 : 0.6); // with Conditions on, the fit texture is the ground
     }
     if (u.autoPreview) for (const p of u.autoPreview.proposals) { const c0 = st.cells[p.cellId]; const m = P.mix(p.mixId); if (c0 && m) { fillG(c, T, c0.geometry, rgba(m.color, 0.42)); strokeG(c, T, c0.geometry, INK, tex ? 2.5 : 1.2, tex ? [] : [5, 3]); } }
+    // conditions / mix fit under the plants: the plants stay readable over their ground
+    if (!tex && F.u.env) { const mix = F.brush.active && F.brush.active.mixId ? P.mix(F.brush.active.mixId) : null; paintConditions(F, c, T, o, sc, mix && F.u.envView === 'fit' ? 'fit' : 'light', mix); }
     return;
   }
   // top
-  if (!tex && F.u.env) { const mix = F.brush.active && F.brush.active.mixId ? P.mix(F.brush.active.mixId) : null; paintConditions(F, c, T, o, sc, mix && F.u.envView === 'fit' ? 'fit' : 'light', mix); }
+  quietOutside(F, c, T, o);
   for (const c0 of cells) { if (!inView(o, c0.geometry)) continue; strokeG(c, T, c0.geometry, rgba(INK, tex ? 0.55 : sc > 6 ? 0.3 : 0.2), tex ? 1.6 : 0.6); if (st.locks[c0.id] && !tex) { hatch(c, T, c0.geometry, rgba(OLIVE, 0.35), 9, 0.8); strokeG(c, T, c0.geometry, OLIVE, 1.6, [2, 3]); } }
   if (tex) return;
   // the focused beds read as the work: their outline is stronger, the rest of the scope stays quieter
@@ -76,9 +78,14 @@ export function paintFlow(F, c, T, o, phase) {
   if (sc > 2.6) for (const c0 of cells) if (inView(o, c0.geometry) && (sc > 14 || u.cells.has(c0.id))) { const inst = st.instances[c0.id]; let conflict = 0; if (inst) for (const p of inst.plants) if (p.fit === 'conflict') { conflict++; break; } label(c, T, c0, sc, (st.locks[c0.id] ? '❄ ' : '') + (conflict ? '! ' : '') + c0.n, { color: conflict ? WARN : INK, min: 3.5 }); }
 }
 
+// beds outside the design scope recede (still visible, not part of the work)
+function quietOutside(F, c, T, o) {
+  const scope = new Set(F.scopeBeds()); for (const b of F.P.eligibleBeds()) { if (scope.has(b.id)) continue; const g = bedGeom(F, b.id); if (g && inView(o, g)) fillG(c, T, g, rgba(PAPER, 0.62)); }
+}
 // ---------------------------------------------------------------- Explore: the result itself (scope only, context optional)
 function paintExplore(F, c, T, o, phase, tex, sc, cells) {
   const P = F.P, st = P.state, u = F.u; const scope = F.scopeBeds();
+  if (tex && phase === 'top') { const g = !F.u.context && F._scopeArea && F._scopeArea.g; if (g) { c.save(); c.beginPath(); c.rect(-1e5, -1e5, 2e5, 2e5); tracePoly(c, g, T); c.fillStyle = rgba(PAPER, 0.86); c.fill('evenodd'); c.restore(); } return; } // 3D ground: the scope, the rest veiled
   if (phase === 'ground') {
     if (tex) return;
     for (const c0 of cells) { if (!inView(o, c0.geometry)) continue; const inst = st.instances[c0.id]; if (!(inst && inst.plants.length)) { if (st.acknowledged[c0.id]) fillG(c, T, c0.geometry, 'rgba(255,255,255,.6)'); else hatch(c, T, c0.geometry, rgba(INK, 0.1), 6, 0.6); } }
@@ -88,6 +95,15 @@ function paintExplore(F, c, T, o, phase, tex, sc, cells) {
   for (const id of scope) { const g = bedGeom(F, id); if (g && inView(o, g)) strokeG(c, T, g, rgba(INK, 0.75), 1.2); }
   if (sc > 9) for (const c0 of cells) if (inView(o, c0.geometry)) strokeG(c, T, c0.geometry, rgba(INK, 0.14), 0.6);
   for (const c0 of cells) if (st.locks[c0.id] && inView(o, c0.geometry)) strokeG(c, T, c0.geometry, OLIVE, 1.4, [2, 3]);
+  // the month, readable at any zoom: plants KNOWN to flower get a dot in their flower colour (unknown and not-in-flower
+  // stay as the site painter draws them: grey / leaf). Same instances, no positions changed.
+  if (F.mode() === 'plan' && F.store.view.phenology) {
+    const m = F.month(); const K = F.K; const col = new Map(); const vb = o.vb; const r = Math.max(1.3, Math.min(4.5, 0.16 * sc));
+    for (const c0 of cells) { const inst = st.instances[c0.id]; if (!inst || !inView(o, c0.geometry)) continue;
+      for (const p of inst.plants) { if (vb && (p.x < vb[0] || p.x > vb[2] || p.y < vb[1] || p.y > vb[3])) continue; if (K.floweringIn(p.plantId, m) !== 'yes') continue;
+        let cc = col.get(p.plantId); if (!cc) { const sp = F.store.getObject(p.plantId); cc = (sp && sp.displayFlower) || CAR; col.set(p.plantId, cc); }
+        const q = T(p.x, p.y); c.beginPath(); c.arc(q[0], q[1], r, 0, 7); c.fillStyle = cc; c.fill(); } }
+  }
   // bed codes come from the site painter (one label per bed)
   paintInspectMark(F, c, T, sc);
 }
@@ -105,7 +121,9 @@ function paintConditions(F, c, T, o, sc, view, mix = null) {
   const beds = st.stage === 'define' ? (F.u.candidate ? [...F.u.candidate] : F.scopeBeds()) : F.scopeBeds();
   if (view === 'fit' && mix) {
     const fit = F.fitMap ? F.fitMap(mix) : null; if (!fit) return;
-    for (const c0 of cells) { if (!inView(o, c0.geometry)) continue; const f = fit.get(c0.id); if (!f) continue; texture(c, T, c0.geometry, f.cat, sc); if (f.cat !== 'unknown' && f.cat !== 'blocked' && f.known < 0.5) dots(c, T, c0.geometry, rgba(INK, 0.3), 7); }
+    for (const c0 of cells) { if (!inView(o, c0.geometry)) continue; const f = fit.get(c0.id); if (!f) continue;
+      if (f.cat === 'partial') { const k = f.conflict / Math.max(0.01, f.match + f.conflict); fillG(c, T, c0.geometry, rgba(OLIVE, 0.3 * (1 - k))); hatch(c, T, c0.geometry, rgba(RUST, 0.25 + 0.6 * k), Math.round(12 - 7 * k), 1.3); } // denser rust = larger share in conflict
+      else texture(c, T, c0.geometry, f.cat, sc); }
     // blocked: the paths inside the scope's extent and frozen cells (a separate code from a light conflict)
     const vb = o.vb; for (const p of P.pathGeoms()) { const b = p.g._bb || (p.g._bb = bbox(p.g)); if (vb && (b[2] < vb[0] || b[0] > vb[2] || b[3] < vb[1] || b[1] > vb[3])) continue; texture(c, T, p.g, 'blocked', sc); }
     return;

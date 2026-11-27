@@ -140,7 +140,7 @@ export async function startFlow(ctx) {
     scopeBeds() { const s = P.state.brief.scopeBeds; return s && s.length ? s.slice() : Object.keys(P.state.beds); },
     scopeName() { const st = P.state.strategy; const nm = st ? ({ main: 'Main Garden', site: 'Whole site', meadows: 'Meadows', style: 'Block + Matrix beds', custom: 'My selection' }[st.scope] || 'Design scope') : 'Design scope'; return nm; },
     fitScope(opts) { const ids = F.scopeBeds(); if (ids.length) F.focusBeds(ids, opts); },
-    focusOn(bedIds, opts) { F.u.focus = bedIds && bedIds.length ? bedIds.slice() : null; sv().focus = F.u.focus; if (F.u.focus) F.focusBeds(F.u.focus, opts); else F.fitScope(opts); renderCrumb(); F.repaint(); },
+    focusOn(bedIds, opts) { F.u.focus = bedIds && bedIds.length ? bedIds.slice() : null; sv().focus = F.u.focus; renderLegend(); if (F.u.focus) F.focusBeds(F.u.focus, opts); else F.fitScope(opts); renderCrumb(); F.repaint(); },
     overview() { F.focusOn(null); if (F.mod().onOverview) F.mod().onOverview(F); },
     // ---- live brush (Compose). mixId null = eraser
     brush: null,
@@ -149,7 +149,7 @@ export async function startFlow(ctx) {
       if (!opts) { if (F.brush.active || F.brush.stroke) { F.brush.stop(); plan.tool = null; if (scene) scene.setTool(null); document.getElementById('c2d').style.cursor = ''; hideChip(); renderHud(); plan.requestOverlay(); F.repaint(); } return; }
       F.brush.start(opts); plan.tool = brushTool; if (scene) scene.setTool(null);
       if (ctx.st.view !== 'plan') F.setMode('plan', { quiet: true });
-      document.getElementById('c2d').style.cursor = 'none'; renderHud(); renderLegend(); plan.requestOverlay();
+      document.getElementById('c2d').style.cursor = 'none'; renderHud(); renderLegend(); renderInsp(); plan.requestOverlay();
     },
     setPaint(mixId) { F.setBrush(mixId ? { mixId, slots: null } : null); }, // V1 name
     openKnowledge(focus) { setWorkspace('knowledge', focus); },
@@ -280,7 +280,7 @@ export async function startFlow(ctx) {
     const tools = []; if (stage !== 'explore') { tools.push(`<button class="d-tg" id="flayers" aria-pressed="${!document.getElementById('layers').hidden}" title="Site layers (L)"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></span><span class="lb">Layers</span></button>`); tools.push(`<button class="d-tg" id="fenv" aria-pressed="${!!F.u.env}" title="Light: crown proxy, your assumptions, unknown — and how the selected mix fits"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span><span class="lb">Conditions</span></button>`); }
     $('#ftools').innerHTML = tools.join(''); $('#ftools').hidden = !tools.length;
     const fl = $('#flayers'); if (fl) fl.onclick = () => { document.getElementById('btnLayers')?.click(); setTimeout(renderDock, 30); };
-    const fe = $('#fenv'); if (fe) fe.onclick = () => { F.u.env = !F.u.env; renderDock(); renderLegend(); F.repaint(); };
+    const fe = $('#fenv'); if (fe) fe.onclick = () => { F.u.env = !F.u.env; renderDock(); renderLegend(); if (F.u.env && ctx.st.view === 'plan' && P.state.stage !== 'define') F.focusOn(F.u.focus); F.repaint(); }; // the legend takes room: the work is re-framed beside it
     renderTime();
     $('#fact').hidden = stage === 'explore';
     if (stage === 'explore') return;
@@ -366,7 +366,9 @@ export async function startFlow(ctx) {
     selfDraw: true, when: (e) => e.shiftKey && P.state.stage === 'define',
     down(x, y) { F._boxing = { a: [x, y], b: [x, y] }; plan.requestOverlay(); },
     move(x, y) { if (F._boxing) { F._boxing.b = [x, y]; plan.requestOverlay(); } },
-    up() { const bx = F._boxing; setTimeout(() => { F._boxing = null; }, 0); if (!bx) return; const b = [Math.min(bx.a[0], bx.b[0]), Math.min(bx.a[1], bx.b[1]), Math.max(bx.a[0], bx.b[0]), Math.max(bx.a[1], bx.b[1])]; if ((b[2] - b[0]) * (b[3] - b[1]) < 1) { plan.requestOverlay(); return; } if (Define.boxSelect) Define.boxSelect(F, b); plan.requestOverlay(); },
+    up(x, y) { const bx = F._boxing; setTimeout(() => { F._boxing = null; }, 0); if (!bx) return; const b = [Math.min(bx.a[0], bx.b[0]), Math.min(bx.a[1], bx.b[1]), Math.max(bx.a[0], bx.b[0]), Math.max(bx.a[1], bx.b[1])]; const px = (b[2] - b[0]) * plan.view.scale + (b[3] - b[1]) * plan.view.scale;
+      if (px < 6) { Define.onCanvasClick(F, x ?? bx.a[0], y ?? bx.a[1], null, { shift: true }); plan.requestOverlay(); return; } // a Shift-click, not a box
+      if (Define.boxSelect) Define.boxSelect(F, b); plan.requestOverlay(); },
   };
   F.boxTool = boxTool;
 
@@ -434,7 +436,7 @@ export async function startFlow(ctx) {
   if (params.get('resume') === '1' && stored) F.resume(); else sv('define').mode = 'plan';
   F.render();
   if (params.get('intro') !== '0' && params.get('resume') !== '1') showIntro(F);
-  else if (params.get('resume') !== '1') { F.u.entry = !!F.u.resume; P.setStage('define'); Define.enter(F, { fresh: true }); F.render(); F.focusBounds(plan.gardenBounds(), 0, { animate: false }); } // never wipes a saved design
+  else if (params.get('resume') !== '1') { F.u.entry = !!F.u.resume; P.setStage('define'); ctx.setObs('plan'); Define.enter(F, { fresh: true }); F.render(); F.focusBounds(plan.gardenBounds(), 0, { animate: false }); } // never wipes a saved design
   return F;
 }
 
@@ -448,8 +450,8 @@ function legendHtml(F) {
   const mix = F.brush.active && F.brush.active.mixId ? P.mix(F.brush.active.mixId) : null; const view = mix && F.u.envView === 'fit' ? 'fit' : 'light';
   const targets = envTargets(F);
   let h = `<header><b>Conditions</b>${mix ? `<span class="seg sm"><button data-ev="light" aria-pressed="${view === 'light'}">Light</button><button data-ev="fit" aria-pressed="${view === 'fit'}">Mix fit</button></span>` : ''}</header>`;
-  if (view === 'light') h += `<ul class="lg"><li><i class="sw l-sun"></i>Sun <span class="dim">assumed</span></li><li><i class="sw l-part"></i>Part shade <span class="dim">assumed</span></li><li><i class="sw l-shade"></i>Shade <span class="dim">assumed</span></li><li><i class="sw l-proxy"></i>Under a crown <span class="dim">probable shade · proxy</span></li><li><i class="sw l-unk"></i>Unknown <span class="dim">no data</span></li></ul>`;
-  else h += `<p class="xs"><b style="color:${esc(mix.color)}">${esc(mix.name)}</b></p><ul class="lg"><li><i class="sw f-match"></i>fits — no member known to conflict</li><li><i class="sw f-partial"></i>partly — some members swapped or skipped</li><li><i class="sw f-conflict"></i>conflict</li><li><i class="sw f-unk"></i>unknown light · or dots over a fit: most members unrecorded</li><li><i class="sw f-blocked"></i>blocked — path, frozen, outside scope</li></ul>`;
+  if (view === 'light') h += `<ul class="lg"><li><i class="sw l-sun"></i>sun <span class="dim">· assumed</span></li><li><i class="sw l-part"></i>part shade <span class="dim">· assumed</span></li><li><i class="sw l-shade"></i>shade <span class="dim">· assumed</span></li><li title="NAIP crowns: probable shade, inferred"><i class="sw l-proxy"></i>under a crown <span class="dim">· proxy</span></li><li><i class="sw l-unk"></i>unknown</li></ul>`;
+  else h += `<p class="xs"><b style="color:${esc(mix.color)}">${esc(mix.name)}</b></p><ul class="lg"><li title="No member with a light record conflicts here"><i class="sw f-match"></i>fits</li><li title="Some members conflict: they are swapped for a layer-mate or skipped; denser stripes = a larger share"><i class="sw f-partial"></i>partly</li><li title="No member with a light record fits: skipped unless you allow conflicts"><i class="sw f-conflict"></i>conflict</li><li title="No light here, or no member with a light record (the share of unrecorded members is in the chip)"><i class="sw f-unk"></i>unknown</li><li title="Path, frozen cell, outside the scope"><i class="sw f-blocked"></i>blocked</li></ul>`;
   if (targets.length && st !== 'define') { const cur = new Set(targets.map((b) => P.lightAssumption(b) || '')); const one = cur.size === 1 ? [...cur][0] : null; h += `<div class="assume"><span class="xs">Assume light in <b>${targets.map((b) => esc(P.bedCode(b))).join(', ')}</b></span><span class="seg sm">${[['sun', 'Sun'], ['part', 'Part'], ['shade', 'Shade'], ['', 'Unknown']].map(([k, n]) => `<button data-la="${k}" aria-pressed="${one === k}">${n}</button>`).join('')}</span></div>`; }
   else if (st !== 'define') h += '<p class="xs dim">Focus a bed to set a light assumption.</p>';
   return h;

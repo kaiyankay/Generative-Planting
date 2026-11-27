@@ -7,9 +7,19 @@ export { areaOf, bboxOf, pointInGeom, polysOf };
 const C = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
 const MP = (c) => (c && c.length ? { type: 'MultiPolygon', coordinates: c } : null);
 
-export function clip(a, b) { if (!a || !b) return null; return MP(polygonClipping.intersection(C(a), C(b))); }
-export function diff(a, ...bs) { if (!a) return null; const L = bs.filter(Boolean); if (!L.length) return a.type === 'MultiPolygon' ? a : MP(C(a)); return MP(polygonClipping.difference(C(a), ...L.map(C))); }
-export function union(list) { const L = list.filter(Boolean); if (!L.length) return null; if (L.length === 1) return L[0].type === 'MultiPolygon' ? L[0] : MP(C(L[0])); return MP(polygonClipping.union(...L.map(C))); }
+// V3: polygon-clipping can fail on near-degenerate input ("Unable to complete output ring"). Each boolean retries once on
+// coordinates snapped to 1 mm (vertices de-duplicated); if that also fails, the caller's fallback is used (callers that
+// cannot fall back still get the exception, as before).
+const snap = (c) => c.map((poly) => poly.map((ring) => { const out = []; for (const [x, y] of ring) { const q = [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000]; const l = out[out.length - 1]; if (!l || l[0] !== q[0] || l[1] !== q[1]) out.push(q); } if (out.length && (out[0][0] !== out[out.length - 1][0] || out[0][1] !== out[out.length - 1][1])) out.push(out[0].slice()); return out; }).filter((r) => r.length >= 4)).filter((p) => p.length);
+const retry = (fn, args) => { try { return fn(...args); } catch (e) { geoFailures.n++; try { return fn(...args.map(snap)); } catch (e2) { geoFailures.unrecovered++; throw e2; } } };
+export const geoFailures = { n: 0, unrecovered: 0 };
+export function clip(a, b) { if (!a || !b) return null; return MP(retry(polygonClipping.intersection, [C(a), C(b)])); }
+export function diff(a, ...bs) { if (!a) return null; const L = bs.filter(Boolean); if (!L.length) return a.type === 'MultiPolygon' ? a : MP(C(a)); return MP(retry(polygonClipping.difference, [C(a), ...L.map(C)])); }
+export function union(list) { const L = list.filter(Boolean); if (!L.length) return null; if (L.length === 1) return L[0].type === 'MultiPolygon' ? L[0] : MP(C(L[0])); return MP(retry(polygonClipping.union, L.map(C))); }
+// safe forms for the design state: never throw; the fallback is stated where it is used
+export function safeClip(a, b, fallback = null) { try { return clip(a, b); } catch { return fallback; } }
+export function safeDiff(a, b) { try { return diff(a, b); } catch { return a; } }
+export function safeUnion(list) { try { return union(list); } catch { const L = list.filter(Boolean); return L.length ? { type: 'MultiPolygon', coordinates: L.flatMap(C) } : null; } }
 export const area = (g) => (g ? areaOf(g) : 0);
 
 // circle as a polygon (n sides)

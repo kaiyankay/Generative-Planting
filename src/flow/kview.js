@@ -107,13 +107,15 @@ export class KnowledgeView {
     return h + '</div><p class="xs dim k-foot">Systems and role names: course slides P34 (planting layers by functional roles) and P41 (blocks · emergents · ephemerals). Shares are the recipe’s; a role belongs to the plant inside that mix only.</p>';
   }
   relationsView() {
-    const R = this.R; R.lens = this.rel; R.scope = this.scope === 'mix' ? 'mix' : this.scope === 'all' ? 'all' : 'project'; R.q = this.q; R.focus = this.sel ? { id: this.sel } : R.focus;
-    let h = `<div class="k-lens">${REL.map(([k, n]) => `<button class="chip" data-rel="${k}" aria-pressed="${this.rel === k}">${n}</button>`).join('')}</div>`;
+    const R = this.R; R.lens = this.rel; R.scope = this.scope === 'mix' ? 'mix' : this.scope === 'all' ? 'all' : 'project'; R.q = this.q; if (this.sel !== this._relSel) { this._relSel = this.sel; R.focus = this.sel ? { id: this.sel } : null; } // a newly selected plant focuses the graph; a clicked node keeps its own focus
+    this.relTab ||= 'graph';
+    let h = `<div class="k-lens">${REL.map(([k, n]) => `<button class="chip" data-rel="${k}" aria-pressed="${this.rel === k}">${n}</button>`).join('')}<span class="seg sm k-reltab">${[['graph', 'Graph'], ['matrix', 'Matrix'], ['table', 'Table']].map(([k, n]) => `<button data-reltab="${k}" aria-pressed="${this.relTab === k}">${n}</button>`).join('')}</span></div>`;
     if (this.rel === 'spatial' && !this.regionOK) return h + `<div class="k-empty"><p>No spatial-function records for ${this.scope === 'all' ? 'the Detroit plants' : 'this project’s plants'}. The knowledge base holds spatial functions for Metro Vancouver plants only — another region, other species.</p><button class="btn-s" data-k="region">Show the Metro Vancouver base records</button></div>`;
     const g = R.graph(); R._g = g;
+    if (R.focus && !g.E.some((e) => e.a === R.focus.id || e.b === R.focus.id)) R.focus = null; // a plant with no relation in this lens does not empty the view
     if (!g.X.length) return h + `<div class="k-empty"><p>${esc(g.note || 'No relation recorded for these plants.')}</p></div>`;
     const banner = this.rel === 'spatial' ? '<p class="k-banner">Metro Vancouver base knowledge — not Detroit records, not used by this design.</p>' : '';
-    h += banner + `<div class="k-graph">${R.network(g, LENSES[this.rel])}</div><footer class="k-legend">${Object.values(TYPES).map((t) => `<span><svg width="30" height="8"><path d="M1 4H29" stroke="${t.col}" stroke-width="2" stroke-dasharray="${t.dash}"/></svg>${t.name}</span>`).join('')}</footer>`;
+    h += banner + `<div class="k-graph">${this.relTab === 'matrix' ? R.matrix(g) : this.relTab === 'table' ? R.table(g) : R.network(g, LENSES[this.rel])}</div><footer class="k-legend">${Object.values(TYPES).map((t) => `<span><svg width="30" height="8"><path d="M1 4H29" stroke="${t.col}" stroke-width="2" stroke-dasharray="${t.dash}"/></svg>${t.name}</span>`).join('')}</footer>`;
     if (R.edge != null && g.E[R.edge]) { const e = g.E[R.edge]; h += `<div class="k-edge"><b>Relation</b> ${esc(e.ev)} <span class="xs dim">· ${esc(e.src || '—')} · ${esc(TYPES[e.t].name)}</span>${e.alt && e.alt.length ? `<p class="xs warn">Other sources: ${e.alt.map((a) => `${esc(a.scope)} → ${esc(JSON.stringify(a.value))}`).join('; ')}</p>` : ''}</div>`; }
     return h;
   }
@@ -166,6 +168,7 @@ export class KnowledgeView {
     el.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => { this.view = b.dataset.view; this.render(); }));
     el.querySelectorAll('[data-scope]').forEach((b) => (b.onclick = () => { this.scope = b.dataset.scope; this.render(); }));
     el.querySelectorAll('[data-rel]').forEach((b) => (b.onclick = () => { this.rel = b.dataset.rel; R.focus = null; R.edge = null; this.render(); }));
+    el.querySelectorAll('[data-reltab]').forEach((b) => (b.onclick = () => { this.relTab = b.dataset.reltab; this.render(); }));
     const s = el.querySelector('.k-search'); if (s) s.oninput = () => { clearTimeout(this._q); this._q = setTimeout(() => { this.q = s.value; this.render(); const s2 = el.querySelector('.k-search'); s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); }, 220); };
     el.querySelectorAll('[data-p]').forEach((r) => { const go = () => { this.sel = this.sel === r.dataset.p && this.view !== 'notebook' ? null : r.dataset.p; if (this.view === 'notebook') this.view = 'plants'; R.pending = null; R.focus = this.sel ? { id: this.sel } : null; this.render(); }; r.onclick = (e) => { e.stopPropagation(); go(); }; r.onkeydown = (e) => { if (e.key === 'Enter') go(); }; });
     // relation graph: node focus and edge evidence (V4.3 interaction kept)

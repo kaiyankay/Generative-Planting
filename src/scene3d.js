@@ -404,10 +404,20 @@ export class Scene3D {
     if (this._ph) for (let i = 0; i < t.n; i++) {
       if (!t.alive[i] || t.k[i] !== 1) continue; const b = this._ph.get(t.sp[i]); if (b === true) continue; n++;
       if (b === false) { this.iFlower[i * 3] = this.iLeaf[i * 3]; this.iFlower[i * 3 + 1] = this.iLeaf[i * 3 + 1]; this.iFlower[i * 3 + 2] = this.iLeaf[i * 3 + 2]; }
-      else { for (let k = 0; k < 3; k++) { this.iFlower[i * 3 + k] = 0.72; this.iLeaf[i * 3 + k] = 0.7; } }
+      else { for (let k = 0; k < 3; k++) { this.iFlower[i * 3 + k] = 0.6; this.iLeaf[i * 3 + k] = 0.52; } }
     }
     for (const m of this.plantMeshes) { const g = m.geometry; const F = g.attributes.iFlower.array, L = g.attributes.iLeaf.array; const list = m.userData.list || []; for (let j = 0; j < list.length; j++) { const i = list[j]; for (let k = 0; k < 3; k++) { F[j * 3 + k] = this.iFlower[i * 3 + k]; L[j * 3 + k] = this.iLeaf[i * 3 + k]; } } g.attributes.iFlower.needsUpdate = true; g.attributes.iLeaf.needsUpdate = true; }
     this.phenologyChanged = n; this._dirty = true;
+  }
+  // V3 Explore: only the instances that pass a filter (the design's plants, trees around it); null = everything again
+  setScopeFilter(fn) {
+    this._scopeFn = fn || null; if (!this.plantMeshes) return;
+    if (this.active === false) { this._scopeStale = true; return; } this._scopeStale = false;
+    for (const m of this.plantMeshes) {
+      if (m.userData.lod === 'near') { m.userData.allFull ||= m.userData.all; m.userData.all = fn ? m.userData.allFull.filter(fn) : m.userData.allFull; continue; }
+      m.userData.full ||= m.userData.list.slice(); this._fill(m, fn ? m.userData.full.filter(fn) : m.userData.full);
+    }
+    this._applySelection(); this._lodDone = false; this._updateLOD(true); this._dirty = true;
   }
   _disposePlants() {
     for (const m of this.plantMeshes || []) { this.scene.remove(m); m.geometry.dispose(); m.dispose && m.dispose(); }
@@ -422,7 +432,7 @@ export class Scene3D {
     this._applyLayers(); this._applySelection(); this._applyExplodePositions(); if (this.layersView) this._cropFill(true);
     this._lodDone = false; this._lastMove = performance.now(); this._updateLOD(true);
     if (this._plates) this._repaintPlates();
-    this._iFlower0 = null; if (this._ph) this.setPhenology(this._ph);
+    this._iFlower0 = null; if (this._ph) this.setPhenology(this._ph); if (this._scopeFn) this.setScopeFilter(this._scopeFn);
     this.lastRebuildMs = performance.now() - t0; this._dirty = true;
   }
   _fill(mesh, idxs, twin = false) {
@@ -818,7 +828,7 @@ export class Scene3D {
 
   setActive(a) {
     const was = this.active; this.active = a;
-    if (a) { if (this._stale) this._onModel(); if (this._phStale) this.setPhenology(this._ph); this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
+    if (a) { if (this._stale) this._onModel(); if (this._phStale) this.setPhenology(this._ph); if (this._scopeStale) this.setScopeFilter(this._scopeFn); this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
   }
   _loop() {
     if (!this.active) return;

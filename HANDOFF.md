@@ -1,3 +1,56 @@
+# Generative Planting V3.1 — 交接（HANDOFF，2026-11-27/28 overnight）
+
+分支 **`feature/integrated-prototype`**（在 V2 `6fd9001` 之上追加 commit，已 push，PR #1 已更新，**未合并**；`main` 与正式 Pages 未动）。
+回退：V2 tag `v2/integrated-prototype-6fd9001`，V1 tag `v1/integrated-prototype-e64f437`。开发包：`ARCH540/Generative_Planting_V3_1_Overnight`
+（00 为唯一入口；private-references 与课程 PDF 只在本机阅读，**未提交**）。
+
+先读：本节 → [docs/integrated/V3_REPORT.md](docs/integrated/V3_REPORT.md)（验收 A–P 逐项、性能前后对比、未完成）→
+[docs/integrated/ALGORITHMS_V3.md](docs/integrated/ALGORITHMS_V3.md) → [docs/integrated/DESIGN_CHANGES_V3.md](docs/integrated/DESIGN_CHANGES_V3.md)
+（精简记录：删掉/合并/移走的文字；Knowledge 的“课件概念 → 数据语义 → 决定 → 表达”对照）→ [docs/qa/V3_E2E.md](docs/qa/V3_E2E.md)。
+
+## 一句话
+入口与场地选择保持 V2 原样（有保存的设计时 Detroit 卡片显示 “Continue”，新建需确认，不再无提示覆盖）→ **Define**：在地图上直接选范围
+（点击＝只选这一块，⇧点击＝加/减，⇧拖动＝框选，或预设），候选范围虚线、确认后实线、范围外淡化；策略针对候选范围提出，确认一次；
+已有设计的床不会因新策略被丢掉 → **Structure**：相机自动适配所选床的并集；点击某床＝局部 focus（面包屑 Detroit / 范围 / B1 + Overview），
+**不改变 scope** → **Compose**：继承 focus；选 Mix 卡片即上笔刷并显示该 Mix 的适生图（按真实成员光照记录 × 床的光照：你的项目假设 > 树冠代理 > 未知；
+fits / partly / conflict / unknown / blocked 用纹理区分）；悬停与拖动是**同一个评估函数**：光标旁的小标签说明此处会新增、替换、保留、
+因光照跳过多少，或为什么被阻挡（路径、冻结、范围外）；按住拖动时植物实时出现；内部 cell 边界不再内缩，间距跨 cell 检查；
+Replace / Soft edge；Base / Overlay / Bulbs 分层；冲突默认替换为同层合适成员或跳过，只有勾选 “allow conflicts” 才放置并标记 →
+**Explore**：独立结果空间（只显示设计范围，可开 Site context；面板默认收起；顶栏 ← Design · 结果版本 · Save option · Compare · Export；
+底部 Plan · 3D · Diagram · Performance + 12 个月与播放；2D 和 3D 都按月份着色；点击真实群落 → 由真实实例计算的 inspector：
+计划 vs 实际组成、密度、角色（P34/P41 系统里真正出现的）、空间逻辑、叠加关系、简报月份覆盖、光照，每条注明来源；Edit in Compose 回到对应 cell）。
+**Knowledge**：默认是本项目真实的 Detroit 植物（可比较的属性表 + 档案）、Seasons（花期日历）、Communities（系统 → 角色 → Mix 组成）、
+Relations（只有真实关系才画图：传粉类群、光照/湿度；Spatial function 只有 Metro Vancouver 记录，需点击才显示并有横幅说明）、Notebook。
+
+## 运行与测试
+```
+python3 -I tools/flow_server.py --port 8796                     # http://127.0.0.1:8796/ （?fresh=1 忽略已存设计，?intro=0 跳过简介但不清空设计，?resume=1 直接恢复）
+python3 -I -u tools/v3_unit.py --serve <rsync 快照>              # 引擎 71 项（V2 60 + V3 11）→ docs/qa/v3_unit_tests.json
+python3 -I -u tools/v3_e2e.py  --serve <rsync 快照>              # 真实鼠标/键盘完整旅程 27 步（A–P）→ docs/qa/v3_e2e.json + docs/screenshots/v3/
+python3 -I -u tools/v3_perf.py --serve <快照> --label X --gpu    # 笔刷性能（空设计 + 约 2 万株），→ docs/qa/perf/X-gpu.json（--profile 可加 CPU 采样）
+python3 tools/v3_report.py                                       # docs/qa/V3_E2E.md、各类拼图、journey.gif
+```
+旅程与性能测试在本机用 headless Chrome + Metal GPU（Intel Iris Plus 650）运行；`--swiftshader` 可用软件渲染（慢）。
+
+## 数据诚实性
+- 没有调用任何语言模型（Rules 标签处处可见）；没有付费 API。
+- 光照：开阔地 = **unknown**（V2 曾当作 sun，已改）；树冠 = 可能阴（代理）；你设定的 sun / part / shade 是“项目假设”，标注、可撤销，不覆盖代理。
+- Detroit 的花期/类群/光照多数来自 illustrative 教学层（可在 Define → Brief and sources 关闭；旅程第 24 步验证关闭后 unknown 上升）。
+- Spatial function 记录全部属于 Metro Vancouver，不再在 “This project” 下冒充 Detroit 记录。
+
+## 需要你决定
+1. 光照匹配是否保持“字面匹配”（part ≠ shade）。2. 原型参数：reachM 1.2 m、soft edge 外环 45 %、床边 0.08 m、强资源阈值 1/m²（ALGORITHMS_V3）。
+3. 3D Explore 只隐藏了非设计植物并遮罩地面，建筑/地形仍在（是否需要进一步裁切）。4. 教学层保留/替换。5. 是否合并 PR #1 并部署。
+
+## 给下一个 Agent
+- 观察状态属于阶段：`P.state.view.sv[stage]`；月份/性能/时间轴只在 Explore。scope = `brief.scopeBeds`，focus = `F.u.focus`。
+- 笔刷：`brush.js _segment()` 是 hover、拖动和提交共用的评估；绘制走 `plan.requestRegion()` + 覆盖层 `#c2o`，按住时不要调用 `plan.request()`（全量重绘）。
+- `P.perf` 是惰性的（getter）；`commit()` 的撤销快照对声明了 changedCells 的命令只存这些 cell。
+- polygon-clipping 偶发失败：`geo.js` 的 clip/union/diff 先以 1 mm 网格重试；`safe*` 版本不抛异常（结算笔刷时用）。
+- 测试在 rsync 快照上跑；浏览器面板保持空闲。
+
+---
+
 # Generative Planting V2 — 交接（HANDOFF，2026-11-27/28 overnight）
 
 分支 **`feature/integrated-prototype`**（在 V1 `e64f437` 之上追加 commit，已 push，PR #1 更新，**未合并**；`main` 与正式 Pages 未动）。

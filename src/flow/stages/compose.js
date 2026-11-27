@@ -13,7 +13,7 @@ import { mixFitAt } from '../brush.js';
 export function gate(F) { const t = F.P.totals(); return t.plants > 0 ? { ok: true } : { ok: false, reason: 'Plant at least one area first (paint, fill or Auto Compose).' }; }
 export function enter(F) {
   F.store.setViewState({ hidePlanting: false });
-  if (!F.P.state.mixes.length) seedLibrary(F);
+  seedLibrary(F); // every system the strategy uses has its legend recipe in the library (added once, never replaced)
   F.fitMap = (mix) => fitMap(F, mix);
 }
 // mix fit per cell (light: assumption > crown proxy > unknown) — cached by mix version, assumptions and knowledge
@@ -38,7 +38,7 @@ const legend = (F) => ((F.ctx.mixFile && F.ctx.mixFile.mixes) || []).map((m, i) 
 // the library starts with the Detroit legend recipe of each system the strategy uses (sourced, editable) — never invented
 function seedLibrary(F) {
   const P = F.P; const sys = new Set((P.state.strategy ? P.state.strategy.zones : []).map((z) => z.system)); const lg = legend(F);
-  for (const m of lg) if (sys.has(m.system) && !P.mix(m.id)) P.addMix(m, `reuse recipe ${m.name}`);
+  for (const m of lg) if (sys.has(m.system) && !P.mix(m.id) && !P.state.mixes.some((q) => q.system === m.system && q.origin === m.origin && q.name === m.name)) P.addMix(m, `reuse recipe ${m.name}`);
 }
 export function bottom(F) {
   const t = F.P.totals(); const g = gate(F);
@@ -83,7 +83,8 @@ function suggestionHtml(F) {
 }
 function bind(F, el) {
   const P = F.P; const a = (k, fn) => el.querySelectorAll(`[data-a=${k}]`).forEach((x) => (x.onclick = fn));
-  el.querySelectorAll('.mixcard').forEach((c) => { const go = (e) => { if (e.target.closest('[data-edit],[data-cmp]')) return; const id = c.dataset.mix; P.setView({ selectedMix: id }); const first = !F.brush.active; F.setBrush({ mixId: id, slots: null }); if (first && F.u.envAuto !== false && hasLight(F)) { F.u.env = true; F.u.envView = 'fit'; F.renderDock(); } F.renderPanel(); F.renderLegend(); F.repaint(); }; c.onclick = go; c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } }; });
+  el.querySelectorAll('.mixcard').forEach((c) => { const go = (e) => { if (e.target.closest('[data-edit],[data-cmp],[data-know]')) return; const id = c.dataset.mix; P.setView({ selectedMix: id }); const first = !F.brush.active; F.setBrush({ mixId: id, slots: null }); if (first && F.u.envAuto !== false && hasLight(F)) { F.u.env = true; F.u.envView = 'fit'; F.renderDock(); } F.renderPanel(); F.renderLegend(); F.repaint(); }; c.onclick = go; c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } }; });
+  el.querySelectorAll('[data-know]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); P.setView({ selectedMix: b.dataset.know }); F.openKnowledge({ mix: b.dataset.know }); }));
   el.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => { F.setBrush(null); F.u.editor = { mixId: b.dataset.edit, draft: structuredClone(P.mix(b.dataset.edit)), changes: [] }; F.renderPanel(); F.panel.scrollTop = 0; }));
   el.querySelectorAll('[data-cmp]').forEach((b) => (b.onclick = () => { const id = b.dataset.cmp; let c = F.u.compare || []; c = c.includes(id) ? c.filter((x) => x !== id) : [...c, id].slice(-2); F.u.compare = c; F.renderPanel(); }));
   a('brush', () => { const id = P.state.view.selectedMix || (P.state.mixes[0] && P.state.mixes[0].id); if (id) F.setBrush({ mixId: id, slots: null }); F.renderPanel(); });
@@ -161,7 +162,7 @@ function bindEditor(F, el) {
 
 // ---------------------------------------------------------------- selection inspector (cells)
 export function inspector(F) {
-  const P = F.P; const ids = [...F.u.cells]; if (!ids.length) return null;
+  const P = F.P; const ids = [...F.u.cells]; if (!ids.length || F.brush.active) return null; // painting: the canvas stays clear
   const cells = ids.map((id) => P.state.cells[id]).filter(Boolean); if (!cells.length) return null;
   if (cells.length > 1) { const n = cells.reduce((a, c) => a + ((P.state.instances[c.id] || {}).plants || []).length, 0); return `<h3>${cells.length} cells</h3><p class="small">${Math.round(cells.reduce((a, c) => a + c.areaM2, 0))} m² · ${num(n)} plants</p>${actions(F, cells)}`; }
   const c = cells[0]; const inst = P.state.instances[c.id]; const a = P.state.assignments[c.id]; const pc = P.perf && P.perf.perCell[c.id]; const cd = c.conditions || {};

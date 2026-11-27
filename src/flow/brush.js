@@ -13,7 +13,7 @@
 // transition instead of a hard seam. Other layers are never touched. Timing of every move is kept in F.brushLog.
 import { candidates, validate, makeEnv, PlantIndex, lightFit } from './fill.js';
 import { bbox, inside, hash } from './spatial.js';
-import { bufferLine, disk, union } from '../design/geo.js';
+import { bufferLine, disk, union, safeUnion } from '../design/geo.js';
 
 export const BRUSH = { defaultRadiusM: 1.5, minR: 0.4, maxR: 6, stepK: 0.5, softBand: 0.45, reachM: 1.2 };
 const segDist2 = (px, py, ax, ay, bx, by) => { const vx = bx - ax, vy = by - ay; const L2 = vx * vx + vy * vy; let t = L2 ? ((px - ax) * vx + (py - ay) * vy) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t; const ex = ax + t * vx - px, ey = ay + t * vy - py; return ex * ex + ey * ey; };
@@ -130,7 +130,8 @@ export class Brush {
     const touched = [...s.cells.values()].filter((cs) => cs.add.size || cs.remove.size);
     const summary = { added: s.added, removed: s.removed, kept: s.kept, fit: s.fit, rejected: s.rej, cells: touched.length, beds: new Set(touched.map((cs) => cs.cell.bedId)).size, bedIds: [...new Set(touched.map((cs) => cs.cell.bedId))] };
     if (!touched.length) return { ok: false, empty: true, ...summary };
-    const pts = simplify(s.samples, 0.08); const footprint = pts.length > 1 ? bufferLine(pts, 2 * s.r) : union([disk(pts[0][0], pts[0][1], s.r, 28)]);
+    const pts = simplify(s.samples, 0.08); let footprint;
+    try { footprint = pts.length > 1 ? bufferLine(pts, 2 * s.r) : union([disk(pts[0][0], pts[0][1], s.r, 28)]); } catch { footprint = safeUnion(pts.map((p) => disk(p[0], p[1], s.r, 20))); } // the plants are validated already; the footprint only records the area
     const cells = {}; const stats = {}; for (const cs of touched) { cells[cs.cell.id] = { add: [...cs.add.values()], remove: [...cs.remove] }; stats[cs.cell.id] = cs.rej; }
     const res = this.P.applyStroke({ mixId: s.mixId, slots: s.slots, footprint, cells, stats, edge: s.edge });
     this.last = { ok: res.ok !== false, ms: Math.round(performance.now() - s.t0), moves: s.moves, samples: s.samples.length, ...summary, timeline: s.timeline, maxMoveMs: Math.max(0, ...s.timeline.map((q) => q.dt)), meanMoveMs: s.timeline.length ? +(s.timeline.reduce((a, q) => a + q.dt, 0) / s.timeline.length).toFixed(1) : 0 };

@@ -420,10 +420,10 @@
      "chosen": false,
      "evidence": [
       {
-       "id": "pk.mwza68uj8ksg",
+       "id": "pk.mwzbqxpk3qy9",
        "statement": "TEST FIXTURE: flowers October to November, bees and moths visit",
        "source": "project",
-       "at": "2026-11-27T17:54:08.587Z",
+       "at": "2026-11-27T18:38:13.544Z",
        "uncertainty": "personal observation, not verified"
       }
      ],
@@ -853,7 +853,7 @@
     "committedAdded": 538,
     "beds": 2,
     "cells": 8,
-    "meanMoveMs": 17.1
+    "meanMoveMs": 18.4
    }
   },
   {
@@ -1080,8 +1080,8 @@
    "ok": true,
    "detail": {
     "ok": true,
-    "plants": 70,
-    "cells": 3,
+    "plants": 62,
+    "cells": 2,
     "mixes": [
      "Colour blocks"
     ],
@@ -1102,12 +1102,12 @@
  ],
  "passed": 71,
  "failed": 0,
- "ms": 14515,
- "when": "2026-11-27T17:54:17.805Z",
+ "ms": 17382,
+ "when": "2026-11-27T18:38:24.118Z",
  "runner": "headless Chrome (SwiftShader) over CDP, flow-tests.html",
  "errors": [
-  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8801/favicon.ico",
-  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8801/Generative-Planting/api/flow/llm-absent/status"
+  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8812/favicon.ico",
+  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8812/Generative-Planting/api/flow/llm-absent/status"
  ],
- "at": "2026-11-27 10:54:17"
+ "at": "2026-11-27 11:38:24"
 }
