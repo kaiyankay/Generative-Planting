@@ -670,6 +670,20 @@ export class ModelStore extends Emitter {
       default: return E('E_OP', 'unknown op ' + op.op);
     }
   }
+  // ---- a plant added in a design project beyond the catalogue: a generic display proxy at runtime, never written to
+  // model.json (Integrated Prototype). Same species record shape; flagged runtime + proxy.
+  registerRuntimeSpecies(sp) {
+    if (!sp || typeof sp.id !== 'string' || !/^sp\.x-[a-z0-9-]{2,60}$/.test(sp.id)) return { ok: false, error: "runtime species ids are 'sp.x-<name>'" };
+    if (this.speciesIndexById.has(sp.id)) return { ok: true, index: this.speciesIndexById.get(sp.id) };
+    const index = 1 + Math.max(...this.baseline.species.map((s) => s.index));
+    const rec = { id: sp.id, scientificName: String(sp.scientificName || sp.id).slice(0, 80), cultivar: sp.cultivar || null, plantType: ['forb', 'grass', 'sedge', 'shrub', 'bulb', 'fern'].includes(sp.plantType) ? sp.plantType : 'forb',
+      formProxy: sp.formProxy || 'mound', nominalHeightM: +sp.nominalHeightM || 0.6, nominalSpreadM: +sp.nominalSpreadM || 0.5, displayFlower: sp.displayFlower || '#c9b98a', displayLeaf: sp.displayLeaf || '#8f9c80',
+      aliases: [], note: 'added in a design project: generic display proxy', index, sourceRefs: [], inferredFields: ['formProxy', 'nominalHeightM', 'nominalSpreadM', 'displayFlower', 'displayLeaf'], phenology: null, temporal: {}, canonicalKey: sp.scientificName, runtime: true };
+    this.baseline.species.push(rec);
+    if (this.draft && this.draft.model !== this.baseline && !this.draft.model.species.some((s) => s.id === rec.id)) this.draft.model.species.push(rec);
+    this._index(); this.emit('species', rec);
+    return { ok: true, index };
+  }
   // ---- design plants: a placement whose rows are given explicitly (one row = one planned plant)
   _addPlants(st, v, E, unitIds) {
     const d = this.draft; const unit = v.bedId || v.districtId;

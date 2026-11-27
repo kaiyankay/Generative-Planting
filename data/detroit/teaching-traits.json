@@ -1,0 +1,1206 @@
+{
+ "format": "gp-teaching-traits/1",
+ "site": "detroit",
+ "sourceType": "illustrative",
+ "label": "Illustrative teaching values \u2014 not verified",
+ "statement": "Typical horticultural values written to teach the workflow when the knowledge base has no flowering or pollinator data for these species. Not a Detroit survey, not checked against a source, not evidence. Switch this layer off in Define to see what is actually known. Replace with sourced records (for example USDA PLANTS characteristics, public domain) before any real use.",
+ "author": "Implementation agent, 2026-11-27 (general knowledge; to be replaced by Kay with sourced records)",
+ "fields": {
+  "flowering_months": "months 1\u201312 in which the species typically flowers",
+  "pollinator_groups": "visitor groups typically reported (bees, bumblebees, butterflies, moths, flies, beetles, wasps, hummingbirds)",
+  "flower_resource": "nectar | pollen | nectar+pollen | wind (wind-pollinated: flowering is not a pollinator resource)",
+  "light": "sun | part | shade",
+  "moisture": "dry | moist | wet",
+  "role_hint": "matrix | structure | seasonal | filler | ephemeral"
+ },
+ "species": {
+  "sp.sporobolus-heterolepis": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-sporobolus-heterolepis": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-schizachyrium-scoparium": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-andropogon-gerardii": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-sorghastrum-nutans": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.eragrostis-spectabilis": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.deschampsia-goldtau": {
+   "flowering_months": [
+    6,
+    7
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.carex-muskingumensis": {
+   "flowering_months": [
+    6
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-carex-muskingumensis": {
+   "flowering_months": [
+    6
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-carex-radiata": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-elymus-virginicus": {
+   "flowering_months": [
+    6,
+    7
+   ],
+   "flower_resource": "wind",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "matrix"
+  },
+  "sp.m-echinacea-purpurea": {
+   "flowering_months": [
+    6,
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.asclepias-tuberosa": {
+   "flowering_months": [
+    6,
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.asclepias-incarnata": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-asclepias-incarnata": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-monarda-fistulosa": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies",
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.monarda-bradburiana": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies",
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.dalea-purpurea": {
+   "flowering_months": [
+    6,
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-liatris-spicata": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.liatris-pycnostachya": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-zizia-aurea": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.geum-triflorum": {
+   "flowering_months": [
+    4,
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "filler"
+  },
+  "sp.aquilegia-canadensis": {
+   "flowering_months": [
+    4,
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "hummingbirds",
+    "bumblebees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-geranium-maculatum": {
+   "flowering_months": [
+    4,
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "filler"
+  },
+  "sp.m-packera-aurea": {
+   "flowering_months": [
+    4,
+    5
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "filler"
+  },
+  "sp.mertensia-virginica": {
+   "flowering_months": [
+    4,
+    5
+   ],
+   "pollinator_groups": [
+    "bumblebees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.penstemon-digitalis": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees",
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-penstemon-digitalis": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees",
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-tradescantia-ohiensis": {
+   "flowering_months": [
+    5,
+    6,
+    7
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "role_hint": "filler"
+  },
+  "sp.baptisia-leucantha": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-baptisia-australis": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-baptisia-lactea": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.amsonia-hubrichtii": {
+   "flowering_months": [
+    5
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.pycnanthemum-muticum": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees",
+    "wasps",
+    "flies",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-pycnanthemum-virginianum": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees",
+    "wasps",
+    "flies",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-veronicastrum-virginicum": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-solidago-rigida": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies",
+    "beetles"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-solidago-riddellii": {
+   "flowering_months": [
+    9,
+    10
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-symphyotrichum-novae-angliae": {
+   "flowering_months": [
+    8,
+    9,
+    10
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-symphyotrichum-oolentangiense": {
+   "flowering_months": [
+    8,
+    9,
+    10
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-helenium-autumnale": {
+   "flowering_months": [
+    8,
+    9,
+    10
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-eutrochium-maculatum": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "wet"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-vernonia-missurica": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "butterflies",
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-verbena-hastata": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.lobelia-cardinalis": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part"
+   ],
+   "moisture": [
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-lobelia-cardinalis": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part"
+   ],
+   "moisture": [
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.lobelia-siphilitica": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-lobelia-siphilitica": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-coreopsis-tripteris": {
+   "flowering_months": [
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.parthenium-integrifolium": {
+   "flowering_months": [
+    6,
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies",
+    "beetles"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.eryngium-yuccifolium": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "wasps",
+    "flies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-eryngium-yuccifolium": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "wasps",
+    "flies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.calamintha-nepeta": {
+   "flowering_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "filler"
+  },
+  "sp.m-physostegia-virginiana": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bumblebees",
+    "hummingbirds"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.m-chelone-glabra": {
+   "flowering_months": [
+    8,
+    9
+   ],
+   "pollinator_groups": [
+    "bumblebees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part"
+   ],
+   "moisture": [
+    "wet"
+   ],
+   "role_hint": "seasonal"
+  },
+  "sp.cornus-sericea": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-cornus-sericea": {
+   "flowering_months": [
+    5,
+    6
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.amelanchier-lamarckii": {
+   "flowering_months": [
+    4
+   ],
+   "pollinator_groups": [
+    "bees",
+    "flies"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.lindera-benzoin": {
+   "flowering_months": [
+    3,
+    4
+   ],
+   "pollinator_groups": [
+    "flies",
+    "bees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.m-lindera-benzoin": {
+   "flowering_months": [
+    3,
+    4
+   ],
+   "pollinator_groups": [
+    "flies",
+    "bees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.clethra-alnifolia": {
+   "flowering_months": [
+    7,
+    8
+   ],
+   "pollinator_groups": [
+    "bees",
+    "butterflies"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "part",
+    "shade"
+   ],
+   "moisture": [
+    "moist",
+    "wet"
+   ],
+   "role_hint": "structure"
+  },
+  "sp.crocus-roseus": {
+   "flowering_months": [
+    3
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "dry",
+    "moist"
+   ],
+   "role_hint": "ephemeral"
+  },
+  "sp.scilla-mischtschenkoana": {
+   "flowering_months": [
+    3,
+    4
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "ephemeral"
+  },
+  "sp.camassia-semiplena": {
+   "flowering_months": [
+    5
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "nectar+pollen",
+   "light": [
+    "sun",
+    "part"
+   ],
+   "moisture": [
+    "moist"
+   ],
+   "role_hint": "ephemeral"
+  },
+  "sp.allium-christophii": {
+   "flowering_months": [
+    6
+   ],
+   "pollinator_groups": [
+    "bees"
+   ],
+   "flower_resource": "nectar",
+   "light": [
+    "sun"
+   ],
+   "moisture": [
+    "dry"
+   ],
+   "role_hint": "ephemeral"
+  }
+ }
+}

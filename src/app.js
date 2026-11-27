@@ -25,6 +25,9 @@ const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 const params = new URLSearchParams(location.search);
 const DEV = params.get('dev') === '1';
 const EMBED = params.get('embed') === '1';
+// Integrated Prototype: the Define → Structure → Compose → Explore workflow is the default; ?classic=1 opens the previous
+// site-setup + brush prototype (kept, not in the main path)
+const FLOW = params.get('classic') !== '1' && !EMBED;
 const FALLBACK_PRESET = { id: 'detroit', name: 'Oudolf Garden Detroit', location: 'Belle Isle, Detroit, Michigan', base: 'data/detroit/' };
 
 async function loadPreset() {
@@ -49,6 +52,7 @@ async function main() {
   const picker = new Picker(store);
   const app = $('#app');
   if (EMBED) app.classList.add('embed');
+  if (FLOW) app.classList.add('flow');
   $('#siteName').textContent = preset.name;
   const plan = new Plan2D($('#c2d'), store, picker);
   let scene = null;
@@ -448,7 +452,7 @@ async function main() {
     else if (e.key === '3' && scene) setExplode(true);
     else if ((e.key === 'e' || e.key === 'E') && scene) setExplode(!st.explode);
     else if (e.key === 'l' || e.key === 'L') setPanel(!st.panel);
-    else if (e.key === 'c' || e.key === 'C') { if (st.an.open) cond.close(); else { const b = bedOfSel(store.selection); if (b) ctx.openConditions([b]); } }
+    else if (!FLOW && (e.key === 'c' || e.key === 'C')) { if (st.an.open) cond.close(); else { const b = bedOfSel(store.selection); if (b) ctx.openConditions([b]); } }
   });
 
   // ================================================================ URL state
@@ -563,7 +567,8 @@ async function main() {
   Object.assign(api.design, api._designNS); delete api._designNS;
   window.GP = api;
   ctx.api = api;
-  ctx.dui = createDesignUI(ctx);
+  ctx.dui = FLOW ? { refresh() {}, setTool() {}, flow: true } : createDesignUI(ctx);
+  Object.assign(ctx, { setObs, fit, setPanel, renderPanel, setExplode, exitSolo, goBack });
   // embedded in a workflow: the parent calls the same API by message; only plain-data methods are exposed
   const BRIDGE = new Set(['site', 'sites', 'getObject', 'getBedAt', 'queryObjects', 'query', 'sampleConditions', 'getPlantingContext', 'plantableAt', 'speciesTally', 'instancesOfPlacement',
     'design', 'setDesign', 'createDraft', 'blankScopePreview', 'draftInfo', 'draftSummary', 'applyPatch', 'resetDraft', 'discardDraft', 'exportDraft', 'importDraft', 'diffDraft',
@@ -579,8 +584,8 @@ async function main() {
   });
 
   // ================================================================ initial state (URL; Phase 01.1 URLs still work)
-  const restored = store.restorePersisted();
-  if (store.draft) { const rr = doc.restore(); if (!rr.ok) console.warn('design document not restored', rr); }
+  const restored = FLOW ? null : store.restorePersisted(); // the workflow rebuilds the draft from its own project state
+  if (!FLOW && store.draft) { const rr = doc.restore(); if (!rr.ok) console.warn('design document not restored', rr); }
   st._noSync = true;
   const pv = params.get('view'); const pm = params.get('mode');
   for (const tok of (params.get('layers') || '').split(',').filter(Boolean)) { const id = tok.replace(/^[+-]/, ''); if (store.layerState[id]) store.setLayer(id, { visible: !tok.startsWith('-'), external: true }); }
@@ -617,7 +622,7 @@ async function main() {
   }
   if (params.get('about') === '1') $('#btnSite').click();
   // first visit without any state in the URL: the site preset is shown first, then entered
-  if (!EMBED && ![...params.keys()].filter((k) => !['kdb', 'knowledge'].includes(k)).length) {
+  if (!FLOW && !EMBED && ![...params.keys()].filter((k) => !['kdb', 'knowledge'].includes(k)).length) {
     st.entered = false; app.classList.add('at-entry'); // not 'entry': that is the card's own class
     const e = $('#entry'); const beds = cs.designBeds(); const main = beds.filter((b) => 'ABC'.includes(b.props.style)).length;
     e.innerHTML = `<p class="kicker">Site preset</p><h1>${esc(preset.name)}</h1><p class="loc">${esc(preset.location || '')}</p>
@@ -639,6 +644,7 @@ async function main() {
   st._noSync = false; syncUrl();
   renderDesign(); renderStatus();
   if (restored && st.design === 'reference') $('#btnWorking').title = 'Your working design from last time is kept. Open it.';
+  if (FLOW) { const { startFlow } = await import('./flow/shell.js'); await startFlow(ctx); }
   $('#loading').classList.add('done');
   document.documentElement.dataset.ready = '1';
   emit('ready', { site: preset.id, api: api.api });

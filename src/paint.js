@@ -7,7 +7,7 @@ import { centroidOf, bboxOf } from './model.js';
 // o: { scale: px per metre, vb: [x0,y0,x1,y1] visible metres, texture: bool (3D ground), focus: group id (isolated) }
 export const ORDER = [
   ['terrain', 'ground'], ['infrastructure', 'ground'], ['siteveg', 'ground'], ['framework', 'ground'], ['analysis', 'ground'],
-  ['composition', 'ground'], ['design', 'ground'], ['representation', 'ground'], ['compute', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'],
+  ['composition', 'ground'], ['design', 'ground'], ['flow', 'ground'], ['representation', 'ground'], ['compute', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'], ['flow', 'top'],
 ];
 export function paintGroup(ctx, s, T, gid, phase, o) {
   const f = PAINTERS[gid] && PAINTERS[gid][phase];
@@ -213,6 +213,8 @@ const PAINTERS = {
       }
     },
   },
+  // Integrated Prototype workflow: cells, assignments and performance overlays (one painter for plan and 3D ground)
+  flow: { ground(ctx, s, T, o) { if (s.flowPaint && !o.plate) s.flowPaint(ctx, T, o, 'ground'); }, top(ctx, s, T, o) { if (s.flowPaint && !o.plate) s.flowPaint(ctx, T, o, 'top'); } },
   // computational space: a field shown in bands inside the scope beds, or the zones of the current computation
   compute: { ground(ctx, s, T, o) { paintCompute(ctx, s, T, o); } },
   analysis: {
