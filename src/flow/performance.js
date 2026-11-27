@@ -14,27 +14,32 @@
 //   seasonality    per instance: flowering / not / unknown in the month (known months only; no growth model)
 import { MONTHS } from './knowledge.js';
 
-export const PERF_VERSION = 'perf/2';
+export const PERF_VERSION = 'perf/3';
+// V3 changes (stated): (1) per-m² values use the PLANTED FOOTPRINT (union of the fragments actually painted / filled,
+// clipped to the cell) as the denominator, not the whole structural cell; the structured area is reported apart.
+// (2) the largest connected group is the one with the largest AREA (ties: by first cell id), matching the share it reports.
+// (3) flowering (phenology: known to flower that month) is counted apart from a known pollinator RESOURCE (flowering and
+// not wind-pollinated); unknown stays apart from both.
 export const PERF = { strongPerM2: 1.0 };
 
-export function computePerformance({ cells, assignments, instances, mixes, K, brief, links = [] }) {
+export function computePerformance({ cells, assignments, instances, mixes, K, brief, links = [], plantedArea = null }) {
   const months = brief && brief.objectives.flowering.on ? brief.objectives.flowering.months : [3, 4, 5, 6, 7, 8, 9, 10];
   const cellById = new Map(cells.map((c) => [c.id, c]));
   const species = new Set(); const perCell = {};
-  let assignedArea = 0, totalArea = 0, nInst = 0;
+  let assignedArea = 0, totalArea = 0, nInst = 0, plantedAreaAll = 0; const planted = new Map();
   const groupsOf = (id) => { const t = K.traits(id); return t.pollinators.status !== 'unknown' ? t.pollinators.value : null; };
   for (const c of cells) {
     totalArea += c.areaM2;
     const a = assignments[c.id]; const inst = instances[c.id];
     if (!inst || !inst.plants.length) { perCell[c.id] = { status: a && a.empty ? 'empty' : 'unassigned', months: {}, plants: 0 }; continue; }
-    assignedArea += c.areaM2; nInst += inst.plants.length;
+    assignedArea += c.areaM2; nInst += inst.plants.length; const pa = plantedArea ? Math.max(0.01, Math.min(c.areaM2, plantedArea(c))) : c.areaM2; planted.set(c.id, pa); plantedAreaAll += pa;
     const sp = new Map(); for (const p of inst.plants) { sp.set(p.plantId, (sp.get(p.plantId) || 0) + 1); species.add(p.plantId); }
     const n = inst.plants.length; const mo = {};
     for (let m = 1; m <= 12; m++) {
-      const yes = [], unk = []; let nYes = 0, nUnk = 0; const groups = new Map(); let gUnk = 0;
-      for (const [id, k] of sp) { const r = K.resourceIn(id, m); if (r === 'yes') { yes.push(id); nYes += k; const g = groupsOf(id); if (g) for (const x of g) groups.set(x, (groups.get(x) || 0) + k); else gUnk += k; } else if (r === 'unknown') { unk.push(id); nUnk += k; } }
-      mo[m] = { state: yes.length ? 'resource' : unk.length ? 'uncertain' : 'none', species: yes, unknownSpecies: unk, instances: nYes, unknownInstances: nUnk, placed: n,
-        fraction: +(nYes / n).toFixed(3), unknownFraction: +(nUnk / n).toFixed(3), perM2: +(nYes / c.areaM2).toFixed(2),
+      const yes = [], unk = []; let nYes = 0, nUnk = 0, nFl = 0, nFlUnk = 0; const groups = new Map(); let gUnk = 0;
+      for (const [id, k] of sp) { const f = K.floweringIn(id, m); if (f === 'yes') nFl += k; else if (f === 'unknown') nFlUnk += k; const r = K.resourceIn(id, m); if (r === 'yes') { yes.push(id); nYes += k; const g = groupsOf(id); if (g) for (const x of g) groups.set(x, (groups.get(x) || 0) + k); else gUnk += k; } else if (r === 'unknown') { unk.push(id); nUnk += k; } }
+      mo[m] = { state: yes.length ? 'resource' : unk.length ? 'uncertain' : 'none', species: yes, unknownSpecies: unk, instances: nYes, unknownInstances: nUnk, placed: n, flowering: nFl, floweringUnknown: nFlUnk,
+        fraction: +(nYes / n).toFixed(3), unknownFraction: +(nUnk / n).toFixed(3), perM2: +(nYes / planted.get(c.id)).toFixed(2), plantedAreaM2: +planted.get(c.id).toFixed(2),
         groups: [...groups.keys()].sort(), groupCounts: Object.fromEntries([...groups.entries()].sort()), groupsUnknownInstances: gUnk };
     }
     const fit = { match: 0, conflict: 0, unknown: 0, substituted: 0 }; const conflicts = new Map();
@@ -45,23 +50,25 @@ export function computePerformance({ cells, assignments, instances, mixes, K, br
   }
   const nb = new Map(cells.map((c) => [c.id, new Set(c.neighbors.map((q) => q.id))]));
   for (const l of links) { nb.get(l.a)?.add(l.b); nb.get(l.b)?.add(l.a); }
-  const comps = (ids) => { const set = new Set(ids); const seen = new Set(); const out = []; for (const id of ids) { if (seen.has(id)) continue; const cmp = []; const stack = [id]; seen.add(id); while (stack.length) { const x = stack.pop(); cmp.push(x); for (const y of nb.get(x) || []) if (set.has(y) && !seen.has(y)) { seen.add(y); stack.push(y); } } out.push(cmp.sort()); } return out.sort((a, b) => b.length - a.length); };
-  const area = (list) => list.reduce((s, id) => s + cellById.get(id).areaM2, 0);
+  const area = (list) => list.reduce((s, id) => s + (planted.get(id) ?? cellById.get(id).areaM2), 0);
+  // connected groups, LARGEST BY AREA first (stable: ties by their first cell id)
+  const comps = (ids) => { const set = new Set(ids); const seen = new Set(); const out = []; for (const id of ids) { if (seen.has(id)) continue; const cmp = []; const stack = [id]; seen.add(id); while (stack.length) { const x = stack.pop(); cmp.push(x); for (const y of nb.get(x) || []) if (set.has(y) && !seen.has(y)) { seen.add(y); stack.push(y); } } out.push(cmp.sort()); } return out.map((c) => ({ c, a: area(c) })).sort((p, q) => q.a - p.a || (p.c[0] < q.c[0] ? -1 : 1)).map((x) => x.c); };
   const byMonth = {};
   for (let m = 1; m <= 12; m++) {
-    const planted = cells.filter((c) => perCell[c.id].status === 'planted');
-    const res = planted.filter((c) => perCell[c.id].months[m].state === 'resource').map((c) => c.id);
-    const unc = planted.filter((c) => perCell[c.id].months[m].state === 'uncertain').map((c) => c.id);
+    const plantedCells = cells.filter((c) => perCell[c.id].status === 'planted');
+    const res = plantedCells.filter((c) => perCell[c.id].months[m].state === 'resource').map((c) => c.id);
+    const unc = plantedCells.filter((c) => perCell[c.id].months[m].state === 'uncertain').map((c) => c.id);
     const strong = res.filter((id) => perCell[id].months[m].perM2 >= PERF.strongPerM2);
-    let flowering = 0, unknownI = 0; const groups = new Map(); let gUnk = 0;
-    for (const c of planted) { const q = perCell[c.id].months[m]; flowering += q.instances; unknownI += q.unknownInstances; gUnk += q.groupsUnknownInstances; for (const [g, k] of Object.entries(q.groupCounts)) { const e = groups.get(g) || { instances: 0, cells: 0, species: new Set() }; e.instances += k; e.cells++; for (const id of q.species) if ((groupsOf(id) || []).includes(g)) e.species.add(id); groups.set(g, e); } }
+    let flowering = 0, unknownI = 0, phen = 0, phenUnk = 0; const groups = new Map(); let gUnk = 0;
+    for (const c of plantedCells) { const q = perCell[c.id].months[m]; flowering += q.instances; unknownI += q.unknownInstances; phen += q.flowering; phenUnk += q.floweringUnknown; gUnk += q.groupsUnknownInstances; for (const [g, k] of Object.entries(q.groupCounts)) { const e = groups.get(g) || { instances: 0, cells: 0, species: new Set() }; e.instances += k; e.cells++; for (const id of q.species) if ((groupsOf(id) || []).includes(g)) e.species.add(id); groups.set(g, e); } }
     const C = comps(res), CS = comps(strong); const resArea = area(res);
     byMonth[m] = {
       month: m, label: MONTHS[m - 1], designedAreaM2: +assignedArea.toFixed(1), placed: nInst,
       floweringInstances: flowering, floweringFraction: nInst ? +(flowering / nInst).toFixed(3) : null, unknownInstances: unknownI, unknownFraction: nInst ? +(unknownI / nInst).toFixed(3) : null,
-      floweringPerM2: assignedArea ? +(flowering / assignedArea).toFixed(2) : null,
+      floweringPerM2: plantedAreaAll ? +(flowering / plantedAreaAll).toFixed(2) : null, plantedAreaM2: +plantedAreaAll.toFixed(1),
+      phenologyFlowering: phen, phenologyUnknown: phenUnk, // known to flower (wind-pollinated included) / flowering unknown
       resourceCells: res.length, uncertainCells: unc.length, strongCells: strong.length, resourceAreaM2: +resArea.toFixed(1), assignedAreaM2: +assignedArea.toFixed(1),
-      resourceShare: assignedArea ? +(resArea / assignedArea).toFixed(3) : null,
+      resourceShare: plantedAreaAll ? +(resArea / plantedAreaAll).toFixed(3) : null,
       groups: [...groups.entries()].map(([g, e]) => ({ group: g, instances: e.instances, cells: e.cells, species: [...e.species] })).sort((a, b) => a.group.localeCompare(b.group)), groupsUnknownInstances: gUnk,
       components: C.map((cmp) => ({ cells: cmp, areaM2: +area(cmp).toFixed(1) })), isolated: C.filter((c) => c.length === 1 && res.length > 1).map((c) => c[0]),
       strongComponents: CS.map((cmp) => ({ cells: cmp, areaM2: +area(cmp).toFixed(1) })),
@@ -72,14 +79,14 @@ export function computePerformance({ cells, assignments, instances, mixes, K, br
   for (const c of cells) { const inst = instances[c.id]; if (!inst) continue; for (const p of inst.plants) { const t = K.traits(p.plantId); if (t.bloom.status !== 'unknown') cov.bloom++; if (t.pollinators.status !== 'unknown' || t.windPollinated === true) cov.pollinators++; if (t.light.status !== 'unknown') cov.light++; if ([t.bloom, t.pollinators, t.light].some((x) => x.source === 'illustrative')) cov.illustrative++; } }
   const coverage = Object.fromEntries(Object.entries(cov).map(([k, v]) => [k, nInst ? +(v / nInst).toFixed(3) : null]));
   const issues = findIssues({ cells, perCell, byMonth, months, K, coverage });
-  return { version: PERF_VERSION, inputVersion: K.version(), months, perCell, byMonth, coverage, instances: nInst, assignedAreaM2: +assignedArea.toFixed(1), totalAreaM2: +totalArea.toFixed(1), species: [...species].sort(), issues, thresholds: { ...PERF },
+  return { version: PERF_VERSION, inputVersion: K.version(), months, perCell, byMonth, coverage, instances: nInst, assignedAreaM2: +assignedArea.toFixed(1), plantedAreaM2: +plantedAreaAll.toFixed(1), totalAreaM2: +totalArea.toFixed(1), species: [...species].sort(), issues, thresholds: { ...PERF },
     definitions: {
       presence: 'cell has ≥ 1 placed plant known to flower that month and not known to be wind-pollinated (presence only)',
-      distribution: 'flowering instances per cell; known flowering fraction = flowering instances / placed instances (denominator: placed plants in the designed cells); per m² of designed cell area; unknown counted apart',
+      distribution: 'plants known to flower AND not known to be wind-pollinated, per cell; fraction = those / placed plants (denominator: placed plants); per m² of the PLANTED footprint (union of painted / filled fragments, clipped to the cells — not the whole structural cell); unknown counted apart; phenology-only flowering (incl. wind-pollinated) reported separately',
       groups: 'documented pollinator groups of the flowering instances (association, not visitation)',
-      continuity: `connected resource cells (shared boundary ≥ 0.3 m, or ≤ 3 m across a path); strong = ≥ ${PERF.strongPerM2} flowering plants / m² (prototype threshold). Potential connection, not flight`,
+      continuity: `connected resource cells (shared boundary ≥ 0.3 m, or ≤ 3 m across a path — prototype rule); the largest group is the one with the largest planted area; strong = ≥ ${PERF.strongPerM2} flowering plants / m² (prototype threshold). Potential connection, not a pollinator route`,
       adaptability: 'recorded light of each placed plant vs the crown proxy at its position; soil moisture has no data → unknown',
-      scope: 'designed cells only; the reference planting outside the scope is not counted',
+      scope: 'design scope only: structured area = all cells; planted area = painted / filled footprint; the reference planting outside the scope is not counted',
     } };
 }
 

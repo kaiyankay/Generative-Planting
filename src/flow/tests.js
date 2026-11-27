@@ -15,7 +15,8 @@ import { validateSuggestion } from './llm.js';
 import { autoCompose } from './compose.js';
 import { readIntent } from './stages/define.js';
 import { candidates } from './fill.js';
-import { Brush } from './brush.js';
+import { Brush, mixFitAt } from './brush.js';
+import { community } from './stages/explore.js';
 import { convertLegendRecipe, SYSTEMS } from './mix.js';
 import { proposeStrategy } from './strategy.js';
 
@@ -304,5 +305,83 @@ async function runAll() {
     return { ok: fpOf(W.state.instances) === fpOf(V.state.instances) && JSON.stringify(W.state.locks) === JSON.stringify(V.state.locks) && !!W.state.strategy && e.cells.some((c) => c.fragments.length) && Number.isFinite(i.z) && i.slot && e.assumptions.length >= 2, plants: e.instances.length, fp: fpOf(W.state.instances) };
   });
   await test('V16', 'V2-L', 'Base model unchanged by the V2 design (baseline placements identical)', () => { const d = store.baseline.placements; return { ok: d.length === baseCount && !d.some((p) => p.id.startsWith('pl.dz.')), n: d.length }; });
+
+  // ================================================================ V3.1 · boundaries, unified validation, light, metrics
+  const W = V; const bedC = 'bed.B2';
+  const cellsC = () => cellsOf(bedC); const plantsOf = (ids) => ids.flatMap((c) => (W.state.instances[c] || { plants: [] }).plants.map((p) => ({ ...p, cellId: c })));
+  const segNear = (g, x, y) => { let best = Infinity; for (const p of C(g)) for (const r of p) for (let i = 0; i < r.length - 1; i++) { const [ax, ay] = r[i], [bx, by] = r[i + 1]; const vx = bx - ax, vy = by - ay; const L2 = vx * vx + vy * vy; let t = L2 ? ((x - ax) * vx + (y - ay) * vy) / L2 : 0; t = Math.max(0, Math.min(1, t)); best = Math.min(best, Math.hypot(ax + t * vx - x, ay + t * vy - y)); } return best; };
+  W.clearCells(cellsC()); W.assign(cellsC(), matrix.id);
+  await test('W1', 'V3-G', 'Internal cell edges are computational, not walls: plants grow within 0.08 m of an internal edge; none within 0.08 m of the bed (hard) boundary', () => {
+    const hard = W.plantable(bedC); const ps = plantsOf(cellsC()); let nearInternal = 0, nearHard = 0;
+    for (const p of ps) { const dh = segNear(hard, p.x, p.y); if (dh < 0.079) nearHard++; const dc = segNear(W.state.cells[p.cellId].geometry, p.x, p.y); if (dc < 0.08 && dh > 0.2) nearInternal++; }
+    return { ok: ps.length > 200 && nearInternal > 0 && nearHard === 0, plants: ps.length, nearInternal, nearHard };
+  });
+  await test('W2', 'V3-G', 'Spacing is checked across cell edges (same layer ≥ 0.6 × the smaller spacing, other layers ≥ 0.12 m) and the internal-edge band is not emptier than the interior', () => {
+    const ps = plantsOf(cellsC()); const grid = new Map(); const k = (x, y) => `${Math.floor(x)},${Math.floor(y)}`; for (const p of ps) { const kk = k(p.x, p.y); if (!grid.has(kk)) grid.set(kk, []); grid.get(kk).push(p); }
+    let cross = 0, viol = 0; for (const p of ps) { const gx = Math.floor(p.x), gy = Math.floor(p.y); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const q of grid.get(`${gx + i},${gy + j}`) || []) { if (q === p || q.cellId === p.cellId || q.id < p.id) continue; const d = Math.hypot(p.x - q.x, p.y - q.y); const need = p.slot === q.slot ? 0.6 * Math.min(p.spacing, q.spacing) : 0.12; if (d < 1) cross++; if (d < need - 1e-6) viol++; } }
+    const hard = W.plantable(bedC); let band = 0, inner = 0, bandA = 0, innerA = 0; for (const c of cellsC()) { const cell = W.state.cells[c]; const b = cell._bb; for (let x = b[0]; x < b[2]; x += 0.25) for (let y = b[1]; y < b[3]; y += 0.25) { if (!inside(cell.geometry, x, y) || segNear(hard, x, y) < 0.5) continue; if (segNear(cell.geometry, x, y) < 0.3) bandA++; else innerA++; } }
+    for (const p of ps) { if (segNear(hard, p.x, p.y) < 0.5 || p.slot !== 'base') continue; if (segNear(W.state.cells[p.cellId].geometry, p.x, p.y) < 0.3) band++; else inner++; }
+    const ratio = bandA && innerA && inner ? (band / bandA) / (inner / innerA) : null;
+    return { ok: cross > 20 && viol === 0 && ratio > 0.7, crossCellPairsUnder1m: cross, violations: viol, edgeBandDensityRatio: ratio && +ratio.toFixed(2) };
+  });
+  const FB3 = { brushLog: [], cellAt: (x, y) => W.allCells().find((c) => inside(c.geometry, x, y)) || null }; Object.defineProperty(FB3, 'P', { value: W }); Object.defineProperty(FB3, 'K', { value: K });
+  const B3 = new Brush(FB3); const cB2 = cen(bedC);
+  await test('W3', 'V3-E', 'Hover and stroke are the same evaluation: the plants a hover shows at a point are exactly the plants a click-stroke there commits; hover writes nothing', () => {
+    const f0 = fpOf(W.state.instances); B3.start({ mixId: colour.id, slots: null, r: 1.2 }); B3.hover(cB2[0], cB2[1]); const g = B3.ghost; const ids = g.adds.map((p) => p.id).sort(); const rem = g.removes.map((p) => p.id).sort(); const f1 = fpOf(W.state.instances);
+    B3.down(cB2[0], cB2[1]); const r = B3.up(); const after = plantsOf(cellsC()).filter((p) => ids.includes(p.id)).map((p) => p.id).sort(); const gone = rem.filter((id) => plantsOf(cellsC()).some((p) => p.id === id && p.mixId === matrix.id));
+    W.undo(); B3.stop();
+    return { ok: f0 === f1 && ids.length > 5 && JSON.stringify(after) === JSON.stringify(ids) && gone.length === 0 && r.added === ids.length, hoverAdds: ids.length, hoverReplaces: rem.length, committed: r.added, replaced: r.removed };
+  });
+  await test('W4', 'V3-D', 'Light: open ground without an assumption is UNKNOWN (not sun); a project assumption makes fits known; a known conflict is swapped or skipped, kept only with an explicit override (flagged)', () => {
+    const c = cellsC().slice(0, 4); W.clearCells(c); W.assign(c, colour.id); const unk = plantsOf(c).every((p) => p.fit === 'unknown');
+    W.setLightAssumption([bedC], 'sun'); W.clearCells(c); W.assign(c, colour.id); const sunPs = plantsOf(c); const fitKnown = sunPs.filter((p) => p.fit === 'match').length; const lsA = sunPs.filter((p) => p.ls === 'a').length; const known = sunPs.filter((p) => p.fit !== 'unknown').length;
+    W.setLightAssumption([bedC], 'shade'); W.clearCells(c); W.assign(c, colour.id); const ps = plantsOf(c); const st = c.reduce((a, id) => { for (const q of Object.values((W.state.instances[id] || { byFrag: {} }).byFrag)) a += q.rejected.light || 0; return a; }, 0);
+    const conflicts = ps.filter((p) => p.fit === 'conflict').length;
+    B3.start({ mixId: colour.id, slots: null, r: 1.2, override: true }); const q = W.state.cells[c[0]].center; B3.hover(q[0], q[1]); const ov = B3.ghost.adds.filter((p) => p.fit === 'conflict' && p.ov).length; B3.stop();
+    const fit = mixFitAt(K, colour, { value: 'shade' }); W.setLightAssumption([bedC], null);
+    const fitSun = mixFitAt(K, colour, { value: 'sun' });
+    const allKnownFromA = sunPs.filter((p) => p.fit !== 'unknown').every((p) => p.ls === 'a');
+    return { ok: unk && fitKnown > 0 && allKnownFromA && lsA >= known && fitSun.cat === 'match' && fit.cat === 'conflict' && conflicts === 0 && (st > 0 || ps.some((p) => p.sub)) && ov > 0, openUnknown: unk, sunMatch: fitKnown, sunFromAssumption: lsA, shadeSkipped: st, shadeSwapped: ps.filter((p) => p.sub).length, shadeConflictsPlaced: conflicts, overrideConflictsInPreview: ov, mixFitSun: fitSun.cat, mixFitShade: fit.cat };
+  });
+  await test('W5', 'V3-E', 'Blocked is not a conflict: centred on the walk the hover adds nothing on the path and names the path; a frozen cell is named frozen and untouched', () => {
+    const a = cen('bed.B1'), b = cen('bed.B2'); let pt = null; for (let t = 0.3; t <= 0.7; t += 0.01) { const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t; if (!W.allCells().some((c) => inside(c.geometry, x, y)) && W.pathGeoms().some((p) => inside(p.g, x, y))) { pt = [x, y]; break; } }
+    if (!pt) return { ok: false, err: 'no path point between B1 and B2' };
+    B3.start({ mixId: colour.id, slots: null, r: 0.6 }); B3.hover(pt[0], pt[1]); const h = B3.whatIsHere(pt[0], pt[1]); const onPath = B3.ghost.adds.filter((p) => W.pathGeoms().some((q) => inside(q.g, p.x, p.y))).length;
+    const fc = cellsC()[2]; W.setLock([fc]); const q = W.state.cells[fc].center; const h2 = B3.whatIsHere(q[0], q[1]); const f0 = fpOf(W.state.instances, (p, cc) => cc === fc); B3.down(q[0], q[1]); B3.up(); const f1 = fpOf(W.state.instances, (p, cc) => cc === fc); W.setLock([fc], false); B3.stop();
+    return { ok: h.blocked === 'path' && onPath === 0 && h2.blocked === 'frozen' && f0 === f1, here: h.blocked, name: h.name, frozen: h2.blocked };
+  });
+  await test('W6', 'V3-G', 'Soft edge: inside the core every old base plant of the footprint is replaced; in the outer band part of the old community stays (a transition, not a seam); other layers untouched', () => {
+    W.clearCells(cellsC()); W.assign(cellsC(), matrix.id); const ov0 = fpOf(W.state.instances, (p, c) => cellsC().includes(c) && p.slot !== 'base');
+    const r = 2.0; B3.start({ mixId: colour.id, slots: ['base'], r, edge: 'soft' }); B3.down(cB2[0], cB2[1]); B3.up(); B3.stop();
+    const ps = plantsOf(cellsC()).filter((p) => p.slot === 'base'); const d = (p) => Math.hypot(p.x - cB2[0], p.y - cB2[1]);
+    const coreOld = ps.filter((p) => d(p) < r * 0.5 && p.mixId === matrix.id).length; const bandOld = ps.filter((p) => d(p) > r * 0.6 && d(p) < r * 0.95 && p.mixId === matrix.id).length; const bandNew = ps.filter((p) => d(p) > r * 0.6 && d(p) < r * 0.95 && p.mixId === colour.id).length;
+    const ov1 = fpOf(W.state.instances, (p, c) => cellsC().includes(c) && p.slot !== 'base');
+    return { ok: coreOld === 0 && bandOld > 0 && bandNew > 0 && ov0 === ov1, coreOld, bandOld, bandNew };
+  });
+  await test('W7', 'V3-L', 'FIXTURE components: the largest group is the largest by AREA (3 small linked cells vs 1 large cell), and its share is that area / resource area', () => {
+    const FK2 = fakeK({ A: T([6], ['bees']) }); const mk = (id, x, w, nb) => ({ id, label: id, areaM2: w * 2, center: [x + w / 2, 1], neighbors: nb.map((n) => ({ id: n, sharedM: 2 })), conditions: {}, geometry: MP(rect(x, 0, x + w, 2)) });
+    const cs3 = [mk('s1', 0, 1, ['s2']), mk('s2', 1, 1, ['s1', 's3']), mk('s3', 2, 1, ['s2']), mk('L', 10, 10, [])]; const one = { plants: [{ plantId: 'A', x: 0, y: 0, spacing: 0.4, slot: 'base' }] };
+    const p = computePerformance({ cells: cs3, assignments: Object.fromEntries(cs3.map((c) => [c.id, { mixId: 'm' }])), instances: Object.fromEntries(cs3.map((c) => [c.id, one])), mixes: [], K: FK2, brief }); const b = p.byMonth[6];
+    return { ok: b.components[0].cells.join() === 'L' && Math.abs(b.largestComponentShare - 20 / 26) < 0.002, first: b.components[0].cells, share: b.largestComponentShare };
+  });
+  await test('W8', 'V3-L', 'Planted area is the painted footprint, not the whole cell: a partial stroke counts its clipped area; per m² uses it; structural area is reported apart', () => {
+    W.clearCells(cellsC()); const big = cellsC().map((c) => W.state.cells[c]).sort((x, y) => y.areaM2 - x.areaM2)[0]; const q = big.center;
+    B3.start({ mixId: colour.id, slots: null, r: 0.8 }); B3.down(q[0], q[1]); B3.up(); B3.stop(); const fpA = W.plantedFootprint(big); W.recompute(); const pc = W.perf.perCell[big.id];
+    return { ok: fpA > 0.5 && fpA < big.areaM2 * 0.8 && Math.abs(pc.months[6].plantedAreaM2 - fpA) < 0.01 && W.perf.plantedAreaM2 < W.perf.totalAreaM2, cellArea: big.areaM2, footprint: fpA, disk: +(Math.PI * 0.64).toFixed(2) };
+  });
+  await test('W9', 'V3-H', 'Cell-scoped undo snapshot (V3): a stroke undo / redo restores exactly that stroke; other cells keep their plants and the full state equals the pre-stroke state', () => {
+    W.assign(cellsC(), matrix.id); const f0 = fpOf(W.state.instances); const other = fpOf(W.state.instances, (p, c) => !cellsC().includes(c)); B3.start({ mixId: colour.id, slots: null, r: 1.5 }); B3.down(cB2[0] - 1, cB2[1]); B3.move(cB2[0] + 1, cB2[1] + 1); const r = B3.up(); B3.stop(); const f1 = fpOf(W.state.instances);
+    W.undo(); const f2 = fpOf(W.state.instances); W.redo(); const f3 = fpOf(W.state.instances); const lastPast = W.past[W.past.length - 1];
+    return { ok: r.ok && f1 !== f0 && f2 === f0 && f3 === f1 && fpOf(W.state.instances, (p, c) => !cellsC().includes(c)) === other && lastPast.full === false, partialSnapshot: lastPast.full === false, cells: lastPast.cells && lastPast.cells.length };
+  });
+  await test('W10', 'V3-K', 'Explore inspector reads the real community: the plants it lists are exactly the placed plants of the fragments under the click (all layers at that point), extended to the same stroke in other cells', () => {
+    const FX = { P: W, cellAt: FB3.cellAt }; const g = community(FX, cB2[0] + 1, cB2[1] + 0.5); if (!g) return { ok: false, err: 'no community at the stroke' };
+    const direct = []; for (const c of g.cellIds) for (const p of W.state.instances[c].plants) if (g.fids.has(p.frag)) direct.push(p.id);
+    return { ok: g.plants.length === direct.length && g.plants.length > 10 && g.mixes.length >= 1 && g.frags.every((q) => q.f.origin === 'brush' || q.cellId === g.cell.id), plants: g.plants.length, cells: g.cellIds.length, mixes: g.mixes.map((m) => m.name), others: g.others.length };
+  });
+  await test('W11', 'V3-B', 'Scope ≠ focus: confirming a new strategy never drops a bed that already has cells (the scope keeps it)', () => {
+    const before = Object.keys(W.state.beds); const s = proposeStrategy(W, { intent: '', scope: 'custom', customBeds: ['bed.A1'] }); W.confirmStrategy(s); const keptAll = before.every((b) => W.state.brief.scopeBeds.includes(b)); W.undo();
+    return { ok: keptAll && W.state.brief.scopeBeds.length >= before.length, beds: before.length, scope: W.state.brief.scopeBeds.length };
+  });
   return { tests: R, passed: R.filter((x) => x.ok).length, failed: R.filter((x) => !x.ok).length, ms: Math.round(performance.now() - t0), when: new Date().toISOString() };
 }

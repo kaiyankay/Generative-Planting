@@ -8,13 +8,31 @@ import { SYSTEMS, ROLE_DEF, ARRANGEMENTS, editMix, makeMix, convertLegendRecipe,
 import { autoCompose } from '../compose.js';
 import { suggestMixes, interpretEdit } from '../suggest.js';
 import { mixCard, planPatch, ribbon, section, roleName } from '../mixviz.js';
+import { mixFitAt } from '../brush.js';
 
 export function gate(F) { const t = F.P.totals(); return t.plants > 0 ? { ok: true } : { ok: false, reason: 'Plant at least one area first (paint, fill or Auto Compose).' }; }
 export function enter(F) {
-  if (F.ctx.st.view !== 'plan') F.setMode('plan', { quiet: true });
   F.store.setViewState({ hidePlanting: false });
   if (!F.P.state.mixes.length) seedLibrary(F);
-  if (!F.u.cells.size) F.focusBeds(Object.keys(F.P.state.beds));
+  F.fitMap = (mix) => fitMap(F, mix);
+}
+// mix fit per cell (light: assumption > crown proxy > unknown) — cached by mix version, assumptions and knowledge
+function fitMap(F, mix) {
+  const P = F.P; const key = `${mix.id}@${mix.version}|${JSON.stringify(P.state.env && P.state.env.light)}|${F.K.version()}|${JSON.stringify(Object.keys(P.state.locks))}|${P.allCells().length}`;
+  if (F._fit && F._fit.key === key) return F._fit.map; const map = new Map(); const slots = F.brush.active && F.brush.active.slots;
+  for (const c of P.allCells()) {
+    if (P.state.locks[c.id]) { map.set(c.id, { cat: 'blocked' }); continue; }
+    const a = P.lightAssumption(c.bedId); const cf = c.conditions && c.conditions.canopy && c.conditions.canopy.fraction;
+    const light = a ? { value: a, source: 'assumption' } : cf != null && cf >= 0.5 ? { value: 'shade', source: 'proxy' } : { value: null, source: null };
+    map.set(c.id, mixFitAt(F.K, mix, light, slots));
+  }
+  F._fit = { key, map }; return map;
+}
+export function onFocus() {}
+// hover (no brush): the cell under the pointer and what grows there
+export function hoverAt(F, x, y) {
+  const c = F.cellAt(x, y); if (!c) return null; const inst = F.P.state.instances[c.id]; const m = inst && F.P.mix(inst.mixId);
+  return { key: c.id, geometry: c.geometry, chip: `<b>${esc(F.P.bedCode(c.bedId))}·${c.n}</b> <span class="dim">${c.areaM2} m²${inst && inst.plants.length ? ` · ${inst.plants.length} plants` : ' · empty'}${m ? ' · ' + esc(m.name) : ''}</span>` };
 }
 const legend = (F) => ((F.ctx.mixFile && F.ctx.mixFile.mixes) || []).map((m, i) => convertLegendRecipe(m, { colorIndex: i, exists: (id) => !!F.store.getObject(id) }));
 // the library starts with the Detroit legend recipe of each system the strategy uses (sourced, editable) — never invented
@@ -24,9 +42,8 @@ function seedLibrary(F) {
 }
 export function bottom(F) {
   const t = F.P.totals(); const g = gate(F);
-  let msg = t.plants ? `<b>${num(t.plants)} plants</b> · ${t.species} species · ${t.assigned}/${t.cells} cells planted` : '<b>Compose</b>: pick a mix, then drag across the beds.';
-  if (F.brush.active) msg = `Brush <b>${esc(F.brush.active.mixId ? (F.P.mix(F.brush.active.mixId) || {}).name : 'eraser')}</b> — drag across beds; paths are skipped; Esc cancels a stroke.`;
-  if (F.u.autoPreview) msg = `Auto Compose proposes ${F.u.autoPreview.proposals.length} cells — accept or cancel.`;
+  let msg = t.plants ? `<b>${num(t.plants)}</b> plants · ${t.species} species · ${t.assigned}/${t.cells} cells` : '';
+  if (F.u.autoPreview) msg = `Auto Compose: ${F.u.autoPreview.proposals.length} cells proposed`;
   return { msg, next: { label: 'Continue to Explore →', enabled: g.ok, reason: g.reason, run: () => F.go('explore') } };
 }
 export function onCanvasClick(F, x, y, sel, { shift }) { const c = F.cellAt(x, y); if (c) F.selectCells([c.id], { add: shift }); else if (!shift) { F.u.cells.clear(); F.render(); } }
@@ -34,23 +51,21 @@ export function onCanvasClick(F, x, y, sel, { shift }) { const c = F.cellAt(x, y
 export function render(F) {
   const P = F.P, st = P.state, el = F.panel; const sel = [...F.u.cells];
   const active = F.brush.active && F.brush.active.mixId; const cmp = F.u.compare || [];
-  let h = `<header class="stage-head"><p class="kicker">3 · Compose</p><h1>Communities in space</h1><p class="task">Choose a mix to load the brush, then drag across the beds: plants grow while you move. Cells are filled by the same engine.</p></header>`;
-  if (F.u.editor) { el.innerHTML = h + editorHtml(F); bindEditor(F, el); return; }
-  h += `<section class="blk"><h2>Mix palette <span class="aside">${st.mixes.length} mix${st.mixes.length === 1 ? '' : 'es'}</span></h2><div class="palette">${st.mixes.map((m) => mixCard(F, m, { active: active === m.id, compare: cmp.includes(m.id), uses: P.usesOf(m.id).length })).join('') || '<p class="dim small">No mix yet — add one below.</p>'}</div>`;
+  let h = '';
+  if (F.u.editor) { el.innerHTML = editorHtml(F); bindEditor(F, el); return; }
+  h += `<section class="blk"><h2>Mixes</h2><div class="palette">${st.mixes.map((m) => mixCard(F, m, { active: active === m.id, compare: cmp.includes(m.id), uses: P.usesOf(m.id).length })).join('') || '<p class="dim small">No mix yet — add one below.</p>'}</div>`;
   if (cmp.length === 2) h += compareHtml(F, cmp.map((id) => P.mix(id)).filter(Boolean));
   h += `</section>`;
-  h += `<section class="blk tools"><h2>Design</h2><div class="toolrow">
+  h += `<section class="blk tools"><div class="toolrow">
     <button class="tool${F.brush.active && F.brush.active.mixId ? ' on' : ''}" data-a="brush" ${st.mixes.length ? '' : 'disabled'} title="Live brush with the selected mix (B)"><svg viewBox="0 0 24 24"><path d="M4 20c3 0 5-2 5-5l9-9a2 2 0 0 0-3-3l-9 9c-3 0-5 2-5 5z"/></svg>Brush</button>
     <button class="tool${F.brush.active && !F.brush.active.mixId ? ' on' : ''}" data-a="erase" title="Erase plants (target layers) under the brush"><svg viewBox="0 0 24 24"><path d="M4 16 13 7l6 6-7 7H7zM10 20h10"/></svg>Erase</button>
     <button class="tool" data-a="fill" ${sel.length && (P.state.view.selectedMix || active) ? '' : 'disabled'} title="Fill the selected cells completely with the selected mix"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/><path d="M4 12h16M12 4v16" stroke-dasharray="2 2"/></svg>Cell fill${sel.length ? ` (${sel.length})` : ''}</button>
     <button class="tool" data-a="auto" ${st.mixes.length ? '' : 'disabled'} title="Propose mixes for unplanted cells (preview first)"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Auto compose</button></div>
-    ${F.u.autoPreview ? autoHtml(F) : ''}
-    <p class="xs dim">Brush ⌀ in metres (independent of zoom): <b>[</b> <b>]</b> or Alt + wheel. Paint in Plan; Axo shows the same plants.</p></section>`;
-  h += `<section class="blk"><h2>Add a mix</h2>
-    <p class="xs dim">Start from a Planting System (slides P34 / P41). Each template is filled from the Detroit legend recipe of that system where one exists.</p>
+    ${F.u.autoPreview ? autoHtml(F) : ''}</section>`;
+  h += `<details class="blk more"${F.u.suggestion ? ' open' : ''}><summary><h2>Add a mix</h2></summary>
     <div class="systems">${Object.values(SYSTEMS).map((S) => `<button class="sysbtn" data-sys="${S.id}"><b>${esc(S.name)}</b><span class="xs">${esc(S.layers.map((L) => L.name).join(' · '))}</span></button>`).join('')}</div>
     <div class="row"><button class="btn-s" data-a="suggest">Suggest for ${sel.length ? 'the selected cells' : 'unplanted cells'} <span class="tag mode">Rules</span></button><details class="inline"><summary class="lnk">Reuse a legend recipe</summary>${legend(F).map((m) => `<button class="lnk xs" data-reuse="${esc(m.id)}">${esc(m.name)} (${esc(SYSTEMS[m.system].name)})</button>`).join('')}</details></div>
-    ${F.u.suggestion ? suggestionHtml(F) : ''}</section>`;
+    ${F.u.suggestion ? suggestionHtml(F) : ''}</details>`;
   el.innerHTML = h; bind(F, el);
 }
 function compareHtml(F, [a, b]) {
@@ -68,7 +83,7 @@ function suggestionHtml(F) {
 }
 function bind(F, el) {
   const P = F.P; const a = (k, fn) => el.querySelectorAll(`[data-a=${k}]`).forEach((x) => (x.onclick = fn));
-  el.querySelectorAll('.mixcard').forEach((c) => { const go = (e) => { if (e.target.closest('[data-edit],[data-cmp]')) return; const id = c.dataset.mix; P.setView({ selectedMix: id }); F.setBrush({ mixId: id, slots: null }); F.renderPanel(); }; c.onclick = go; c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } }; });
+  el.querySelectorAll('.mixcard').forEach((c) => { const go = (e) => { if (e.target.closest('[data-edit],[data-cmp]')) return; const id = c.dataset.mix; P.setView({ selectedMix: id }); const first = !F.brush.active; F.setBrush({ mixId: id, slots: null }); if (first && F.u.envAuto !== false && hasLight(F)) { F.u.env = true; F.u.envView = 'fit'; F.renderDock(); } F.renderPanel(); F.renderLegend(); F.repaint(); }; c.onclick = go; c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } }; });
   el.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => { F.setBrush(null); F.u.editor = { mixId: b.dataset.edit, draft: structuredClone(P.mix(b.dataset.edit)), changes: [] }; F.renderPanel(); F.panel.scrollTop = 0; }));
   el.querySelectorAll('[data-cmp]').forEach((b) => (b.onclick = () => { const id = b.dataset.cmp; let c = F.u.compare || []; c = c.includes(id) ? c.filter((x) => x !== id) : [...c, id].slice(-2); F.u.compare = c; F.renderPanel(); }));
   a('brush', () => { const id = P.state.view.selectedMix || (P.state.mixes[0] && P.state.mixes[0].id); if (id) F.setBrush({ mixId: id, slots: null }); F.renderPanel(); });
@@ -172,3 +187,6 @@ export function bindInspector(F, el) {
   a('clear', () => P.clearCells(ids)); a('empty', () => P.clearCells(ids, { empty: true }));
 }
 export function paintCells(F, ids) { const mid = (F.brush.active && F.brush.active.mixId) || F.P.state.view.selectedMix; return F.P.assign(ids, mid); }
+
+// any light value in the scope (an assumption or a crown above a cell)? then the fit map is worth showing on its own
+function hasLight(F) { const P = F.P; if (P.state.env && P.state.env.light && Object.keys(P.state.env.light).length) return true; return P.allCells().some((c) => c.conditions && c.conditions.canopy && c.conditions.canopy.fraction >= 0.5); }

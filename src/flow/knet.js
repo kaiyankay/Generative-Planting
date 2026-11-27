@@ -13,13 +13,13 @@ import { esc } from './ui.js';
 import { MONTHS, GROUPS } from './knowledge.js';
 import { ROLE_DEF, SYSTEMS } from './mix.js';
 
-const LENSES = {
+export const LENSES = {
   spatial: { name: 'Spatial function', z: 'Z · Spatial functions', zs: 'what a planting does in space', y: 'Y · Attributes', ys: 'traits a function requires' },
   role: { name: 'Community role', z: 'Z · Roles in your mixes', zs: 'the relation of a plant inside one mix', y: 'Y · Planting systems', ys: 'the system that names the role' },
   ecology: { name: 'Ecological association', z: 'Z · Pollinator groups', zs: 'documented association, not visitation', y: 'Y · Flowering season', ys: 'when the associated plants flower' },
   environment: { name: 'Environment', z: 'Z · Requirements', zs: 'recorded light and moisture needs', y: 'Y · Site conditions', ys: 'what is known on this site' },
 };
-const TYPES = { source: { name: 'source record', dash: '', col: '#3B5538' }, derived: { name: 'derived from records', dash: '6 4', col: '#B7894D' }, candidate: { name: 'candidate', dash: '2 3', col: '#8C9C82' }, project: { name: 'project / personal', dash: '', col: '#B04F36' }, illustrative: { name: 'illustrative (not verified)', dash: '1 3', col: '#7A5E92' }, conflict: { name: 'conflict between sources', dash: '7 3 1 3', col: '#9A3F26' } };
+export const TYPES = { source: { name: 'source record', dash: '', col: '#3B5538' }, derived: { name: 'derived from records', dash: '6 4', col: '#B7894D' }, candidate: { name: 'candidate', dash: '2 3', col: '#8C9C82' }, project: { name: 'project / personal', dash: '', col: '#B04F36' }, illustrative: { name: 'illustrative (not verified)', dash: '1 3', col: '#7A5E92' }, conflict: { name: 'conflict between sources', dash: '7 3 1 3', col: '#9A3F26' } };
 const typeOf = (src) => (src === 'illustrative' ? 'illustrative' : src === 'project' || src === 'personal' ? 'project' : src === 'derived' ? 'derived' : src === 'candidate' ? 'candidate' : 'source');
 const SEASON = { spring: [3, 4, 5], summer: [6, 7, 8], autumn: [9, 10, 11], winter: [12, 1, 2] };
 
@@ -156,7 +156,7 @@ export class KnowledgeView {
     k('cancel', () => { this.pending = null; this.render(); });
   }
 }
-function parseForm(fd) {
+export function parseForm(fd) {
   const out = []; const b = String(fd.get('bloom') || '').trim(); const MO = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
   if (b) { const ms = new Set(); const rng = b.match(/(\d{1,2})\s*[-–]\s*(\d{1,2})/); if (rng) for (let m = +rng[1]; m <= +rng[2]; m++) ms.add(m); for (const w of b.toLowerCase().split(/[\s,]+/)) { const i = MO.indexOf(w.slice(0, 3)); if (i >= 0) ms.add(i + 1); else if (/^\d{1,2}$/.test(w) && +w >= 1 && +w <= 12) ms.add(+w); } if (ms.size) out.push({ attr: 'bloom', value: [...ms].sort((x, y) => x - y) }); }
   const g = String(fd.get('pollinators') || '').toLowerCase().split(/[\s,]+/).filter((x) => GROUPS.includes(x)); if (g.length) out.push({ attr: 'pollinators', value: g });

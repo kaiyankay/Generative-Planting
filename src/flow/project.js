@@ -16,7 +16,8 @@ import { diff, clip, union } from '../design/geo.js';
 
 export const SCHEMA = 'gp.project/2';
 const KEY = 'gp.flow.project.v2', KEY_V1 = 'gp.flow.project.v1', SNAP_KEY = 'gp.flow.snapshots.v2';
-const DESIGN_PARTS = ['beds', 'cells', 'mixes', 'assignments', 'instances', 'knowledge', 'plants', 'acknowledged', 'locks', 'strategy'];
+const DESIGN_PARTS = ['beds', 'cells', 'mixes', 'assignments', 'instances', 'knowledge', 'plants', 'acknowledged', 'locks', 'strategy', 'env'];
+const PER_CELL = ['assignments', 'instances']; // parts that a cell-scoped command changes only for its declared cells
 const SLOTS = ['base', 'overlay', 'ephemeral'];
 
 export function defaultBrief(siteId) {
@@ -41,14 +42,16 @@ export function emptyState(site) {
   const now = new Date().toISOString();
   return { schema: SCHEMA, id: 'prj.' + Date.now().toString(36), siteId: site.id, siteName: site.name, name: 'Planting design 1', created: now, updated: now, stage: 'define', maxStage: 'define',
     brief: defaultBrief(site.id), strategy: null, beds: {}, cells: {}, mixes: [], assignments: {}, instances: {}, knowledge: { records: [], prefs: [] }, plants: [], acknowledged: {}, locks: {},
-    view: { month: 6, explore: 'planting', mode: 'plan', diagram: 'arrangement', selectedCell: null, selectedMix: null, camera: null, obs: null } };
+    env: { light: {} }, rev: 0,
+    view: { month: 6, explore: 'planting', mode: 'plan', diagram: 'arrangement', selectedCell: null, selectedMix: null, camera: null, obs: null, sv: {} } };
 }
 let _fid = 0; const fragId = () => 'f' + Date.now().toString(36) + (++_fid).toString(36);
 
 export class Project {
   constructor({ store, cs, K, site }) {
     this.s = store; this.cs = cs; this.K = K; this.site = site;
-    this.state = emptyState(site); this.past = []; this.future = []; this.listeners = new Set(); this.perf = null; this.storage = { ok: true, error: null, savedAt: null };
+    this.state = emptyState(site); this.past = []; this.future = []; this.listeners = new Set(); this._perf = null; this._perfDirty = false; this.storage = { ok: true, error: null, savedAt: null };
+    addEventListener('pagehide', () => { if (this._sv) { clearTimeout(this._sv); this._sv = 0; this.save(); } });
     this._ctxCache = new Map(); this._trees = null;
   }
   on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -82,18 +85,44 @@ export class Project {
 
   // ================================================================ commands (one gesture = one undo step)
   snapshotDesign() { const o = {}; for (const k of DESIGN_PARTS) o[k] = structuredClone(this.state[k]); return o; }
+  // V3: a cell-scoped command keeps only its declared cells of assignments / instances in the undo entry (a full clone of
+  // ≈ 19 000 plants per stroke was the main cost of pointer-up); everything else is cloned as before.
+  _snap(cells) {
+    if (!cells) return { full: true, state: this.snapshotDesign() };
+    const o = {}; for (const k of DESIGN_PARTS) if (!PER_CELL.includes(k)) o[k] = structuredClone(this.state[k]);
+    for (const k of PER_CELL) { o[k] = {}; for (const c of cells) o[k][c] = this.state[k][c] === undefined ? null : structuredClone(this.state[k][c]); }
+    return { full: false, cells: cells.slice(), state: o };
+  }
+  _apply(sn) {
+    if (sn.full) { Object.assign(this.state, structuredClone(sn.state)); return null; }
+    for (const k of DESIGN_PARTS) if (!PER_CELL.includes(k)) this.state[k] = structuredClone(sn.state[k]);
+    for (const k of PER_CELL) for (const c of sn.cells) { const v = sn.state[k][c]; if (v == null) delete this.state[k][c]; else this.state[k][c] = structuredClone(v); }
+    return sn.cells;
+  }
   commit(label, fn, { undoable = true, changedCells = null, rebuildAll = false } = {}) {
-    const before = undoable ? this.snapshotDesign() : null;
+    const cells = Array.isArray(changedCells) && !rebuildAll ? changedCells : null;
+    const before = undoable ? this._snap(cells) : null;
     const r = fn(this.state);
-    if (r && r.ok === false) { if (before) Object.assign(this.state, before); return r; }
-    if (undoable) { this.past.push({ label, state: before }); if (this.past.length > 60) this.past.shift(); this.future = []; }
-    this.state.updated = new Date().toISOString();
-    this.syncStore({ changedCells, rebuildAll }); this.recompute(); this.save();
+    if (r && r.ok === false) { if (before) this._apply(before); return r; }
+    if (undoable) { this.past.push({ label, ...before }); if (this.past.length > 60) this.past.shift(); this.future = []; }
+    this.state.updated = new Date().toISOString(); this.state.rev = (this.state.rev || 0) + 1;
+    this.syncStore({ changedCells, rebuildAll }); this.invalidatePerf(); this.saveSoon();
     this.emit('change', { label, changedCells });
     return r || { ok: true };
   }
-  undo() { const e = this.past.pop(); if (!e) return false; this.future.push({ label: e.label, state: this.snapshotDesign() }); Object.assign(this.state, structuredClone(e.state)); this.syncStore({ rebuildAll: true }); this.recompute(); this.save(); this.emit('change', { label: 'undo ' + e.label, undo: true }); return e.label; }
-  redo() { const e = this.future.pop(); if (!e) return false; this.past.push({ label: e.label, state: this.snapshotDesign() }); Object.assign(this.state, structuredClone(e.state)); this.syncStore({ rebuildAll: true }); this.recompute(); this.save(); this.emit('change', { label: 'redo ' + e.label, redo: true }); return e.label; }
+  _undoRedo(from, to, verb) {
+    const e = from.pop(); if (!e) return false;
+    to.push({ label: e.label, ...this._snap(e.full ? null : e.cells) });
+    const cells = this._apply(e); this.state.rev = (this.state.rev || 0) + 1;
+    this.syncStore(cells ? { changedCells: cells } : { rebuildAll: true }); this.invalidatePerf(); this.saveSoon();
+    this.emit('change', { label: verb + ' ' + e.label, [verb]: true, changedCells: cells }); return e.label;
+  }
+  undo() { return this._undoRedo(this.past, this.future, 'undo'); }
+  redo() { return this._undoRedo(this.future, this.past, 'redo'); }
+  // performance is derived: computed when first read after a change (and in idle time), not inside every gesture
+  get perf() { if (this._perfDirty) this.recompute(); return this._perf; }
+  set perf(v) { this._perf = v; this._perfDirty = false; }
+  invalidatePerf() { this._perfDirty = true; clearTimeout(this._pt); this._pt = setTimeout(() => { if (this._perfDirty) (window.requestIdleCallback || setTimeout)(() => { if (this._perfDirty) this.recompute(); }, { timeout: 1500 }); }, 600); }
   setView(patch) { Object.assign(this.state.view, patch); this.saveSoon(); this.emit('view', patch); } // view only: never touches the design
   setStage(stage) { const order = ['define', 'structure', 'compose', 'explore']; this.state.stage = stage; if (order.indexOf(stage) > order.indexOf(this.state.maxStage)) this.state.maxStage = stage; this.save(); this.emit('stage', stage); }
 
@@ -103,9 +132,21 @@ export class Project {
   confirmStrategy(strategy) {
     return this.commit('confirm planting strategy', (st) => {
       st.strategy = { ...structuredClone(strategy), confirmed: true, confirmedAt: new Date().toISOString() };
-      st.brief.scopeBeds = [...new Set(strategy.zones.flatMap((z) => z.bedIds))]; st.brief.confirmed = true;
+      // a bed that already has cells stays in the scope (its design is never cleared by a new strategy)
+      st.brief.scopeBeds = [...new Set([...strategy.zones.flatMap((z) => z.bedIds), ...Object.keys(st.beds)])]; st.brief.confirmed = true;
     }, { changedCells: [] });
   }
+  // ================================================================ environment: explicit project light assumptions per bed
+  // value: 'sun' | 'part' | 'shade' | null (= remove; unknown). Labelled as a designer's assumption everywhere; the crown
+  // proxy is kept and shown beside it, never replaced. Existing plants are not regenerated (new plants use it).
+  setLightAssumption(bedIds, value) {
+    const ids = bedIds.filter(Boolean); if (!ids.length) return { ok: false };
+    return this.commit(value ? `assume ${value === 'part' ? 'part shade' : value} in ${ids.map((b) => this.bedCode(b)).join(', ')}` : `light unknown in ${ids.map((b) => this.bedCode(b)).join(', ')}`, (st) => {
+      st.env ||= { light: {} }; st.env.light ||= {};
+      for (const b of ids) { if (value) st.env.light[b] = { value, at: new Date().toISOString(), source: 'project assumption' }; else delete st.env.light[b]; }
+    }, { changedCells: [] });
+  }
+  lightAssumption(bedId) { const e = this.state.env && this.state.env.light && this.state.env.light[bedId]; return e ? e.value : null; }
   zoneOf(bedId) { const s = this.state.strategy; return s ? s.zones.find((z) => z.bedIds.includes(bedId)) || null : null; }
 
   // ================================================================ Structure (one bed or many at once)
@@ -208,6 +249,7 @@ export class Project {
   _generate(st, cellId, f, mix) {
     const cell = st.cells[cellId]; const inst = this._ensureI(st, cellId); const env = this._env(st);
     const idx = new PlantIndex(); for (const p of inst.plants) idx.add(p);
+    for (const p of this.plantsNear(st, cell, cellId)) idx.add(p); // V3: spacing is checked across internal cell edges
     const g = f.geometry; const within = g ? (x, y) => inside(g, x, y) : null;
     const layers = mix.layers.filter((L) => f.slots.includes(L.slot)).map((L) => L.id);
     const b = g ? bbox(g) : (cell._bb || bbox(cell.geometry));
@@ -217,6 +259,12 @@ export class Project {
     const area = g ? mpArea(g) : cell.areaM2;
     inst.byFrag[f.id] = { target: +targetCount(mix, area, layers).toFixed(1), placed: v.plants.length, rejected: v.rejected, niche: v.niche, areaM2: +area.toFixed(2) };
     return v;
+  }
+  // plants of OTHER cells within 1.2 m of a cell's bbox (for spacing across cell edges; the cell itself excluded)
+  plantsNear(st, cell, exclude, m = 1.2) {
+    const b = cell._bb || (cell._bb = bbox(cell.geometry)); const out = [];
+    for (const c of Object.values(st.cells)) { if (c.id === exclude || c.bedId !== cell.bedId) continue; const q = c._bb || (c._bb = bbox(c.geometry)); if (q[2] < b[0] - m || q[0] > b[2] + m || q[3] < b[1] - m || q[1] > b[3] + m) continue; const i = st.instances[c.id]; if (!i) continue; for (const p of i.plants) if (p.x > b[0] - m && p.x < b[2] + m && p.y > b[1] - m && p.y < b[3] + m) out.push(p); }
+    return out;
   }
   _refillMix(st, cellId, mixId, mix) {
     const a = st.assignments[cellId]; const inst = st.instances[cellId]; if (!a || !inst) return;
@@ -235,9 +283,9 @@ export class Project {
     a.mixId = dom ? dom[0] : (a.fragments[0] ? a.fragments[0].mixId : null); const dm = a.mixId && st.mixes.find((m) => m.id === a.mixId); a.mixVersion = dm ? dm.version : null; a.status = 'ok';
     inst.mixId = a.mixId; inst.mixVersion = a.mixVersion; inst.byMix = byMix;
     inst.target = +Object.values(inst.byFrag).reduce((s, q) => s + q.target, 0).toFixed(1); inst.placed = inst.plants.length;
-    const rej = Object.values(inst.byFrag).reduce((s, q) => s + q.rejected.edge + q.rejected.trunk + q.rejected.clearance, 0);
+    const rej = Object.values(inst.byFrag).reduce((s, q) => s + q.rejected.edge + q.rejected.trunk + q.rejected.clearance + (q.rejected.light || 0), 0);
     inst.missing = rej ? [{ plantId: '*', requested: Math.round(inst.target), placed: inst.placed, rejected: rej }] : [];
-    inst.notes = rej ? [`${rej} candidate position${rej === 1 ? '' : 's'} rejected by hard constraints (cell edge, trunk clearance, centre spacing) — reported, not moved`] : [];
+    inst.notes = rej ? [`${rej} candidate position${rej === 1 ? '' : 's'} not planted (bed edge, trunk clearance, spacing, or a known light conflict) — reported, not moved`] : [];
     if (!inst.plants.length && !a.fragments.length) { delete st.assignments[cellId]; delete st.instances[cellId]; }
   }
   // Cell Fill (precise, whole cells) — V1 name kept: assign(cellIds, mixId)
@@ -280,7 +328,7 @@ export class Project {
           if (same) { same.geometry = union([same.geometry || cell.geometry, part]); for (const p of add) p.frag = same.id; }
           else { const f = { id: fragId(), mixId, mixVersion: mix.version, slots: slots.slice(), geometry: part, origin: 'brush', seed: 1, at: new Date().toISOString() }; a.fragments.push(f); for (const p of add) p.frag = f.id; }
           inst.plants.push(...add.filter((p) => !exists.has(p.id)));
-          const fid = add.length ? add[0].frag : (same && same.id); if (fid) { const area = mpArea(a.fragments.find((f) => f.id === fid).geometry || cell.geometry); const layers = mix.layers.filter((L) => slots.includes(L.slot)).map((L) => L.id); const mine = inst.plants.filter((p) => p.frag === fid); inst.byFrag[fid] = { target: +targetCount(mix, area, layers).toFixed(1), placed: mine.length, rejected: (stats && stats[c]) || { edge: 0, trunk: 0, clearance: 0 }, niche: countFit(mine), areaM2: +area.toFixed(2) }; }
+          const fid = add.length ? add[0].frag : (same && same.id); if (fid) { const area = mpArea(a.fragments.find((f) => f.id === fid).geometry || cell.geometry); const layers = mix.layers.filter((L) => slots.includes(L.slot)).map((L) => L.id); const mine = inst.plants.filter((p) => p.frag === fid); inst.byFrag[fid] = { target: +targetCount(mix, area, layers).toFixed(1), placed: mine.length, rejected: (stats && stats[c]) || { edge: 0, trunk: 0, clearance: 0, light: 0 }, niche: countFit(mine), areaM2: +area.toFixed(2) }; }
         }
         delete st.acknowledged[c]; this._summarize(st, c);
       }
@@ -342,8 +390,19 @@ export class Project {
     return { op: 'add', collection: 'placements', value: { id: this._pid(cellId), kind: 'plants', bedId: cell.bedId, mixId: a.mixId, mixVersion: a.mixVersion, assignmentId: cellId, color: mix ? mix.color : '#9C9A8C', speciesIds: ids, roles, geometry: cell.geometry, plants: inst.plants.map((p) => [p.x, p.y, ids.indexOf(p.plantId), Math.max(0.05, Math.min(5.9, p.spacing)), roles.indexOf(p.role)]) } };
   }
   recompute() {
-    this.perf = computePerformance({ cells: this.allCells(), assignments: this.state.assignments, instances: this.state.instances, mixes: this.state.mixes, K: this.K, brief: this.state.brief, links: this.links() });
-    this.emit('perf', this.perf); return this.perf;
+    this._perfDirty = false;
+    this._perf = computePerformance({ cells: this.allCells(), assignments: this.state.assignments, instances: this.state.instances, mixes: this.state.mixes, K: this.K, brief: this.state.brief, links: this.links(), plantedArea: (c) => this.plantedFootprint(c) });
+    this.emit('perf', this._perf); return this._perf;
+  }
+  // planted footprint of a cell = union of its fragments (whole-cell fragment = the cell), clipped to the cell — the
+  // area actually painted / filled, not the whole structural cell. Cached by the fragments' ids and geometry sizes.
+  plantedFootprint(cell) {
+    const a = this.state.assignments[cell.id]; const inst = this.state.instances[cell.id]; if (!a || !inst || !inst.plants.length) return 0;
+    if (a.fragments.some((f) => !f.geometry)) return cell.areaM2;
+    const key = a.fragments.map((f) => f.id + ':' + (f.geometry ? JSON.stringify(f.geometry).length : 0)).join('|');
+    this._fp ||= new Map(); const hit = this._fp.get(cell.id); if (hit && hit.key === key) return hit.area;
+    let area = cell.areaM2; try { const u = union(a.fragments.map((f) => f.geometry)); const c = u && clip(cell.geometry, u); area = c ? Math.min(cell.areaM2, mpArea(c)) : 0; } catch { area = cell.areaM2; }
+    this._fp.set(cell.id, { key, area: +area.toFixed(2) }); return +area.toFixed(2);
   }
   totals() { let plants = 0; const bySp = {}; for (const [c, i] of Object.entries(this.state.instances)) { plants += i.plants.length; for (const p of i.plants) bySp[p.plantId] = (bySp[p.plantId] || 0) + 1; } return { plants, species: Object.keys(bySp).length, bySpecies: bySp, cells: this.allCells().length, assigned: Object.values(this.state.instances).filter((i) => i && i.plants.length).length }; }
 
@@ -376,6 +435,7 @@ export class Project {
       for (const [c, a] of Object.entries(old)) if (a && a.mixId && this.state.cells[c]) this._fillWhole(this.state, c, a.mixId, { origin: 'migrated' });
       this.state.migratedFrom = { schema: 'gp.project/1', at: new Date().toISOString(), note: 'plant positions regenerated by the V2 fill engine' };
     } else if (o.instancesOmitted) for (const c of Object.keys(this.state.assignments)) this._arrange(this.state, c);
+    this.state.env ||= { light: {} }; this.state.view.sv ||= {};
     this.past = []; this.future = []; this.syncStore({ rebuildAll: true }); this.recompute(); this.emit('change', { label: 'restored' });
     return { ok: true, migrated };
   }

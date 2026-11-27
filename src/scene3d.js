@@ -394,17 +394,35 @@ export class Scene3D {
     this.lodNear = false;
     this.plantBuildRev = s.revision;
   }
+  // V3: the month in 3D — design plants known to flower keep their flower colour, known not in flower show leaf only,
+  // unknown flowering turns neutral grey (never shown as flowering). Same Map as the plan (speciesIndex → true|false|null).
+  setPhenology(ph) {
+    this._ph = ph || null; if (!this.iFlower || !this.plantMeshes) return;
+    if (this.active === false) { this._phStale = true; return; } this._phStale = false;
+    const t = this.s.inst; if (!this._iFlower0 || this._iFlower0.length !== this.iFlower.length) { this._iFlower0 = this.iFlower.slice(); this._iLeaf0 = this.iLeaf.slice(); } else { this.iFlower.set(this._iFlower0); this.iLeaf.set(this._iLeaf0); }
+    let n = 0;
+    if (this._ph) for (let i = 0; i < t.n; i++) {
+      if (!t.alive[i] || t.k[i] !== 1) continue; const b = this._ph.get(t.sp[i]); if (b === true) continue; n++;
+      if (b === false) { this.iFlower[i * 3] = this.iLeaf[i * 3]; this.iFlower[i * 3 + 1] = this.iLeaf[i * 3 + 1]; this.iFlower[i * 3 + 2] = this.iLeaf[i * 3 + 2]; }
+      else { for (let k = 0; k < 3; k++) { this.iFlower[i * 3 + k] = 0.72; this.iLeaf[i * 3 + k] = 0.7; } }
+    }
+    for (const m of this.plantMeshes) { const g = m.geometry; const F = g.attributes.iFlower.array, L = g.attributes.iLeaf.array; const list = m.userData.list || []; for (let j = 0; j < list.length; j++) { const i = list[j]; for (let k = 0; k < 3; k++) { F[j * 3 + k] = this.iFlower[i * 3 + k]; L[j * 3 + k] = this.iLeaf[i * 3 + k]; } } g.attributes.iFlower.needsUpdate = true; g.attributes.iLeaf.needsUpdate = true; }
+    this.phenologyChanged = n; this._dirty = true;
+  }
   _disposePlants() {
     for (const m of this.plantMeshes || []) { this.scene.remove(m); m.geometry.dispose(); m.dispose && m.dispose(); }
     this.plantMeshes = []; this.nearMeshes = [];
   }
   // model changed (draft patch, scenario switch): rebuild plant geometry + ground, keep camera / selection / view
   _onModel() {
+    if (this.active === false && this._built3d) { this._stale = true; return; } // V3: rebuilt when the 3D view is shown, not on every edit in Plan
+    this._built3d = true; this._stale = false;
     const t0 = performance.now();
     this._disposePlants(); this._plants();
     this._applyLayers(); this._applySelection(); this._applyExplodePositions(); if (this.layersView) this._cropFill(true);
     this._lodDone = false; this._lastMove = performance.now(); this._updateLOD(true);
     if (this._plates) this._repaintPlates();
+    this._iFlower0 = null; if (this._ph) this.setPhenology(this._ph);
     this.lastRebuildMs = performance.now() - t0; this._dirty = true;
   }
   _fill(mesh, idxs, twin = false) {
@@ -800,7 +818,7 @@ export class Scene3D {
 
   setActive(a) {
     const was = this.active; this.active = a;
-    if (a) { this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
+    if (a) { if (this._stale) this._onModel(); if (this._phStale) this.setPhenology(this._ph); this.resize(); this.controls.enabled = true; this._needsLabels = true; this._dirty = true; if (!was) requestAnimationFrame(this._loop); }
   }
   _loop() {
     if (!this.active) return;

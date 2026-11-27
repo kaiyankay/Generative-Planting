@@ -48,8 +48,19 @@ export function mixCard(F, mix, { active = false, compare = false, uses = 0 } = 
     <header><span class="sw"></span><b>${esc(mix.name)}</b><span class="v mono">v${mix.version}</span></header>
     <div class="mv">${planPatch(F, mix)}${section(F, mix)}</div>
     ${ribbon(F, mix)}
+    ${lightProfile(F, mix)}
+    ${active ? layerBars(mix) : ''}
     <footer><span class="sys">${esc(S ? S.name : 'Custom')}</span><span class="mono xs">${n} species · ${mix.density.value}/m²${uses ? ` · ${uses} cells` : ''}</span>${ill ? `<span class="tag illus" title="flowering of ${ill} members is an illustrative teaching value">illus. ${ill}</span>` : ''}</footer>
     <div class="acts"><button class="lnk xs" data-edit="${esc(mix.id)}">recipe</button><button class="lnk xs" data-cmp="${esc(mix.id)}" aria-pressed="${compare}">compare</button></div>
   </article>`;
 }
 export function roleName(r) { return ROLE_DEF[r] ? ROLE_DEF[r].name : r; }
+
+// the recorded light of the members (share-weighted over all layers): what the mix is made for — data, not a label
+export function lightProfile(F, mix) {
+  const w = { sun: 0, part: 0, shade: 0, unknown: 0 }; let ill = 0, tot = 0;
+  for (const L of mix.layers) { const key = L.basis === 'area' ? 'share' : 'proportion'; for (const m of L.members) { const x = (m[key] || 0) * (L.slot === 'base' ? 1 : 0.5); tot += x; const t = F.K.traits(m.plantId); if (t.light.status === 'unknown') { w.unknown += x; continue; } if (t.light.source === 'illustrative') ill += x; const v = t.light.value; for (const k of v) if (k in w) w[k] += x / v.length; } }
+  if (!tot) return '';
+  const seg = (k, c) => (w[k] > 0.005 ? `<i class="lp-${k}" style="flex:${(w[k] / tot).toFixed(3)}" title="${k} ${Math.round((100 * w[k]) / tot)} %"></i>` : '');
+  return `<div class="lprof" aria-label="Recorded light of the members"><span class="lb">${seg('sun')}${seg('part')}${seg('shade')}${seg('unknown')}</span><span class="xs">${['sun', 'part', 'shade'].filter((k) => w[k] / tot > 0.08).map((k) => (k === 'part' ? 'part shade' : k)).join(' · ') || 'light unknown'}${ill / tot > 0.3 ? ' <span class="tag illus">illus.</span>' : ''}</span></div>`;
+}

@@ -14,12 +14,15 @@
 //   candidate ids (no stacking), a stroke can be extended live (each pointer move only reveals new lattice points) and a
 //   whole-cell fill and a brush agree exactly.
 //   Validation (hard): inside the region (cell ∩ footprint; cells exclude paths / water / structures), ≥ 0.08 m from the
-//   cell edge, ≥ 0.6 m from existing tree trunks, not in a frozen cell, centre ≥ 0.12 m from any plant of another layer,
-//   ≥ 0.6 × the smaller spacing from a plant of the same layer. A rejected candidate is counted (shortfall), never moved
-//   into a constraint.
-//   Niche (soft, Land Kit "Rule Restriction"): a member recorded for the other light than the local crown proxy at the
-//   point is substituted by a member of the same layer recorded for that light (weighted by share); if none fits it is
-//   kept and flagged 'conflict'. Unknown light or unknown crown stays 'unknown' — never treated as suitable.
+//   HARD boundary (the bed's plantable outline — V3: internal cell edges are computational, they get no inset), ≥ 0.6 m
+//   from existing tree trunks, not in a frozen cell, centre ≥ 0.12 m from any plant of another layer, ≥ 0.6 × the smaller
+//   spacing from a plant of the same layer — checked against plants of the neighbouring cells too (V3). A rejected
+//   candidate is counted (shortfall), never moved into a constraint.
+//   Light (V3): the light at a point is the designer's explicit project assumption for the bed if there is one, else the
+//   crown proxy ("under a crown → probable shade"), else UNKNOWN (open ground is not verified sun). A member recorded for
+//   another light is swapped for a layer-mate recorded for this light (weighted by share); if none fits, the candidate is
+//   SKIPPED (counted as 'light') unless the stroke explicitly overrides, then it is kept and flagged 'conflict'. Unknown
+//   plant light or unknown site light stays 'unknown' — never treated as suitable or as a conflict.
 import { hash, inside, bbox } from './spatial.js';
 import { ROLE_DEF, hexDensity } from './mix.js';
 
@@ -52,10 +55,11 @@ function seedKey(x, y, g, salt) {
 }
 function pickWeighted(list, key, u) { let tot = 0; for (const m of list) tot += m[key]; let t = u * tot; for (let k = 0; k < list.length; k++) { t -= list[k][key]; if (t <= 0) return k; } return list.length - 1; }
 
-// light fit of a plant at a point: 'match' | 'conflict' | 'unknown'
-function lightFit(t, shade) {
-  if (!t || t.light.status === 'unknown' || shade == null) return 'unknown';
-  const v = t.light.value; return (shade ? v.includes('shade') || v.includes('part') : v.includes('sun') || v.includes('part')) ? 'match' : 'conflict';
+// light fit of a plant for a site light value ('sun' | 'part' | 'shade' | null): 'match' | 'conflict' | 'unknown'
+export function lightFit(t, light) {
+  const v = light && typeof light === 'object' ? light.value : light;
+  if (!t || t.light.status === 'unknown' || !v) return 'unknown';
+  return t.light.value.includes(v) ? 'match' : 'conflict';
 }
 
 /**
@@ -63,9 +67,13 @@ function lightFit(t, shade) {
  */
 export function makeEnv(P, { frozen = null } = {}) {
   const ctx = P.context(); const trees = P.trees();
+  const crown = (x, y) => { const v = ctx.sample(x, y); return v && v.canopy != null && Number.isFinite(v.canopy) ? v.canopy >= 0.5 : null; };
   return {
     trees, K: P.K,
-    shadeAt: (x, y) => { const v = ctx.sample(x, y); return v && v.canopy != null && Number.isFinite(v.canopy) ? v.canopy >= 0.5 : null; },
+    shadeAt: crown, // V2 name: crown proxy only
+    // light at a point: { value: 'sun'|'part'|'shade'|null, source: 'assumption'|'proxy'|null, proxy } — see the header
+    lightAt: (x, y, bedId) => { const a = P.lightAssumption ? P.lightAssumption(bedId) : null; const c = crown(x, y); if (a) return { value: a, source: 'assumption', proxy: c ? 'shade' : null }; if (c) return { value: 'shade', source: 'proxy', proxy: 'shade' }; return { value: null, source: null, proxy: null }; },
+    hardEdge: (cell) => (P.plantable ? P.plantable(cell.bedId) : null) || cell.geometry,
     frozen: frozen || ((cellId) => !!(P.state.locks && P.state.locks[cellId])),
   };
 }
@@ -122,9 +130,9 @@ export function candidates(mix, b, { layers = null, seed = 1 } = {}) {
  * index: PlantIndex of plants that stay (other layers / outside the footprint); accepted plants are added to it.
  * Returns { plants, rejected: {edge, trunk, clearance}, niche: {match, conflict, unknown, substituted} }
  */
-export function validate(cands, { cell, mix, env, index, within = null, fragId = null, existingKeys = null, seed = 1 }) {
-  const plants = []; const rej = { edge: 0, trunk: 0, clearance: 0 }; const niche = { match: 0, conflict: 0, unknown: 0, substituted: 0 };
-  const g = cell.geometry; const cb = cell._bb || (cell._bb = bbox(g));
+export function validate(cands, { cell, mix, env, index, within = null, fragId = null, existingKeys = null, seed = 1, override = false, rejectedOut = null }) {
+  const plants = []; const rej = { edge: 0, trunk: 0, clearance: 0, light: 0 }; const niche = { match: 0, conflict: 0, unknown: 0, substituted: 0 };
+  const g = cell.geometry; const cb = cell._bb || (cell._bb = bbox(g)); const hard = env.hardEdge ? env.hardEdge(cell) : g;
   const trees = env.trees.filter((t) => t.x > cb[0] - 1 && t.x < cb[2] + 1 && t.y > cb[1] - 1 && t.y < cb[3] + 1);
   const K = env.K; const layerById = new Map(mix.layers.map((L) => [L.id, L]));
   const lightKnown = mix.layers.some((L) => L.members.some((m) => K.traits(m.plantId).light.status !== 'unknown'));
@@ -133,24 +141,26 @@ export function validate(cands, { cell, mix, env, index, within = null, fragId =
     if (!inside(g, c.x, c.y)) continue; if (within && !within(c.x, c.y)) continue;
     const id = `${mix.id}/${c.sig}${seed > 1 ? '#' + seed : ''}/${c.key}`;
     if (existingKeys && existingKeys.has(id)) continue; // already there (same lattice point): no stacking
-    if (edgeNear(g, c.x, c.y, FILL.edgeInsetM)) { rej.edge++; continue; }
-    if (trees.some((t) => (t.x - c.x) ** 2 + (t.y - c.y) ** 2 < FILL.trunkClearanceM ** 2)) { rej.trunk++; continue; }
+    if (edgeNear(hard, c.x, c.y, FILL.edgeInsetM)) { rej.edge++; if (rejectedOut) rejectedOut.push({ x: c.x, y: c.y, why: 'edge' }); continue; }
+    if (trees.some((t) => (t.x - c.x) ** 2 + (t.y - c.y) ** 2 < FILL.trunkClearanceM ** 2)) { rej.trunk++; if (rejectedOut) rejectedOut.push({ x: c.x, y: c.y, why: 'trunk' }); continue; }
     let clash = false; const reach = Math.max(FILL.centreClearanceM, c.spacing);
     index.near(c.x, c.y, reach, (p) => { const d2 = (p.x - c.x) ** 2 + (p.y - c.y) ** 2; const need = p.slot === c.slot ? FILL.sameLayerK * Math.min(p.spacing, c.spacing) : FILL.centreClearanceM; if (d2 < need * need) { clash = true; return false; } return true; });
-    if (clash) { rej.clearance++; continue; }
-    // niche: local probable shade vs the member's recorded light
-    let plantId = c.plantId, role = c.role, fit = 'unknown', sub = false;
+    if (clash) { rej.clearance++; if (rejectedOut) rejectedOut.push({ x: c.x, y: c.y, why: 'spacing' }); continue; }
+    // light: explicit assumption > crown proxy > unknown, vs the member's recorded light
+    let plantId = c.plantId, role = c.role, fit = 'unknown', sub = false; let light = null;
     if (lightKnown) {
-      const shade = env.shadeAt(c.x, c.y); fit = lightFit(K.traits(plantId), shade);
+      light = env.lightAt ? env.lightAt(c.x, c.y, cell.bedId) : { value: env.shadeAt(c.x, c.y) ? 'shade' : null, source: 'proxy' };
+      fit = lightFit(K.traits(plantId), light);
       if (fit === 'conflict') {
         const L = layerById.get(c.layerId); const key = L.basis === 'area' ? 'share' : 'proportion';
-        const ok = L.members.filter((m) => lightFit(K.traits(m.plantId), shade) === 'match');
+        const ok = L.members.filter((m) => lightFit(K.traits(m.plantId), light) === 'match');
         if (ok.length) { const m = ok[pickWeighted(ok, key, u01(id, 'sub'))]; plantId = m.plantId; role = m.role; fit = 'match'; sub = true; }
+        else if (!override) { rej.light++; if (rejectedOut) rejectedOut.push({ x: c.x, y: c.y, why: 'light', plantId }); continue; }
       }
     }
     niche[fit]++; if (sub) niche.substituted++;
     const p = { id, x: +c.x.toFixed(3), y: +c.y.toFixed(3), plantId, role, slot: c.slot, layerId: c.layerId, mixId: mix.id, mixVersion: mix.version, spacing: +c.spacing.toFixed(3), fit, frag: fragId };
-    if (sub) p.sub = c.plantId;
+    if (sub) p.sub = c.plantId; if (light && light.source) p.ls = light.source === 'assumption' ? 'a' : 'p'; if (fit === 'conflict') p.ov = 1;
     plants.push(p); index.add(p);
   }
   return { plants, rejected: rej, niche };

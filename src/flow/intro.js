@@ -43,9 +43,9 @@ export function showIntro(F, { again = false } = {}) {
       <p class="i-lede">Design planting with knowledge, space and plant communities together — say what you want, shape the site, then paint living mixes that grow under the brush.</p>
       <div class="row"><button class="btn-p big" data-i="start">Start</button>${again ? '<button class="lnk" data-i="close">Back to the design</button>' : '<button class="lnk" data-i="skip">Skip the introduction</button>'}</div></section>
     <section class="i-pick" hidden><p class="kicker">Choose a landscape</p><h2>Where do you want to design?</h2><div class="cards">
-      <button class="lcard" data-site="${esc(F.preset.id)}"><div class="art">${axoSvg(F)}</div><b>${esc(F.preset.name)}</b><span class="xs">Belle Isle, Detroit · ${F.P.eligibleBeds().length} beds and areas · terrain 1 m · real model</span><span class="go">Enter →</span></button>
+      <button class="lcard" data-site="${esc(F.preset.id)}"><div class="art">${axoSvg(F)}</div><b>${esc(F.preset.name)}</b><span class="xs">Belle Isle, Detroit · ${F.P.eligibleBeds().length} beds and areas · terrain 1 m · real model</span><span class="go">${F.u.resume && !again ? `Continue “${esc(F.u.resume.name)}” →` : 'Enter →'}</span></button>
       ${PLANNED.map((p) => `<div class="lcard off" aria-disabled="true" title="${esc(p.note)}"><div class="art">${plannedSvg()}</div><b>${esc(p.name)}</b><span class="xs">${esc(p.place)}</span><span class="go">Planned</span></div>`).join('')}
-    </div>${F.u.resume ? `<p class="small resume">Saved: “${esc(F.u.resume.name)}” at ${esc(F.u.resume.stage)}. <button class="btn-s" data-i="resume">Resume it</button></p>` : ''}<p class="xs dim">Other cases appear when their real models exist; none is simulated.</p></section>`;
+    </div>${F.u.resume && !again ? `<p class="small resume">Saved in this browser: “${esc(F.u.resume.name)}”, ${esc(F.u.resume.stage)}. <button class="lnk" data-i="new">Start a new design instead</button></p>` : ''}<p class="xs dim">Other cases appear when their real models exist; none is simulated.</p></section>`;
   document.getElementById('app').appendChild(el);
   // the plant field: real reference instances, coloured by their display flower / leaf, appearing in reading order
   const cv = el.querySelector('.i-field'); const ctx = cv.getContext('2d'); const dpr = Math.min(2, devicePixelRatio || 1);
@@ -65,8 +65,10 @@ export function showIntro(F, { again = false } = {}) {
   el.querySelector('[data-i=start]').onclick = pick;
   const sk = el.querySelector('[data-i=skip]'); if (sk) sk.onclick = pick;
   const cl = el.querySelector('[data-i=close]'); if (cl) cl.onclick = () => close();
-  el.querySelector('.lcard:not(.off)').onclick = (e) => { const card = e.currentTarget; card.classList.add('chosen'); close(() => { if (!again) { F.startNew(); F.setMode('axo', { quiet: true }); F.ctx.fit && F.ctx.fit(); } F.toast(again ? 'Back in the design.' : 'Define the strategy: write an intent or pick one, then choose the scope.'); }); };
-  const rs = el.querySelector('[data-i=resume]'); if (rs) rs.onclick = () => close(() => F.resume());
+  // entering Detroit continues the saved design if there is one (never a silent loss); a new design is an explicit choice
+  const enterNew = () => { F.startNew(); F.focusBounds(F.plan.gardenBounds(), 0, { animate: false }); };
+  el.querySelector('.lcard:not(.off)').onclick = (e) => { const card = e.currentTarget; card.classList.add('chosen'); close(() => { if (again) { F.toast('Back in the design.'); return; } if (F.u.resume) F.resume(); else enterNew(); }); };
+  const nw = el.querySelector('[data-i=new]'); if (nw) nw.onclick = () => { if (!confirm(`Replace “${F.u.resume.name}” with a new, empty design? (Export it first if you want to keep it.)`)) return; F.u.resume = null; close(enterNew); };
   el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); if (!el.querySelector('.i-pick').hidden) close(); else pick(); } });
   setTimeout(() => el.querySelector('[data-i=start]').focus(), 50);
 }
