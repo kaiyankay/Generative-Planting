@@ -1,0 +1,428 @@
+{
+ "at": "2026-11-26 20:10",
+ "presetRevision": "base-ebbbf3db18e5+0e:811c9dc5",
+ "combinedRevision": "base-ebbbf3db18e5+8e:8568833b",
+ "designerLayer": "TEST EVENT SCRIPT from the browser tests (docs/qa/knowledge_parity.json) — not a real designer's knowledge",
+ "retrieval": {
+  "method": "keyword + alias index (kq.py = window.GPK), top 12, no model",
+  "questions": [
+   {
+    "question": "Is Kinnikinnick suitable for a dry, sunny slope in Vancouver?",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "arctostaphylos-uva-ursi:landscape_use:rhs02",
+     "arctostaphylos-uva-ursi:landscape_use:mobot01",
+     "arctostaphylos-uva-ursi:vancouver_context:eflora01",
+     "arctostaphylos-uva-ursi:exposure:eflora01",
+     "achillea-millefolium:vancouver_context:eflora01",
+     "cornus-nuttallii:vancouver_context:eflora01",
+     "rel:arctostaphylos-uva-ursi:cercidiphyllum-japonicum:01",
+     "rel:arctostaphylos-uva-ursi:cercidiphyllum-japonicum:02",
+     "rel:arctostaphylos-uva-ursi:cornus-nuttallii:01",
+     "rel:arctostaphylos-uva-ursi:gaultheria-shallon:01",
+     "rel:arctostaphylos-uva-ursi:polystichum-munitum:01",
+     "arctostaphylos-uva-ursi:ecological_value:mobot01"
+    ],
+    "combined": [
+     "arctostaphylos-uva-ursi:landscape_use:rhs02",
+     "arctostaphylos-uva-ursi:landscape_use:mobot01",
+     "arctostaphylos-uva-ursi:vancouver_context:eflora01",
+     "arctostaphylos-uva-ursi:exposure:eflora01",
+     "achillea-millefolium:vancouver_context:eflora01",
+     "cornus-nuttallii:vancouver_context:eflora01",
+     "my-rev-fix-kinni",
+     "rel:arctostaphylos-uva-ursi:cercidiphyllum-japonicum:01",
+     "rel:arctostaphylos-uva-ursi:cercidiphyllum-japonicum:02",
+     "rel:arctostaphylos-uva-ursi:cornus-nuttallii:01",
+     "rel:arctostaphylos-uva-ursi:gaultheria-shallon:01",
+     "rel:arctostaphylos-uva-ursi:polystichum-munitum:01"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rev-fix-kinni",
+      "origin": "user",
+      "statement": "In my Vancouver projects Kinnikinnick needed summer water for its first two years; drought tolerant only once establishe",
+      "personal": true
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "arctostaphylos-uva-ursi:ecological_value:mobot01",
+      "origin": "preset",
+      "statement": "Missouri Botanical Garden: native throughout northern North America (Alaska to Newfoundland, south through Canada); frui",
+      "why": "pushed below the top 12 by other records"
+     }
+    ],
+    "jaccard": 0.846
+   },
+   {
+    "question": "How much summer water does Yarrow need once established?",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "achillea-millefolium:long_term_performance:mobot01",
+     "mvw:lawn-weekly-water",
+     "arctostaphylos-uva-ursi:resistances:mobot01",
+     "cornus-nuttallii:resistances:mobot02",
+     "cornus-nuttallii:time_to_intended_size:usdaplants01",
+     "cornus-sericea:time_to_intended_size:usdaplants01",
+     "polystichum-munitum:resistances:gpp01",
+     "polystichum-munitum:soil_type:gpp01",
+     "rel:gaultheria-shallon:vaccinium-ovatum:m2",
+     "vaccinium-ovatum:resistances:gpp01",
+     "vaccinium-ovatum:time_to_intended_size:usdaplants01",
+     "achillea-millefolium:ecological_value:sv03"
+    ],
+    "combined": [
+     "my-rev-fix-kinni",
+     "achillea-millefolium:long_term_performance:mobot01",
+     "mvw:lawn-weekly-water",
+     "cornus-nuttallii:resistances:mobot02",
+     "cornus-nuttallii:time_to_intended_size:usdaplants01",
+     "cornus-sericea:time_to_intended_size:usdaplants01",
+     "polystichum-munitum:resistances:gpp01",
+     "polystichum-munitum:soil_type:gpp01",
+     "rel:gaultheria-shallon:vaccinium-ovatum:m2",
+     "vaccinium-ovatum:resistances:gpp01",
+     "vaccinium-ovatum:time_to_intended_size:usdaplants01",
+     "achillea-millefolium:ecological_value:sv03"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rev-fix-kinni",
+      "origin": "user",
+      "statement": "In my Vancouver projects Kinnikinnick needed summer water for its first two years; drought tolerant only once establishe",
+      "personal": true
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "arctostaphylos-uva-ursi:resistances:mobot01",
+      "origin": "preset",
+      "statement": "Missouri Botanical Garden: drought tolerant once established.",
+      "why": "revised by my-rev-fix-kinni"
+     }
+    ],
+    "jaccard": 0.846
+   },
+   {
+    "question": "Which plants in the library tolerate drought?",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "arctostaphylos-uva-ursi:resistances:rhs01",
+     "cornus-sericea:resistances:gpp01",
+     "polystichum-munitum:resistances:gpp01",
+     "achillea-millefolium:resistances:mobot01",
+     "achillea-millefolium:resistances:rhs01",
+     "achillea-millefolium:resistances:usdaplants01",
+     "arctostaphylos-uva-ursi:resistances:mobot01",
+     "arctostaphylos-uva-ursi:resistances:usdaplants01",
+     "cornus-nuttallii:resistances:mobot02",
+     "gaillardia-aristata:resistances:mobot01",
+     "gaillardia-aristata:resistances:rhs01",
+     "gaillardia-aristata:resistances:usdaplants01"
+    ],
+    "combined": [
+     "my-rev-fix-kinni",
+     "arctostaphylos-uva-ursi:resistances:rhs01",
+     "cornus-sericea:resistances:gpp01",
+     "polystichum-munitum:resistances:gpp01",
+     "achillea-millefolium:resistances:mobot01",
+     "achillea-millefolium:resistances:rhs01",
+     "achillea-millefolium:resistances:usdaplants01",
+     "cornus-nuttallii:resistances:mobot02",
+     "gaillardia-aristata:resistances:mobot01",
+     "gaillardia-aristata:resistances:rhs01",
+     "gaillardia-aristata:resistances:usdaplants01",
+     "vaccinium-ovatum:resistances:gpp01"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rev-fix-kinni",
+      "origin": "user",
+      "statement": "In my Vancouver projects Kinnikinnick needed summer water for its first two years; drought tolerant only once establishe",
+      "personal": true
+     },
+     {
+      "id": "vaccinium-ovatum:resistances:gpp01",
+      "origin": "preset",
+      "statement": "Great Plant Picks: drought tolerant once established.",
+      "personal": false
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "arctostaphylos-uva-ursi:resistances:mobot01",
+      "origin": "preset",
+      "statement": "Missouri Botanical Garden: drought tolerant once established.",
+      "why": "revised by my-rev-fix-kinni"
+     },
+     {
+      "id": "arctostaphylos-uva-ursi:resistances:usdaplants01",
+      "origin": "preset",
+      "statement": "USDA PLANTS rates drought tolerance high and moisture use low.",
+      "why": "excluded"
+     }
+    ],
+    "jaccard": 0.714
+   },
+   {
+    "question": "What do the designers in the survey say about Yarrow?",
+    "projectPlace": null,
+    "preset": [
+     "achillea-millefolium:toxicity:usdaplants01",
+     "rel:achillea-millefolium:polystichum-munitum:01",
+     "cornus-sericea:toxicity:usdaplants01",
+     "gaultheria-shallon:toxicity:usdaplants01",
+     "vaccinium-ovatum:toxicity:usdaplants01",
+     "achillea-millefolium:vancouver_context:sv02",
+     "cand:survey-r11:d2",
+     "achillea-millefolium:landscape_use:sv03",
+     "cornus-nuttallii:long_term_performance:osu01",
+     "achillea-millefolium:ecological_value:sv03",
+     "achillea-millefolium:behaviour_with_others:rhs01",
+     "achillea-millefolium:ecological_value:usdaplants01"
+    ],
+    "combined": [
+     "achillea-millefolium:toxicity:usdaplants01",
+     "rel:achillea-millefolium:polystichum-munitum:01",
+     "cornus-sericea:toxicity:usdaplants01",
+     "gaultheria-shallon:toxicity:usdaplants01",
+     "vaccinium-ovatum:toxicity:usdaplants01",
+     "achillea-millefolium:vancouver_context:sv02",
+     "cand:survey-r11:d2",
+     "achillea-millefolium:landscape_use:sv03",
+     "my-rec-fix-yarrow",
+     "cornus-nuttallii:long_term_performance:osu01",
+     "achillea-millefolium:ecological_value:sv03",
+     "achillea-millefolium:behaviour_with_others:rhs01"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rec-fix-yarrow",
+      "origin": "user",
+      "statement": "我在温哥华项目中使用 Yarrow，更偏好用于低灌溉种植。 (I use Yarrow in Vancouver projects and prefer it for low-irrigation planting.)",
+      "personal": true
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "achillea-millefolium:ecological_value:usdaplants01",
+      "origin": "preset",
+      "statement": "USDA PLANTS records Achillea millefolium as native in Alaska, Canada, the lower 48 states, Greenland and St Pierre et Mi",
+      "why": "pushed below the top 12 by other records"
+     }
+    ],
+    "jaccard": 0.846
+   },
+   {
+    "question": "Which insects visit Zizia aurea flowers, and where was that recorded?",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "obs:robertson-1929:zizia-aurea",
+     "rec:mix.ME:052",
+     "rec:mix.MW:033",
+     "cornus-sericea:behaviour_with_others:eflora01",
+     "cornus-sericea:behaviour_with_others:mobot01",
+     "cornus-sericea:vancouver_context:eflora01",
+     "cand:survey-r15:d2",
+     "achillea-millefolium:ecological_value:sv03",
+     "achillea-millefolium:vancouver_context:sv02",
+     "vaccinium-ovatum:behaviour_with_others:01",
+     "achillea-millefolium:ecological_value:mobot01",
+     "achillea-millefolium:landscape_use:rhs01"
+    ],
+    "combined": [
+     "obs:robertson-1929:zizia-aurea",
+     "my-rec:fixture-mech:3",
+     "my-rec:fixture-rob:1",
+     "rec:mix.ME:052",
+     "rec:mix.MW:033",
+     "cornus-sericea:behaviour_with_others:eflora01",
+     "cornus-sericea:behaviour_with_others:mobot01",
+     "cornus-sericea:vancouver_context:eflora01",
+     "cand:survey-r15:d2",
+     "achillea-millefolium:ecological_value:sv03",
+     "achillea-millefolium:vancouver_context:sv02",
+     "vaccinium-ovatum:behaviour_with_others:01"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rec:fixture-mech:3",
+      "origin": "user",
+      "statement": "Zizia aurea is listed in “Mechanism test list”.",
+      "personal": true
+     },
+     {
+      "id": "my-rec:fixture-rob:1",
+      "origin": "user",
+      "statement": "Zizia aurea: visitor_taxa_listed (taxa) = 178; rows_in_source = 178 (Robertson counts (derived fixture)).",
+      "personal": true
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "achillea-millefolium:ecological_value:mobot01",
+      "origin": "preset",
+      "statement": "Missouri Botanical Garden: flowers attract butterflies and other insect pollinators.",
+      "why": "pushed below the top 12 by other records"
+     },
+     {
+      "id": "achillea-millefolium:landscape_use:rhs01",
+      "origin": "preset",
+      "statement": "RHS suggests wildflower meadows, wildlife gardens, gravel gardens and cottage/informal gardens; listed as an RHS Plant f",
+      "why": "pushed below the top 12 by other records"
+     }
+    ],
+    "jaccard": 0.714
+   },
+   {
+    "question": "When can a new planting be watered under Metro Vancouver's restrictions?",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "mvw:residential-lawn",
+     "mvw:trees-shrubs-flowers",
+     "achillea-millefolium:behaviour_with_others:sv02",
+     "cand:survey-r15:d2",
+     "mvw:new-lawn-permit",
+     "rel:gaultheria-shallon:vaccinium-ovatum:m2",
+     "achillea-millefolium:long_term_performance:mobot01",
+     "achillea-millefolium:landscape_use:sv03",
+     "mvw:alternative-water",
+     "mvw:lawn-seed-establishment",
+     "mvw:lawn-weekly-water",
+     "mvw:restriction-period"
+    ],
+    "combined": [
+     "mvw:residential-lawn",
+     "mvw:trees-shrubs-flowers",
+     "achillea-millefolium:behaviour_with_others:sv02",
+     "cand:survey-r15:d2",
+     "mvw:new-lawn-permit",
+     "rel:gaultheria-shallon:vaccinium-ovatum:m2",
+     "achillea-millefolium:long_term_performance:mobot01",
+     "achillea-millefolium:landscape_use:sv03",
+     "mvw:alternative-water",
+     "mvw:lawn-seed-establishment",
+     "mvw:lawn-weekly-water",
+     "mvw:restriction-period"
+    ],
+    "addedInCombined": [],
+    "droppedInCombined": [],
+    "jaccard": 1.0
+   },
+   {
+    "question": "Which members of the B beds recipe flower in late summer?",
+    "projectPlace": null,
+    "preset": [
+     "mvw:restriction-period",
+     "arctostaphylos-uva-ursi:seasonal_interest:mobot01",
+     "arctostaphylos-uva-ursi:seasonal_interest:usdaplants01",
+     "cornus-sericea:seasonal_interest:gpp01",
+     "cornus-sericea:seasonal_interest:osu01",
+     "gaultheria-shallon:seasonal_interest:osu01",
+     "gaultheria-shallon:seasonal_interest:rhs01",
+     "vaccinium-ovatum:seasonal_interest:gpp01",
+     "vaccinium-ovatum:seasonal_interest:osu01",
+     "vaccinium-ovatum:seasonal_interest:usdaplants01",
+     "cercidiphyllum-japonicum:seasonal_interest:mobot01",
+     "cornus-nuttallii:seasonal_interest:eflora01"
+    ],
+    "combined": [
+     "mvw:restriction-period",
+     "arctostaphylos-uva-ursi:seasonal_interest:mobot01",
+     "arctostaphylos-uva-ursi:seasonal_interest:usdaplants01",
+     "cornus-sericea:seasonal_interest:gpp01",
+     "cornus-sericea:seasonal_interest:osu01",
+     "gaultheria-shallon:seasonal_interest:osu01",
+     "gaultheria-shallon:seasonal_interest:rhs01",
+     "vaccinium-ovatum:seasonal_interest:gpp01",
+     "vaccinium-ovatum:seasonal_interest:osu01",
+     "vaccinium-ovatum:seasonal_interest:usdaplants01",
+     "cercidiphyllum-japonicum:seasonal_interest:mobot01",
+     "cornus-nuttallii:seasonal_interest:eflora01"
+    ],
+    "addedInCombined": [],
+    "droppedInCombined": [],
+    "jaccard": 1.0
+   },
+   {
+    "question": "Acer griseum",
+    "projectPlace": "place:vancouver",
+    "preset": [
+     "acer-palmatum:exposure:gpp01",
+     "acer-palmatum:exposure:mobot01",
+     "acer-palmatum:exposure:osu01",
+     "acer-palmatum:exposure:rhs01",
+     "acer-palmatum:growth_rate:gpp01",
+     "acer-palmatum:hardiness_zone:gpp01",
+     "acer-palmatum:hardiness_zone:mobot01",
+     "acer-palmatum:hardiness_zone:osu01",
+     "acer-palmatum:hardiness_zone:rhs01",
+     "acer-palmatum:in_vancouver_street_tree_list:cov01",
+     "acer-palmatum:invasive_status:iscbc01",
+     "acer-palmatum:landscape_use:mobot01"
+    ],
+    "combined": [
+     "my-rec:fixture-mech:2",
+     "acer-palmatum:exposure:gpp01",
+     "acer-palmatum:exposure:mobot01",
+     "acer-palmatum:exposure:osu01",
+     "acer-palmatum:exposure:rhs01",
+     "acer-palmatum:growth_rate:gpp01",
+     "acer-palmatum:hardiness_zone:gpp01",
+     "acer-palmatum:hardiness_zone:mobot01",
+     "acer-palmatum:hardiness_zone:osu01",
+     "acer-palmatum:hardiness_zone:rhs01",
+     "acer-palmatum:in_vancouver_street_tree_list:cov01",
+     "acer-palmatum:invasive_status:iscbc01"
+    ],
+    "addedInCombined": [
+     {
+      "id": "my-rec:fixture-mech:2",
+      "origin": "user",
+      "statement": "Acer griseum is listed in “Mechanism test list”.",
+      "personal": true
+     }
+    ],
+    "droppedInCombined": [
+     {
+      "id": "acer-palmatum:landscape_use:mobot01",
+      "origin": "preset",
+      "statement": "Missouri Botanical Garden uses: specimen or accent, groups, sun-dappled understory, woodland garden margins, screen, bon",
+      "why": "pushed below the top 12 by other records"
+     }
+    ],
+    "jaccard": 0.846
+   }
+  ]
+ },
+ "model": {
+  "status": "not run",
+  "reason": "Claude not connected: Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls",
+  "runs": []
+ },
+ "connection": {
+  "connected": false,
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "effort": "medium",
+  "fallbacks": "default",
+  "checks": [
+   {
+    "id": "sdk",
+    "ok": false,
+    "detail": "Python package \"anthropic\" is not installed — pip install anthropic"
+   },
+   {
+    "id": "credentials",
+    "ok": false,
+    "detail": "no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine"
+   },
+   {
+    "id": "authorised",
+    "ok": false,
+    "detail": "paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls"
+   }
+  ]
+ }
+}

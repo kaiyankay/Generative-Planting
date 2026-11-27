@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generative Planting — Knowledge</title>
+<meta name="description" content="Knowledge Workspace: the preset Planting Intelligence knowledge and your own knowledge as one effective state — collections, plant profiles, networks, phenology, recipes, survey and research — readable by people and, through the same query interface, by a future LLM.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Cpath d=%27M8 15V6M8 11 4.5 7M8 9.5l3.6-4%27 stroke=%27%23252A25%27 fill=%27none%27 stroke-width=%271.3%27/%3E%3Ccircle cx=%278%27 cy=%274.5%27 r=%271.6%27 fill=%27%2382967D%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,300..700;1,62..125,300..700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="src/app.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <button class="iconbtn railbtn" id="railBtn" aria-label="Collections" aria-controls="rail"><svg class="ic" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+    <a class="wordmark" href="../index.html" title="Generative Planting — Design">Generative Planting</a>
+    <nav class="sections" aria-label="Sections"><a href="../index.html">Design</a><a href="./" aria-current="page">Knowledge</a></nav>
+    <div class="search" role="search">
+      <svg class="ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.2"/><path d="m12.4 12.4 4.6 4.6"/></svg>
+      <input id="q" type="search" placeholder="Search plants, places, research, notes" autocomplete="off" aria-label="Search the knowledge">
+      <div class="suggest" id="suggest" hidden></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="layers" role="radiogroup" aria-label="Knowledge layer" id="layers">
+      <button role="radio" data-l="preset" aria-checked="false" title="The prepared professional knowledge, exactly as migrated (read-only)">Preset</button>
+      <button role="radio" data-l="mine" aria-checked="false" title="What you added, changed or left out — shown against its preset context">My knowledge<span class="n" id="mineN"></span></button>
+      <button role="radio" data-l="combined" aria-checked="true" title="Preset + your knowledge: what is in effect now (what retrieval returns)">Combined</button>
+    </div>
+    <button class="btn box" id="btnAsk" title="Ask the knowledge (retrieval here; Claude when connected)"><svg class="ic" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M3.5 4.5h13v8.5H9.5L6 16v-3H3.5z"/></svg><span class="lbl">Ask</span></button>
+    <button class="btn primary" id="btnAdd"><svg class="ic" viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg><span class="lbl">Add knowledge</span></button>
+    <button class="iconbtn" id="btnMore" title="Data &amp; access: LLM retrieval, history, export, sources" aria-label="Data and access"><svg class="ic" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4.5" cy="10" r=".9" fill="currentColor"/><circle cx="10" cy="10" r=".9" fill="currentColor"/><circle cx="15.5" cy="10" r=".9" fill="currentColor"/></svg></button>
+  </header>
+  <div class="work" id="work">
+    <nav class="rail" id="rail" aria-label="Collections"></nav>
+    <main class="canvas" id="canvas">
+      <div class="chead" id="chead"></div>
+      <div class="cbody" id="cbody"></div>
+    </main>
+    <aside class="insp" id="insp" hidden aria-label="Inspector"></aside>
+    <aside class="addp" id="addp" hidden aria-label="Add or ask"></aside>
+  </div>
+</div>
+<dialog id="moreDlg" class="wide" aria-label="Data and access"></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+<div id="loading">Loading the knowledge…</div>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

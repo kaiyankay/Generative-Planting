@@ -1,0 +1,75 @@
+[
+ {
+  "file": "01-overview-base.png",
+  "shows": "Load: Base snapshot from planting-db d577104 — ten plants, Detroit recipes, Robertson dataset, Metro Vancouver water topics; counts pill says base only"
+ },
+ {
+  "file": "02-kinnikinnick-graph-inspector.png",
+  "shows": "Kinnikinnick neighbourhood from its 72 claims; concept groups collapsed; inspector with records grouped by kind"
+ },
+ {
+  "file": "03-drought-edge-evidence.png",
+  "shows": "Clicking the Kinnikinnick → drought link: the records behind it (MOBOT, RHS, USDA …) with source and place"
+ },
+ {
+  "file": "04-add-plant-dialog.png",
+  "shows": "Add plant: Acer griseum is not in the base → provisional, attributes unknown"
+ },
+ {
+  "file": "05-acer-griseum-added.png",
+  "shows": "After adding: plant node with no links (no knowledge yet); inspector says every attribute is unknown; pill mine +1"
+ },
+ {
+  "file": "06-note-dialog-yarrow.png",
+  "shows": "Note: Yarrow recognised by alias, kept verbatim; no AI extraction connected (said plainly)"
+ },
+ {
+  "file": "07-yarrow-note-in-graph.png",
+  "shows": "The note appears as your record node on Achillea millefolium; inspector shows scope, place, 'not extracted'"
+ },
+ {
+  "file": "08-revision-inspector.png",
+  "shows": "Revision of the MOBOT drought claim: your copy in effect, original kept and restorable, source still cited"
+ },
+ {
+  "file": "09-matrix-water-cell.png",
+  "shows": "Matrix (Water & soil): the same change in the Kinnikinnick cell (marked yours); striped cells = sources disagree; Acer griseum row = not recorded"
+ },
+ {
+  "file": "10-table-mine.png",
+  "shows": "Table, layer Mine: everything you added or changed, with the revised original shown as history"
+ },
+ {
+  "file": "11-import-preview.png",
+  "shows": "Import preview: Achillea matched, ‘Yarrow’ row → same plant, Eurybia new (provisional), ‘irrigation’ ambiguous → kept, not linked; only listed_in will be created"
+ },
+ {
+  "file": "12-list-in-graph.png",
+  "shows": "After import: the list node with listed_in links only — no co-occurrence or compatibility links"
+ },
+ {
+  "file": "13-robertson-dataset.png",
+  "shows": "Robertson 1929 visitor lists: rows as published (via GloBI), chart of listed visitor taxa per plant, unit stated, no score"
+ },
+ {
+  "file": "14-season-lens.png",
+  "shows": "Season lens: flowering months per record with source and place (St. Louis ≠ UK ≠ Metro Vancouver); nothing merged"
+ },
+ {
+  "file": "15-roles-lens.png",
+  "shows": "Roles lens: drawing roles per Detroit recipe; the same taxon can hold different roles in different recipes; ecological role unknown"
+ },
+ {
+  "file": "16-water-rule-record.png",
+  "shows": "Metro Vancouver rule as a record without a plant subject; verbatim quote, place and conditions; no water-saving figure",
+  "localOnly": "shows a verbatim Metro Vancouver quote (licence not cleared): the image stays in the local research copy and is not published"
+ },
+ {
+  "file": "17-retrieval-diff.png",
+  "shows": "Retrieval: same query on the Base (trace) vs now — revision in, original out; ids, values, sources, place flags; no generated answer"
+ },
+ {
+  "file": "18-changes-drawer.png",
+  "shows": "What your knowledge changed: Base vs in effect, the event log with undo/redo, export / import"
+ }
+]

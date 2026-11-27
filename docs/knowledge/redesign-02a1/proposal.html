@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge 界面方案 02A.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root { --ivory:#f7f3ea; --paper:#fffdf8; --ink:#27241f; --ink-2:#5c5648; --ink-3:#8a8474; --line:rgba(39,36,31,.14); --olive:#3b5538; --olive-soft:#dfe6d7; --rust:#b04f36; --rust-soft:#f2dcd4; --caramel-soft:#f1e3cb; }
+:root:not([data-theme="light"]) { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ivory); color: var(--ink); font: 15px/1.65 "DM Sans", -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif; }
+main { max-width: 1160px; margin: 0 auto; padding: 48px 28px 80px; }
+h1 { font: 600 40px/1.1 "Bricolage Grotesque", "PingFang SC", sans-serif; margin: 0 0 10px; letter-spacing: -.01em; }
+h2 { font: 600 25px/1.25 "Bricolage Grotesque", "PingFang SC", sans-serif; margin: 56px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); }
+h3 { font-size: 17px; margin: 26px 0 8px; }
+.meta { color: var(--ink-3); font-size: 13.5px; }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 860px; }
+figure { margin: 18px 0 26px; }
+figure img { width: 100%; display: block; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 6px 24px rgba(39,36,31,.08); background: #fff; }
+figcaption { font-size: 13.5px; color: var(--ink-2); margin-top: 8px; }
+.step { display: inline-block; background: var(--olive); color: #fff; border-radius: 999px; padding: 1px 10px; font-size: 12.5px; font-weight: 600; margin-right: 8px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.pair figure { margin: 8px 0 18px; }
+.tag { font-size: 12px; font-weight: 600; letter-spacing: .05em; color: var(--ink-3); text-transform: uppercase; }
+table { width: 100%; border-collapse: collapse; font-size: 13.8px; margin: 10px 0 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { background: #f1ece0; font-weight: 600; font-size: 13px; }
+tr:last-child td { border-bottom: 0; }
+.k { font-weight: 600; white-space: nowrap; }
+.keep { color: var(--olive); } .hide { color: #8a5f1c; } .merge { color: #3f6e8c; } .reorg { color: #7a5a8c; } .drop { color: var(--rust); }
+ul { padding-left: 20px; } li { margin: 4px 0; }
+.box { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin: 14px 0; }
+.ask { background: var(--rust-soft); border-color: rgba(176,79,54,.35); }
+code { font-size: 12.5px; background: #efe9db; padding: 1px 5px; border-radius: 4px; }
+em.sci { font-style: italic; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } main { padding: 28px 16px 60px; } h1 { font-size: 30px; } table { font-size: 12.5px; } }
+</style>
+</head>
+<body><main>
+<div class="meta">Generative Planting · Phase 02A.1 · 2026-11-26 · 方案待确认，代码未修改</div>
+<h1>Knowledge 界面重组方案</h1>
+<p class="lede">从「数据库后台 + 三个通用视图」改为按真实知识集合组织的工作环境：左侧是集合，中间的可视化随集合内容变化，右侧 Inspector 只在选中时出现，并且会挤窄画布，不再遮挡内容。数据层（Base + Personal、持久化、检索接口）全部保留。</p>
+<div class="box">三张图都是高保真界面方案，渲染自真实数据：planting-db <code>d577104</code> + Detroit 种植图 + Robertson 1929 + Metro Vancouver 用水规定。图中每个数字、植物、连线和数值都由 <code>tools/knowledge/mockup_data.py</code> 从 seed 计算得出。唯一的假设内容是 C 图里那条用户笔记，图中已标注「Example input」。Phase 02A 代码保留在本地 tag <code>knowledge-phase-02a</code>，可以随时回退。空间模型没有改动。</div>
+
+<h2>1 · 一个连贯的工作流程</h2>
+<p>设计师打开 Knowledge（A），进入 Planting Recipes 分析 Detroit B 床的组合，选中其中的 Yarrow 品种（B），随后补充自己在温哥华的使用经验，并在同一个 recipe 的比较视图里看到这条知识的位置（C）。</p>
+
+<figure><img src="A-default-workspace.png" alt="Default Knowledge Workspace">
+<figcaption><span class="step">A</span><b>默认 Knowledge Workspace：</b>Plant Library 默认显示 10 个完整档案植物，以原 V4.3 的植物插画为节点。植物之间通过<b>来源记录的共享概念</b>相连（例如 moist 7、drought 7、bird food 4），线越粗表示独立来源越多。紫色虚线是问卷中设计师把两种植物列在一起，也是真实记录。阴影区域是由共享记录算出的三个主题分组，只作为分析层显示，不画成植物之间的连线。底部三栏分别列出分组、缺口（5 种植物没有共享的生态记录），以及 10 种中 8 种以上共有、因此不画线的概念。没有选中任何东西时，右侧 Inspector 收起。</figcaption></figure>
+
+<figure><img src="B-collection-analysis.png" alt="Collection analysis">
+<figcaption><span class="step">B</span><b>选择集合并分析：</b>Planting Recipes → B beds · Matrix plan。默认范围自动变成该组合的 46 个实际成员，而不是十种温哥华植物。中间按 P32 的思路把成员按层排列：Emergents / Scatter / Groups / Matrix（<em class="sci">Sporobolus heterolepis</em>）/ 地面线 / Bulbs。下方是知识覆盖情况：1 个成员可关联到物种档案、8 个有传粉观察、花期记录 0、生态角色 0。再下方是 Robertson 1929 的真实观察图表，带单位和地点，<em class="sci">Pycnanthemum flexuosum</em> 标出「check name」。选中 'Terra Cotta' 后，Inspector 占据右侧一栏，画布相应变窄：它说明这是种植图中的<b>品种身份</b>，并把<b>物种层</b>的知识（Yarrow 档案、按来源/地点分开的花期、Robertson 访花记录、问卷原话）单独展示，不复制到品种上。</figcaption></figure>
+
+<figure><img src="C-after-adding-knowledge.png" alt="After adding knowledge">
+<figcaption><span class="step">C</span><b>添加知识之后：</b>设计师从 Inspector 的「+ Add knowledge」写下一条经验（示例输入），并明确选择挂在<b>物种</b>上，而不是 'Terra Cotta'。保存后：左栏 Personal Knowledge 和「Added by me」变为 1，顶部出现「Your changes 1」。中间切到同一 recipe 的 Compare：Yarrow 一行高亮，Mine 列出现「1 note」。比较表用条形、月份条、干湿刻度和计数代替原始文字堆叠；“none / —” 表示缺口而不是否定；没有任何知识的 37 个成员列在表下。Inspector 说明保存了什么、改变了哪里，并注明「AI 可检索，但标注为设计师经验」。</figcaption></figure>
+
+<h2>2 · 现有界面与新方案对照</h2>
+<h3>Graph：从“单株属性放射图”到“共享记录网络”</h3>
+<div class="pair"><figure><span class="tag">现有 · 02</span><img src="../../screenshots/knowledge/02-kinnikinnick-graph-inspector.png"><figcaption>一株植物向外放射全部属性，本质上是属性表的图形化；Inspector 浮层盖住画布。</figcaption></figure>
+<figure><span class="tag">方案 · A</span><img src="A-default-workspace.png"><figcaption>植物之间只通过真实的共享记录相连；在 8 种以上植物里都出现的概念不画；主题分组和缺口单独列出。</figcaption></figure></div>
+<h3>Matrix：从“格子里堆原文”到“快速比较”</h3>
+<div class="pair"><figure><span class="tag">现有 · 09</span><img src="../../screenshots/knowledge/09-matrix-water-cell.png"><figcaption>每格堆叠多条原文 chip；默认行固定为十种植物；Inspector 遮挡最后两列。</figcaption></figure>
+<figure><span class="tag">方案 · C</span><img src="C-after-adding-knowledge.png"><figcaption>行默认取当前集合（recipe 成员）；每列用适合该数据的简短图形表达；缺口显示为空；原文在 Inspector 中查看。</figcaption></figure></div>
+<h3>编辑与 Inspector：从“技术字段”到“说明发生了什么”</h3>
+<div class="pair"><figure><span class="tag">现有 · 08</span><img src="../../screenshots/knowledge/08-revision-inspector.png"><figcaption>修订后仍显示「St. Louis growing conditions」、MOBOT 被列为来源、record id 外露；图中显示的是 Yarrow，Inspector 却是 Kinnikinnick 的记录。</figcaption></figure>
+<figure><span class="tag">方案 · C</span><img src="C-after-adding-knowledge.png"><figcaption>只显示原文、知识类型、适用范围和挂载的主体（物种或品种）；「What changed」交代影响范围；id、来源细节、历史全部收进 Details。</figcaption></figure></div>
+
+<h2>3 · 现有功能如何处置</h2>
+<table>
+<tr><th style="width:120px">处置</th><th>现有功能</th><th>新方案中的位置</th></tr>
+<tr><td class="k keep">保留</td><td>Base + Personal 事件层、IndexedDB、导出/导入、撤销/重做；全部 records、sources、datasets；身份解析（别名、品种不合并）；修订 / 停用 / 恢复；<code>window.GPK</code> 与 <code>kq.py</code>；65 + 26 项测试</td><td>数据层和接口不变。界面只是换一种方式投影同一份有效数据。</td></tr>
+<tr><td class="k merge">合并</td><td>全局 Graph / Matrix / Table 三个标签</td><td>各集合自己的视图：Plant Library = Network · Compare · Profiles；Recipes = Composition · Compare · Site；Research = Observations · Rows。Table 不再是单独标签，而是每个 Inspector 里的「Records」以及集合内的行表。</td></tr>
+<tr><td class="k merge">合并</td><td>Base / Base+mine / Mine 三态切换</td><td>Personal Knowledge 作为一个集合，加上顶部「Your changes N」和比较表里的 Mine 列。“只看 Base” 移入 Details。</td></tr>
+<tr><td class="k merge">合并</td><td>Add 对话框的四个标签页（Plant / Note / Table / File）</td><td>一个渐进式输入框：先写文字或粘贴/拖入文件 → 系统识别对象 → 选择挂在物种还是品种 → 选择适用范围 → 保存。从 Inspector 进入时自动带上当前对象。</td></tr>
+<tr><td class="k hide">收入 Details</td><td>Retrieval 抽屉与检索日志、record id、版本 hash、完整同义词列表、许可全文、AI source check、legacyRef、原始 JSON、「1,050 records in effect」计数</td><td>每个 Inspector 底部的「Sources, identifiers &amp; licences ▸」「Record details &amp; history ▸」；检索调试放进 Personal Knowledge 下的「AI access (advanced)」。数据都还在，只是不默认展示。</td></tr>
+<tr><td class="k reorg">重组</td><td>Inspector 浮层</td><td>成为第三栏，打开时画布变窄（A 无 Inspector，B/C 有）。选中即聚焦：图、比较表和 Inspector 始终指向同一个对象。</td></tr>
+<tr><td class="k reorg">重组</td><td>默认植物范围固定为十种</td><td>范围跟随集合：Plant Library → 10 个完整档案；Recipe → 该组合成员；Research → 有观察的植物；Local Data → Metro Vancouver。</td></tr>
+<tr><td class="k reorg">重组</td><td>所有植物看起来一样</td><td>四种身份标记：完整档案（插画 + 实心环）、种植图/清单中的名称（空心环）、问卷候选（虚线环）、我添加的（橙色环）。品种挂在物种之下，但不合并。</td></tr>
+<tr><td class="k drop">移出默认</td><td>“一株植物放射全部属性”的焦点图</td><td>作为单株档案里的「Relations」细节保留，不再作为默认图。</td></tr>
+</table>
+
+<h2>4 · 信息架构：集合 → 默认范围 → 适合的可视化</h2>
+<table>
+<tr><th>集合</th><th>真实内容（当前数据）</th><th>默认范围</th><th>默认可视化</th><th>其他视图</th></tr>
+<tr><td class="k">Plant Library</td><td>10 个完整档案（48–72 条记录）· 235 个种植图/清单名称 · 32 个问卷候选 · 我添加的</td><td>10 个完整档案</td><td>共享记录网络（A）</td><td>Compare（快速比较）· Profiles（V4.3 插画卡片）</td></tr>
+<tr><td class="k">Survey</td><td>15 位受访者，87 条陈述：55 个选择理由、9 条观察、6 条实践笔记、2 条提醒、15 组“一起列出”；另有库外 32 种植物及原话（例如：Miscanthus 雨后倒伏、需几年分株）</td><td>全部陈述</td><td>“设计师怎么说”：按主题汇总（Native 6、Evergreen 3…）并附原话，可跳到对应植物</td><td>受访者构成（只做汇总，不显示身份）· 库外植物</td></tr>
+<tr><td class="k">Research</td><td>Robertson 1929：38 种植物、1,998 行；设计文献：53 条概念关系（Robinson、Rainer &amp; West、Oudolf &amp; Kingsbury、Mooney）</td><td>有观察数据的植物</td><td>观察图表（带单位、地点、年代）</td><td>原始行 · 概念关系</td></tr>
+<tr><td class="k">Planting Recipes</td><td>Detroit 8 个组合：A 60、B 46、C 37、Rain Garden 29、Bird Border 9、West Meadow 56、East Meadow 75；Triangles 未记录物种</td><td>所选组合的成员</td><td>分层组合图（B）</td><td>Compare（C）· Site（链接到空间模型，只读）</td></tr>
+<tr><td class="k">Local Data</td><td>Metro Vancouver 用水规定 7 条（主题，不挂植物）· Vancouver 街道树 37 · iNaturalist 27 · E-Flora BC 48</td><td>Metro Vancouver</td><td>按主题和地点排列的规定与观察</td><td>来源与日期</td></tr>
+<tr><td class="k">Personal Knowledge</td><td>笔记、修订、停用、导入的表格与文件</td><td>我的全部变更</td><td>时间线 + 影响范围（撤销 / 重做）</td><td>导出/导入 · AI access (advanced)</td></tr>
+</table>
+<p>物候（P44–52）不单独设标签：它出现在植物 Inspector 和 Compare 中，每条记录一行，按来源和地点分开。缺少物候数据的地方直接显示为空。</p>
+
+<h2>5 · A 图网络的生成规则（不制造连线）</h2>
+<ul>
+<li><b>节点：</b>10 个完整档案植物，以及至少被 2 种、最多 7 种植物共享的来源概念。默认显示 Water &amp; soil、Tolerance、Ecology、Light 四个主题，共 14 个概念。</li>
+<li><b>边：</b>只有当一条有效记录把这种植物和这个概念联系起来时才画线。线宽 = 独立来源数。问卷“一起列出”画为虚线，共 15 组，均为已记录的事实。</li>
+<li><b>不画：</b>8 种以上共有的概念（Sheltered 10、Full sun 10、Part sun 10、Well-drained 9、average 9、Filtered shade 8），只在一种植物上出现的概念，以及任何共现、相容关系。</li>
+<li><b>分组：</b>按共享概念做平均连接聚类，得到 3 组：湿润/酸性/本土种植的灌木与蕨（5）；腐殖质/秋色的乔木（3）；岩石园/耐旱/传粉的多年生（2）。分组只以阴影区域表示，并注明是由记录推导的。</li>
+<li><b>缺口：</b>没有共享生态记录的植物（5 种）；只有 Yarrow 有传粉观察；235 个种植图名称没有花期记录。</li>
+<li><b>借鉴的交互机制</b>（只借机制，不照搬素材）：Kumu 的 focus（按 N 度展开，Esc 恢复全图）、按字段聚类生成中心节点、选中后在侧栏显示档案（<a href="https://docs.kumu.io/guides/focus">focus</a>、<a href="https://docs.kumu.io/guides/clustering.md">clustering</a>、<a href="https://docs.kumu.io/guides/profiles.md">profiles</a>）；InfraNodus 用社区检测给主题分组着色、按中介中心性定节点大小、在侧栏列出主题和“结构缺口”（<a href="https://infranodus.com/tutorial/read-knowledge-graph">reading the graph</a>、<a href="https://infranodus.com/tutorial/topical-clusters">topical clusters</a>、<a href="https://infranodus.com/tutorial/content-gap-analysis">gaps</a>）。这些产品文档没有说明侧栏是浮层还是会挤窄画布；本方案明确采用挤窄画布。</li>
+</ul>
+
+<h2>6 · 数据问题（截图 08 / 10 / 12 / 17 + 复查新发现）</h2>
+<table>
+<tr><th style="width:36px">#</th><th style="width:70px">出处</th><th>现象</th><th>原因</th><th>修正（确认后实施）</th></tr>
+<tr><td>1</td><td>08</td><td>温哥华的修订仍写着「St. Louis growing conditions; once established」，时间是 age:established，而内容讲的恰恰是建立期</td><td>修订时把原记录的 context 整体复制了过来</td><td>修订和观察都从空的 context 开始：只继承主体和谓词，地点默认取用户填写的地点或项目地点，原记录只作为“回应对象”关联</td></tr>
+<tr><td>2</td><td>08 · 17</td><td>个人修订把 MOBOT 列为第二来源，检索结果显示 MOBOT 支持这条个人陈述</td><td>修订继承了原记录的 sourceRefs</td><td>来源只写 “me”，原记录写入 <code>respondsTo</code>，不进入 sources</td></tr>
+<tr><td>3</td><td>08</td><td>设计师的观察被归类为 “attribute”</td><td>修订继承了 knowledgeKind</td><td>修订时选择或默认为 observation / practice，不默认 attribute</td></tr>
+<tr><td>4</td><td>08</td><td>图中显示 Yarrow，Inspector 却是 Kinnikinnick 的记录</td><td>选中对象和图的焦点分别维护</td><td>选中即聚焦，三个区域共享同一个选中对象</td></tr>
+<tr><td>5</td><td>10</td><td>在 Table + Mine 下仍显示 Matrix 单元格的 Inspector，内容是 Base 记录；单元格摘要写“来自来源、未核实”，尽管其中有你的修订</td><td>切换视图或图层时没有更新 Inspector；单元格状态忽略个人记录</td><td>切换时让 Inspector 跟随或关闭；状态摘要单独说明「含你的修订」</td></tr>
+<tr><td>6</td><td>10</td><td>「Mine」里看不到新增的 Acer griseum</td><td>列表只列 records，新增实体不是 record</td><td>Personal Knowledge 时间线同时列出新增实体、记录、修订和停用</td></tr>
+<tr><td>7</td><td>12</td><td>同一张清单中 “Achillea millefolium” 和 “Yarrow” 两行生成了两条 listed_in，计数变成 listed in 4 / 6</td><td>按行生成记录，没有按（植物，清单）去重</td><td>每个（植物，清单）只保留一条成员关系，记录多个原始行号；原始行全部保留</td></tr>
+<tr><td>8</td><td>12</td><td>无法匹配的 “irrigation” 成为一条生效记录：「(no subject) irrigation is listed in …」，并计入 records in effect</td><td>未匹配的行也生成了知识记录</td><td>未匹配的行只留在数据集和导入报告中（「1 行未匹配」），不生成知识记录，等用户处理</td></tr>
+<tr><td>9</td><td>12</td><td>新建的 provisional 植物和已有植物看起来一样；清单名称直接用了文件名</td><td>没有身份标记；导入时没有询问标题</td><td>使用四种身份标记；导入时先确认清单标题和来源</td></tr>
+<tr><td>10</td><td>17</td><td>你在温哥华写的修订被标成「place: different」（项目地点为 Metro Vancouver）</td><td>Base 已有 <code>place:vancouver</code>（标签就是 Metro Vancouver），我又新增了重复的 <code>place:metro_vancouver</code>；新增的 Detroit、Illinois 也没有上级地点</td><td>用水规定改挂 <code>place:vancouver</code>，新增地点接入现有层级（North America）；匹配结果分为相同 / 范围内 / 更大区域 / 其他地区</td></tr>
+<tr><td>11</td><td>新</td><td>Robertson 1929 的 38 个物种只是按拼写匹配。例如 <em class="sci">Pycnanthemum flexuosum</em> 在 1929 年前后的伊利诺伊文献里可能指今天的 <em class="sci">P. tenuifolium</em>，而 Oudolf 图里很可能是现代的同名种</td><td>历史名称没有做分类学核对</td><td>标记为「仅名称匹配 · 待核对」，作为线索显示，不当作已确立的植物知识；是否在核对前隐藏，需要你决定</td></tr>
+<tr><td>12</td><td>新</td><td>Base 中同一位受访者的同一句话出现两次（例如 Yarrow 的 sv02 / sv03），另有 2 条 “derived from the respondent's note” 记录</td><td>原库在不同字段各保存了一份</td><td>原数据不动；界面上合并为一条陈述，并注明“2 条记录，1 句原话”</td></tr>
+<tr><td>13</td><td>新</td><td>synonyms.json 中 Yarrow 的名称列表混入了 rhs、eflora 等来源键</td><td>原库数据问题</td><td>迁移时已不作为别名（02A 已处理），建议同时在 planting-db 修正</td></tr>
+</table>
+
+<h2>7 · 确认后的实施顺序</h2>
+<ol>
+<li>先修数据问题 1–3、7、8、10：涉及 kb.js、ingest.js、build_seed 的地点部分；同步更新测试，并为每个问题新增回归测试。</li>
+<li>搭建三栏外壳：Collections / Canvas / Inspector，Inspector 打开时画布让位；统一选中状态。</li>
+<li>Plant Library：共享记录网络（A）、Compare、Profiles（V4.3 插画）。</li>
+<li>Planting Recipes：分层组合图（B）和 Compare（C），默认范围为组合成员。</li>
+<li>Survey、Research、Local Data、Personal Knowledge 各自的默认视图。</li>
+<li>渐进式 Add / Edit 输入框；把技术信息收进 Details。</li>
+<li>重跑全部测试，重新截图，与这三张方案图逐项对照。空间模型保持不动。</li>
+</ol>
+
+<div class="box ask"><b>需要你确认</b><ol style="margin:6px 0 0">
+<li>三张图的方向和工作流程（A → B → C）是否可以开始实施？</li>
+<li>网络图的取舍：“8 种以上共有的概念不画” 以及三个推导分组，是否保留？</li>
+<li>Robertson 的仅名称匹配：带「check name」标记显示（当前方案），还是在分类学核对前隐藏？</li>
+<li>Survey 中是否显示受访者编号（如 respondent 05），还是只显示汇总？</li>
+</ol></div>
+</main></body></html>

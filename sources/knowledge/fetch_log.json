@@ -1,0 +1,89 @@
+{
+ "fetched": "2026-11-26",
+ "robertson": {
+  "url": "https://raw.githubusercontent.com/millerse/Flowers-and-insects-lists-of-visitors-to-four-hundred-and-fifty-three-flowers/master/interactions.tsv",
+  "bytes": 4658999,
+  "sha256": "012176757196330c824b26a0cf0487d9419175c2d9913f1dd5cbf91b62a40548",
+  "rows_total": 15261,
+  "plants_total": 456,
+  "rows_kept": 1998,
+  "plants_kept": [
+   "Achillea millefolium",
+   "Amorpha canescens",
+   "Aquilegia canadensis",
+   "Asclepias incarnata",
+   "Asclepias purpurascens",
+   "Asclepias tuberosa",
+   "Baptisia leucantha",
+   "Cephalanthus occidentalis",
+   "Coreopsis tripteris",
+   "Desmodium canadense",
+   "Eryngium yuccifolium",
+   "Eupatorium perfoliatum",
+   "Euphorbia corollata",
+   "Gentiana andrewsii",
+   "Geranium maculatum",
+   "Helenium autumnale",
+   "Liatris pycnostachya",
+   "Lobelia cardinalis",
+   "Lobelia siphilitica",
+   "Lobelia spicata",
+   "Lythrum alatum",
+   "Mertensia virginica",
+   "Mimulus ringens",
+   "Monarda bradburiana",
+   "Monarda fistulosa",
+   "Parthenium integrifolium",
+   "Physostegia virginiana",
+   "Pycnanthemum flexuosum",
+   "Pycnanthemum virginianum",
+   "Rhus copallina",
+   "Rosa setigera",
+   "Rudbeckia subtomentosa",
+   "Sambucus canadensis",
+   "Scutellaria lateriflora",
+   "Solidago rigida",
+   "Thalictrum dasycarpum",
+   "Verbena hastata",
+   "Zizia aurea"
+  ],
+  "filter": "sourceTaxonName equals a planting-db plant or the species part of a Detroit model species name"
+ },
+ "water": [
+  {
+   "id": "mvw:restriction-period",
+   "source": "mv-water-restrictions",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:residential-lawn",
+   "source": "mv-water-restrictions",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:trees-shrubs-flowers",
+   "source": "mv-water-restrictions",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:new-lawn-permit",
+   "source": "mv-water-restrictions",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:alternative-water",
+   "source": "mv-water-restrictions",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:lawn-seed-establishment",
+   "source": "mv-seasonal-lawn-care",
+   "quote_found": true
+  },
+  {
+   "id": "mvw:lawn-weekly-water",
+   "source": "mv-seasonal-lawn-care",
+   "quote_found": true
+  }
+ ]
+}

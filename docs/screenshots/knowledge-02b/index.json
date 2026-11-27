@@ -1,0 +1,188 @@
+{
+ "about": "Phase 02A.1 Part B — one real Ask/Add session in headless Chrome against tools/knowledge/server.py (1440×900). Test database only. Claude: as reported by the server (not connected here); no model output appears.",
+ "gif": "ask-session.gif",
+ "shots": [
+  {
+   "file": "01-start.png",
+   "caption": "Plant Library, Combined layer.",
+   "state": {
+    "layer": "combined",
+    "tab": null,
+    "sel": null,
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": null,
+    "serverSame": null,
+    "claude": null
+   }
+  },
+  {
+   "file": "02-select.png",
+   "caption": "Select Kinnikinnick: the inspector opens.",
+   "state": {
+    "layer": "combined",
+    "tab": null,
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": null,
+    "serverSame": null,
+    "claude": null
+   }
+  },
+  {
+   "file": "03-ask-open.png",
+   "caption": "“Ask about this” opens Ask in the same column, with the plant as context.",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": null,
+    "serverSame": null,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "04-type-a.png",
+   "caption": "Type the question…",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": null,
+    "serverSame": null,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "05-type-b.png",
+   "caption": "…",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": null,
+    "serverSame": null,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "06-retrieve.png",
+   "caption": "Retrieve: the knowledge in effect, no model. The server rebuilt the same version from this browser's events and returned the same records.",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "07-not-connected.png",
+   "caption": "Claude's state as the server reports it: not connected — SDK, credentials, authorisation. “Ask Claude” stays off; no answer is shown.",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "08-follow.png",
+   "caption": "A retrieved record locates the evidence: inspector and canvas, with a way back.",
+   "state": {
+    "layer": "combined",
+    "tab": null,
+    "sel": "arctostaphylos-uva-ursi:landscape_use:rhs02",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "09-back.png",
+   "caption": "Back to the question: nothing was lost.",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "arctostaphylos-uva-ursi:landscape_use:rhs02",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "10-add.png",
+   "caption": "Same text box, Add: an observation in my own words.",
+   "state": {
+    "layer": "combined",
+    "tab": "add",
+    "sel": "arctostaphylos-uva-ursi:landscape_use:rhs02",
+    "events": 0,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": null
+   }
+  },
+  {
+   "file": "11-save.png",
+   "caption": "Saved as personal knowledge (◆). “Understand with Claude” needs a connection; the plain Save keeps the words as written.",
+   "state": {
+    "layer": "combined",
+    "tab": null,
+    "sel": "my-rec-mwyer426-a3ed6c2f",
+    "events": 1,
+    "revision": "base-ebbbf3db18e5+1e:4e6e8658",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": null
+   }
+  },
+  {
+   "file": "12-ask-again.png",
+   "caption": "Ask again on Combined: my note is retrieved beside the Preset records.",
+   "state": {
+    "layer": "combined",
+    "tab": "ask",
+    "sel": "my-rec-mwyer426-a3ed6c2f",
+    "events": 1,
+    "revision": "base-ebbbf3db18e5+1e:4e6e8658",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  },
+  {
+   "file": "13-preset.png",
+   "caption": "Same question on the Preset layer: my note is not there — the server reads the Preset version too.",
+   "state": {
+    "layer": "preset",
+    "tab": "ask",
+    "sel": "my-rec-mwyer426-a3ed6c2f",
+    "events": 1,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5",
+    "retrieved": 12,
+    "serverSame": true,
+    "claude": "Claude Sonnet 5.5 · not connected"
+   }
+  }
+ ]
+}

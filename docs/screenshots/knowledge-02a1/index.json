@@ -1,0 +1,370 @@
+{
+ "about": "Phase 02A.1 Knowledge Workspace — one real session, 1440×900 @2x, headless Chrome. Test database only; the designer's own browser layer is never touched.",
+ "shots": [
+  {
+   "file": "01-workspace-default.png",
+   "caption": "Default workspace: the ten full profiles linked only through attributes their records share; groups are areas; common ground folded in the footer. Counts, kinds and sources appear on hover and in the inspector.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "network",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "02-plant-selected.png",
+   "caption": "Selecting Yarrow opens the inspector, which narrows the canvas: profile, coverage strip, values at a glance, flowering by source and place, the designers' words.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "network",
+    "sel": "achillea-millefolium",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "03-connections-yarrow.png",
+   "caption": "Explore connections from the inspector: Yarrow across collections — its cultivar ‘Terra Cotta’ and through it the B beds recipe, Robertson 1929 (dotted: name match only), the survey, local sources, places; attribute groups folded.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "connections",
+    "sel": "achillea-millefolium",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "04-connections-robertson.png",
+   "caption": "Expand in place: double-click Robertson 1929 — its plants join the same picture; Yarrow and everything already drawn keep their places, shared plants are drawn once.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "connections",
+    "sel": "ds:robertson-1929",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "05-connections-recipe.png",
+   "caption": "Expand again: B beds adds its members by drawing role; the view zooms to fit, nothing is redrawn from scratch.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "connections",
+    "sel": "system:mix.B-matrix",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "06-recipe-composition.png",
+   "caption": "Planting recipes · B beds: Layers in the plan legend (schematic, clickable: symbol = member, band = drawing role) above the member list; ink = kinds of knowledge recorded.",
+   "state": {
+    "layer": "combined",
+    "col": "recipes",
+    "view": "composition",
+    "sel": "taxon:achillea-millefolium-terra-cotta",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "07-recipe-compare.png",
+   "caption": "Recipe Compare opens on the members with knowledge, ordered by how much is recorded; all 46 one click away. Units in the header, the key under the table.",
+   "state": {
+    "layer": "combined",
+    "col": "recipes",
+    "view": "compare",
+    "sel": "taxon:achillea-millefolium-terra-cotta",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "27-network-expanded.png",
+   "caption": "Plant Library network, expanded in place: double-clicking Yarrow and Red osier dogwood adds their recipes, research, survey and places around them; the shared-attribute network stays as it was.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "network",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "08-library-compare.png",
+   "caption": "Plant Library · Compare across the ten full profiles; any cell opens its records.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "compare",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "09-library-seasons.png",
+   "caption": "Seasons: flowering by source and place, never merged — the UK, St. Louis, North America and Greater Vancouver rows differ.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "seasons",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "10-library-profiles-filters.png",
+   "caption": "Profiles with the four independent dimensions open (coverage · origin · identity · contribution); counts are plants, one per stable identity.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "11-survey.png",
+   "caption": "Designer survey: who answered (aggregate), plants and reasons as a dot matrix, observations in their words, plants listed together.",
+   "state": {
+    "layer": "combined",
+    "col": "survey",
+    "view": "responses",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "12-research-robertson.png",
+   "caption": "Robertson 1929: visitor taxa per plant (dashed = name match only) beside the original rows of the selected plant — no overlap.",
+   "state": {
+    "layer": "combined",
+    "col": "research",
+    "view": "visitors",
+    "sel": "taxon:zizia-aurea",
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   },
+   "localOnly": "shows rows of the digitised Robertson table (licence not cleared): the image stays in the local research copy and is not published"
+  },
+  {
+   "file": "13-research-databases.png",
+   "caption": "Research · Curated databases: which source documents which plant, and for which region.",
+   "state": {
+    "layer": "combined",
+    "col": "research",
+    "view": "databases",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "14-research-literature.png",
+   "caption": "Research · Design literature: functional layers and spatial functions as cited; plant placements derived by rule and marked so.",
+   "state": {
+    "layer": "combined",
+    "col": "research",
+    "view": "literature",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "15-local.png",
+   "caption": "Local data · Metro Vancouver: place hierarchy, water-rule calendar, local evidence per plant.",
+   "state": {
+    "layer": "combined",
+    "col": "local",
+    "view": "context",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "16-add-plant.png",
+   "caption": "Add knowledge opens beside the canvas (no modal): a short name is read as a plant name; a new name becomes a provisional plant with nothing invented.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": null,
+    "events": 0,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+0e:811c9dc5"
+   }
+  },
+  {
+   "file": "17-add-note.png",
+   "caption": "A sentence is read as a note: Yarrow linked and marked in the canvas, Preference and Metro Vancouver pre-selected from words in the text — visible and changeable. No AI reads it.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": "achillea-millefolium",
+    "events": 1,
+    "active": 1050,
+    "revision": "base-ebbbf3db18e5+1e:1f8978f8"
+   }
+  },
+  {
+   "file": "18-after-note.png",
+   "caption": "Saved: the note sits on Yarrow as ◆ My knowledge (inspector); the plant count is unchanged (151 species = 150 + Acer griseum).",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": "achillea-millefolium",
+    "events": 2,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+2e:20100b82"
+   }
+  },
+  {
+   "file": "19-edit-my-version.png",
+   "caption": "Edit my version of a preset record (Kinnikinnick · MOBOT, St. Louis): yours starts with an empty context — say where it applies.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": "arctostaphylos-uva-ursi:resistances:mobot01",
+    "events": 2,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+2e:20100b82"
+   }
+  },
+  {
+   "file": "20-revision-vs.png",
+   "caption": "Saved: Preset (struck through, unchanged) against my version — source “me”, place Metro Vancouver, kind observation.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "profiles",
+    "sel": "my-rev-mwydzqcn-ed467351",
+    "events": 3,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+3e:384f9daa"
+   }
+  },
+  {
+   "file": "21-layer-mine.png",
+   "caption": "My knowledge layer: the same network; what is mine is drawn, the rest stays as faded context.",
+   "state": {
+    "layer": "mine",
+    "col": "library",
+    "view": "network",
+    "sel": null,
+    "events": 3,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+3e:384f9daa"
+   }
+  },
+  {
+   "file": "28-layers-connections.png",
+   "caption": "Same exploration, Preset layer: positions are kept; my note and list disappear, nothing else moves. Switching back shows them again in place.",
+   "state": {
+    "layer": "preset",
+    "col": "library",
+    "view": "connections",
+    "sel": null,
+    "events": 3,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+3e:384f9daa"
+   }
+  },
+  {
+   "file": "22-layer-preset.png",
+   "caption": "Preset layer: the prepared knowledge exactly as migrated — the MOBOT record in effect, no personal marks.",
+   "state": {
+    "layer": "preset",
+    "col": "library",
+    "view": "network",
+    "sel": "arctostaphylos-uva-ursi:resistances:mobot01",
+    "events": 3,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+3e:384f9daa"
+   }
+  },
+  {
+   "file": "23-add-list.png",
+   "caption": "A pasted list: read as a list; import needs a title and a source; Yarrow twice = one membership; “irrigation” not linked and not counted.",
+   "state": {
+    "layer": "combined",
+    "col": "library",
+    "view": "network",
+    "sel": null,
+    "events": 3,
+    "active": 1051,
+    "revision": "base-ebbbf3db18e5+3e:384f9daa"
+   }
+  },
+  {
+   "file": "24-personal.png",
+   "caption": "Personal knowledge: per plant what I added, my version against the Preset, the list with its unlinked row, and the full history with undo.",
+   "state": {
+    "layer": "combined",
+    "col": "personal",
+    "view": "changes",
+    "sel": null,
+    "events": 4,
+    "active": 1054,
+    "revision": "base-ebbbf3db18e5+4e:ac7fabc5"
+   }
+  },
+  {
+   "file": "25-connections-me.png",
+   "caption": "Connections from My knowledge: everything I touched, as a network.",
+   "state": {
+    "layer": "combined",
+    "col": "personal",
+    "view": "connections",
+    "sel": "me",
+    "events": 4,
+    "active": 1054,
+    "revision": "base-ebbbf3db18e5+4e:ac7fabc5"
+   }
+  },
+  {
+   "file": "26-llm-access.png",
+   "caption": "Data & access · LLM access: searchKnowledge() on the knowledge in effect, with place match (same / within / broader / elsewhere) and flags; compared with the Preset run.",
+   "state": {
+    "layer": "combined",
+    "col": "personal",
+    "view": "connections",
+    "sel": null,
+    "events": 4,
+    "active": 1054,
+    "revision": "base-ebbbf3db18e5+4e:ac7fabc5"
+   }
+  }
+ ]
+}

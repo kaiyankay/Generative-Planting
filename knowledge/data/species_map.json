@@ -1,0 +1,2008 @@
+{
+ "note": "Spatial species → knowledge entity. matched = same taxon as a planting-db plant; same_taxon = a second sp.* id for one taxon; cultivar = its own entity, linked by cultivar_of only when the species is known; placeholder = legend name that is not a resolvable taxon; not_a_taxon = e.g. lawn. Nothing is merged.",
+ "spatialModelSha256": "b7bc3689929d91f469a58a6592aee689048a671fbcff1d499729ccf641ce7d7b",
+ "counts": {
+  "cultivar": 92,
+  "new_entity": 139,
+  "matched": 2,
+  "placeholder": 3,
+  "not_a_taxon": 1,
+  "same_taxon": 11
+ },
+ "species": [
+  {
+   "spatialId": "sp.achillea-moonshine",
+   "canonicalKey": "Achillea 'Moonshine'",
+   "scientificName": "Achillea",
+   "cultivar": "Moonshine",
+   "entityId": "taxon:achillea-moonshine",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.achillea-parkers",
+   "canonicalKey": "Achillea filipendulina 'Parker's Variety'",
+   "scientificName": "Achillea filipendulina",
+   "cultivar": "Parker's Variety",
+   "entityId": "taxon:achillea-filipendulina-parker-s-variety",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.achillea-terracotta",
+   "canonicalKey": "Achillea millefolium 'Terra Cotta'",
+   "scientificName": "Achillea millefolium",
+   "cultivar": "Terra Cotta",
+   "entityId": "taxon:achillea-millefolium-terra-cotta",
+   "status": "cultivar",
+   "cultivarOf": "achillea-millefolium"
+  },
+  {
+   "spatialId": "sp.allium-big-beauty",
+   "canonicalKey": "Allium 'Big Beauty'",
+   "scientificName": "Allium",
+   "cultivar": "Big Beauty",
+   "entityId": "taxon:allium-big-beauty",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.allium-caeruleum",
+   "canonicalKey": "Allium caeruleum",
+   "scientificName": "Allium caeruleum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:allium-caeruleum"
+  },
+  {
+   "spatialId": "sp.allium-carinatum-pulchellum",
+   "canonicalKey": "Allium carinatum subsp. pulchellum",
+   "scientificName": "Allium carinatum subsp. pulchellum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:allium-carinatum-subsp-pulchellum"
+  },
+  {
+   "spatialId": "sp.allium-christophii",
+   "canonicalKey": "Allium christophii",
+   "scientificName": "Allium christophii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:allium-christophii"
+  },
+  {
+   "spatialId": "sp.allium-mohican",
+   "canonicalKey": "Allium amethystinum 'Red Mohican'",
+   "scientificName": "Allium amethystinum",
+   "cultivar": "Red Mohican",
+   "entityId": "taxon:allium-amethystinum-red-mohican",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.allium-nigrum",
+   "canonicalKey": "Allium nigrum",
+   "scientificName": "Allium nigrum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:allium-nigrum"
+  },
+  {
+   "spatialId": "sp.allium-obliquum",
+   "canonicalKey": "Allium obliquum",
+   "scientificName": "Allium obliquum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:allium-obliquum"
+  },
+  {
+   "spatialId": "sp.allium-summer-beauty",
+   "canonicalKey": "Allium lusitanicum 'Summer Beauty'",
+   "scientificName": "Allium lusitanicum",
+   "cultivar": "Summer Beauty",
+   "entityId": "taxon:allium-lusitanicum-summer-beauty",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.althaea-park-allee",
+   "canonicalKey": "Alcalthaea suffrutescens 'Park Allee'",
+   "scientificName": "Alcalthaea suffrutescens",
+   "cultivar": "Park Allee",
+   "entityId": "taxon:alcalthaea-suffrutescens-park-allee",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.amelanchier-lamarckii",
+   "canonicalKey": "Amelanchier lamarckii",
+   "scientificName": "Amelanchier lamarckii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:amelanchier-lamarckii"
+  },
+  {
+   "spatialId": "sp.amorpha-canescens",
+   "canonicalKey": "Amorpha canescens",
+   "scientificName": "Amorpha canescens",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:amorpha-canescens"
+  },
+  {
+   "spatialId": "sp.amsonia-hubrichtii",
+   "canonicalKey": "Amsonia hubrichtii",
+   "scientificName": "Amsonia hubrichtii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:amsonia-hubrichtii"
+  },
+  {
+   "spatialId": "sp.amsonia-salicifolia",
+   "canonicalKey": "Amsonia tabernaemontana var. salicifolia",
+   "scientificName": "Amsonia tabernaemontana var. salicifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:amsonia-tabernaemontana-var-salicifolia"
+  },
+  {
+   "spatialId": "sp.andropogon-dancing-wind",
+   "canonicalKey": "Andropogon gerardii 'Dancing Wind'",
+   "scientificName": "Andropogon gerardii",
+   "cultivar": "Dancing Wind",
+   "entityId": "taxon:andropogon-gerardii-dancing-wind",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.andropogon-red-october",
+   "canonicalKey": "Andropogon gerardii 'Red October'",
+   "scientificName": "Andropogon gerardii",
+   "cultivar": "Red October",
+   "entityId": "taxon:andropogon-gerardii-red-october",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.anemone-blue-shades",
+   "canonicalKey": "Anemone blanda 'Blue Shades'",
+   "scientificName": "Anemone blanda",
+   "cultivar": "Blue Shades",
+   "entityId": "taxon:anemone-blanda-blue-shades",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.anemone-hadspen",
+   "canonicalKey": "Anemone hupehensis 'Hadspen Abundance'",
+   "scientificName": "Anemone hupehensis",
+   "cultivar": "Hadspen Abundance",
+   "entityId": "taxon:anemone-hupehensis-hadspen-abundance",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.aquilegia-canadensis",
+   "canonicalKey": "Aquilegia canadensis",
+   "scientificName": "Aquilegia canadensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:aquilegia-canadensis"
+  },
+  {
+   "spatialId": "sp.asclepias-incarnata",
+   "canonicalKey": "Asclepias incarnata",
+   "scientificName": "Asclepias incarnata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:asclepias-incarnata"
+  },
+  {
+   "spatialId": "sp.asclepias-purpurascens",
+   "canonicalKey": "Asclepias purpurascens",
+   "scientificName": "Asclepias purpurascens",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:asclepias-purpurascens"
+  },
+  {
+   "spatialId": "sp.asclepias-tuberosa",
+   "canonicalKey": "Asclepias tuberosa",
+   "scientificName": "Asclepias tuberosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:asclepias-tuberosa"
+  },
+  {
+   "spatialId": "sp.aster-horizontalis",
+   "canonicalKey": "Symphyotrichum lateriflorum 'Horizontalis'",
+   "scientificName": "Symphyotrichum lateriflorum",
+   "cultivar": "Horizontalis",
+   "entityId": "taxon:symphyotrichum-lateriflorum-horizontalis",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.aster-little-carlow",
+   "canonicalKey": "Symphyotrichum 'Little Carlow'",
+   "scientificName": "Symphyotrichum",
+   "cultivar": "Little Carlow",
+   "entityId": "taxon:symphyotrichum-little-carlow",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.aster-october-skies",
+   "canonicalKey": "Symphyotrichum oblongifolium 'October Skies'",
+   "scientificName": "Symphyotrichum oblongifolium",
+   "cultivar": "October Skies",
+   "entityId": "taxon:symphyotrichum-oblongifolium-october-skies",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.aster-twilight",
+   "canonicalKey": "Eurybia macrophylla 'Twilight'",
+   "scientificName": "Eurybia macrophylla",
+   "cultivar": "Twilight",
+   "entityId": "taxon:eurybia-macrophylla-twilight",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.astilbe-visions-pink",
+   "canonicalKey": "Astilbe chinensis 'Visions in Pink'",
+   "scientificName": "Astilbe chinensis",
+   "cultivar": "Visions in Pink",
+   "entityId": "taxon:astilbe-chinensis-visions-in-pink",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.baptisia-carolina-moonlight",
+   "canonicalKey": "Baptisia 'Carolina Moonlight'",
+   "scientificName": "Baptisia",
+   "cultivar": "Carolina Moonlight",
+   "entityId": "taxon:baptisia-carolina-moonlight",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.baptisia-leucantha",
+   "canonicalKey": "Baptisia leucantha",
+   "scientificName": "Baptisia leucantha",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:baptisia-leucantha"
+  },
+  {
+   "spatialId": "sp.baptisia-lunar-eclipse",
+   "canonicalKey": "Baptisia 'Lunar Eclipse'",
+   "scientificName": "Baptisia",
+   "cultivar": "Lunar Eclipse",
+   "entityId": "taxon:baptisia-lunar-eclipse",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.baptisia-midnight-prairie-blues",
+   "canonicalKey": "Baptisia 'Midnight Prairie Blues'",
+   "scientificName": "Baptisia",
+   "cultivar": "Midnight Prairie Blues",
+   "entityId": "taxon:baptisia-midnight-prairie-blues",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.betula-nigra-heritage",
+   "canonicalKey": "Betula nigra 'Heritage (multi-stem)'",
+   "scientificName": "Betula nigra",
+   "cultivar": "Heritage (multi-stem)",
+   "entityId": "taxon:betula-nigra-heritage-multi-stem",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.calamintha-nepeta",
+   "canonicalKey": "Calamintha nepeta subsp. nepeta",
+   "scientificName": "Calamintha nepeta subsp. nepeta",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:calamintha-nepeta-subsp-nepeta"
+  },
+  {
+   "spatialId": "sp.camassia-semiplena",
+   "canonicalKey": "Camassia leichtlinii 'Semiplena'",
+   "scientificName": "Camassia leichtlinii",
+   "cultivar": "Semiplena",
+   "entityId": "taxon:camassia-leichtlinii-semiplena",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.carex-bromoides",
+   "canonicalKey": "Carex bromoides",
+   "scientificName": "Carex bromoides",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-bromoides"
+  },
+  {
+   "spatialId": "sp.carex-comosa",
+   "canonicalKey": "Carex comosa",
+   "scientificName": "Carex comosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-comosa"
+  },
+  {
+   "spatialId": "sp.carex-little-midge",
+   "canonicalKey": "Carex muskingumensis 'Little Midge'",
+   "scientificName": "Carex muskingumensis",
+   "cultivar": "Little Midge",
+   "entityId": "taxon:carex-muskingumensis-little-midge",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.carex-muskingumensis",
+   "canonicalKey": "Carex muskingumensis",
+   "scientificName": "Carex muskingumensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-muskingumensis"
+  },
+  {
+   "spatialId": "sp.centaurea",
+   "canonicalKey": "Centaurea montana 'Amethyst Dream'",
+   "scientificName": "Centaurea montana",
+   "cultivar": "Amethyst Dream",
+   "entityId": "taxon:centaurea-montana-amethyst-dream",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.chionanthus-virginicus",
+   "canonicalKey": "Chionanthus virginicus",
+   "scientificName": "Chionanthus virginicus",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:chionanthus-virginicus"
+  },
+  {
+   "spatialId": "sp.clethra-alnifolia",
+   "canonicalKey": "Clethra alnifolia",
+   "scientificName": "Clethra alnifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:clethra-alnifolia"
+  },
+  {
+   "spatialId": "sp.cornus-sericea",
+   "canonicalKey": "Cornus sericea",
+   "scientificName": "Cornus sericea",
+   "cultivar": null,
+   "status": "matched",
+   "entityId": "cornus-sericea"
+  },
+  {
+   "spatialId": "sp.crocus-blue-pearl",
+   "canonicalKey": "Crocus chrysanthus 'Blue Pearl'",
+   "scientificName": "Crocus chrysanthus",
+   "cultivar": "Blue Pearl",
+   "entityId": "taxon:crocus-chrysanthus-blue-pearl",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.crocus-kiss-of-spring",
+   "canonicalKey": "Crocus korolkowii 'Kiss of Spring'",
+   "scientificName": "Crocus korolkowii",
+   "cultivar": "Kiss of Spring",
+   "entityId": "taxon:crocus-korolkowii-kiss-of-spring",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.crocus-roseus",
+   "canonicalKey": "Crocus tommasinianus 'Roseus'",
+   "scientificName": "Crocus tommasinianus",
+   "cultivar": "Roseus",
+   "entityId": "taxon:crocus-tommasinianus-roseus",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.dalea-purpurea",
+   "canonicalKey": "Dalea purpurea",
+   "scientificName": "Dalea purpurea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:dalea-purpurea"
+  },
+  {
+   "spatialId": "sp.deschampsia-goldtau",
+   "canonicalKey": "Deschampsia cespitosa 'Goldtau'",
+   "scientificName": "Deschampsia cespitosa",
+   "cultivar": "Goldtau",
+   "entityId": "taxon:deschampsia-cespitosa-goldtau",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.echinacea-fatal-attraction",
+   "canonicalKey": "Echinacea purpurea 'Fatal Attraction'",
+   "scientificName": "Echinacea purpurea",
+   "cultivar": "Fatal Attraction",
+   "entityId": "taxon:echinacea-purpurea-fatal-attraction",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.echinacea-hula-dancer",
+   "canonicalKey": "Echinacea pallida 'Hula Dancer'",
+   "scientificName": "Echinacea pallida",
+   "cultivar": "Hula Dancer",
+   "entityId": "taxon:echinacea-pallida-hula-dancer",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.echinacea-virgin",
+   "canonicalKey": "Echinacea purpurea 'Virgin'",
+   "scientificName": "Echinacea purpurea",
+   "cultivar": "Virgin",
+   "entityId": "taxon:echinacea-purpurea-virgin",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.echinops-starfrost",
+   "canonicalKey": "Echinops bannaticus 'Starfrost'",
+   "scientificName": "Echinops bannaticus",
+   "cultivar": "Starfrost",
+   "entityId": "taxon:echinops-bannaticus-starfrost",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.echinops-veitchs-blue",
+   "canonicalKey": "Echinops ritro 'Veitch's Blue'",
+   "scientificName": "Echinops ritro",
+   "cultivar": "Veitch's Blue",
+   "entityId": "taxon:echinops-ritro-veitch-s-blue",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.eragrostis-spec",
+   "canonicalKey": "Eragrostis 'spec.'",
+   "scientificName": "Eragrostis",
+   "cultivar": "spec.",
+   "placeholderCultivar": true,
+   "entityId": "taxon:eragrostis-spec",
+   "status": "placeholder"
+  },
+  {
+   "spatialId": "sp.eragrostis-spectabilis",
+   "canonicalKey": "Eragrostis spectabilis",
+   "scientificName": "Eragrostis spectabilis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eragrostis-spectabilis"
+  },
+  {
+   "spatialId": "sp.eryngium-big-blue",
+   "canonicalKey": "Eryngium x zabelii 'Big Blue'",
+   "scientificName": "Eryngium x zabelii",
+   "cultivar": "Big Blue",
+   "entityId": "taxon:eryngium-x-zabelii-big-blue",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.eryngium-bourgatii",
+   "canonicalKey": "Eryngium bourgatii",
+   "scientificName": "Eryngium bourgatii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eryngium-bourgatii"
+  },
+  {
+   "spatialId": "sp.eryngium-yuccifolium",
+   "canonicalKey": "Eryngium yuccifolium",
+   "scientificName": "Eryngium yuccifolium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eryngium-yuccifolium"
+  },
+  {
+   "spatialId": "sp.eupatorium-hyssopifolium",
+   "canonicalKey": "Eupatorium hyssopifolium",
+   "scientificName": "Eupatorium hyssopifolium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eupatorium-hyssopifolium"
+  },
+  {
+   "spatialId": "sp.gentiana-andrewsii",
+   "canonicalKey": "Gentiana andrewsii",
+   "scientificName": "Gentiana andrewsii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:gentiana-andrewsii"
+  },
+  {
+   "spatialId": "sp.geranium-psilostemon",
+   "canonicalKey": "Geranium psilostemon",
+   "scientificName": "Geranium psilostemon",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:geranium-psilostemon"
+  },
+  {
+   "spatialId": "sp.geranium-raven",
+   "canonicalKey": "Geranium 'Raven'",
+   "scientificName": "Geranium",
+   "cultivar": "Raven",
+   "entityId": "taxon:geranium-raven",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.geum-triflorum",
+   "canonicalKey": "Geum triflorum",
+   "scientificName": "Geum triflorum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:geum-triflorum"
+  },
+  {
+   "spatialId": "sp.halesia-carolina",
+   "canonicalKey": "Halesia carolina",
+   "scientificName": "Halesia carolina",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:halesia-carolina"
+  },
+  {
+   "spatialId": "sp.hamamelis-jelena",
+   "canonicalKey": "Hamamelis x intermedia 'Jelena'",
+   "scientificName": "Hamamelis x intermedia",
+   "cultivar": "Jelena",
+   "entityId": "taxon:hamamelis-x-intermedia-jelena",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.hamamelis-vernalis",
+   "canonicalKey": "Hamamelis vernalis",
+   "scientificName": "Hamamelis vernalis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:hamamelis-vernalis"
+  },
+  {
+   "spatialId": "sp.helenium-kupferzwerg",
+   "canonicalKey": "Helenium 'Kupferzwerg'",
+   "scientificName": "Helenium",
+   "cultivar": "Kupferzwerg",
+   "entityId": "taxon:helenium-kupferzwerg",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.helenium-moerheim",
+   "canonicalKey": "Helenium 'Moerheim Beauty'",
+   "scientificName": "Helenium",
+   "cultivar": "Moerheim Beauty",
+   "entityId": "taxon:helenium-moerheim-beauty",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.hemerocallis-chicago-apache",
+   "canonicalKey": "Hemerocallis 'Chicago Apache'",
+   "scientificName": "Hemerocallis",
+   "cultivar": "Chicago Apache",
+   "entityId": "taxon:hemerocallis-chicago-apache",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.ilex-verticillata",
+   "canonicalKey": "Ilex verticillata 'M + F'",
+   "scientificName": "Ilex verticillata",
+   "cultivar": "M + F",
+   "placeholderCultivar": true,
+   "entityId": "taxon:ilex-verticillata-m-f",
+   "status": "placeholder"
+  },
+  {
+   "spatialId": "sp.iris-caesars-brother",
+   "canonicalKey": "Iris sibirica 'Caesar's Brother'",
+   "scientificName": "Iris sibirica",
+   "cultivar": "Caesar's Brother",
+   "entityId": "taxon:iris-sibirica-caesar-s-brother",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.iris-fulva",
+   "canonicalKey": "Iris fulva",
+   "scientificName": "Iris fulva",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:iris-fulva"
+  },
+  {
+   "spatialId": "sp.iris-germanica",
+   "canonicalKey": "Iris germanica 'mixed'",
+   "scientificName": "Iris germanica",
+   "cultivar": "mixed",
+   "placeholderCultivar": true,
+   "entityId": "taxon:iris-germanica-mixed",
+   "status": "placeholder"
+  },
+  {
+   "spatialId": "sp.iris-katharine-hodgkin",
+   "canonicalKey": "Iris 'Katharine Hodgkin'",
+   "scientificName": "Iris",
+   "cultivar": "Katharine Hodgkin",
+   "entityId": "taxon:iris-katharine-hodgkin",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.iris-perrys-blue",
+   "canonicalKey": "Iris sibirica 'Perry's Blue'",
+   "scientificName": "Iris sibirica",
+   "cultivar": "Perry's Blue",
+   "entityId": "taxon:iris-sibirica-perry-s-blue",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.lawn",
+   "canonicalKey": "turf grass (mown lawn)",
+   "scientificName": "turf grass (mown lawn)",
+   "cultivar": null,
+   "status": "not_a_taxon",
+   "entityId": null,
+   "note": "mown turf, not a taxon"
+  },
+  {
+   "spatialId": "sp.liatris-pycnostachya",
+   "canonicalKey": "Liatris pycnostachya",
+   "scientificName": "Liatris pycnostachya",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:liatris-pycnostachya"
+  },
+  {
+   "spatialId": "sp.liatris-spicata-alba",
+   "canonicalKey": "Liatris spicata 'Alba'",
+   "scientificName": "Liatris spicata",
+   "cultivar": "Alba",
+   "entityId": "taxon:liatris-spicata-alba",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.lilium-martagon",
+   "canonicalKey": "Lilium martagon 'Claude Shride'",
+   "scientificName": "Lilium martagon",
+   "cultivar": "Claude Shride",
+   "entityId": "taxon:lilium-martagon-claude-shride",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.limonium-latifolium",
+   "canonicalKey": "Limonium latifolium",
+   "scientificName": "Limonium latifolium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:limonium-latifolium"
+  },
+  {
+   "spatialId": "sp.lindera-benzoin",
+   "canonicalKey": "Lindera benzoin",
+   "scientificName": "Lindera benzoin",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lindera-benzoin"
+  },
+  {
+   "spatialId": "sp.lobelia-cardinalis",
+   "canonicalKey": "Lobelia cardinalis",
+   "scientificName": "Lobelia cardinalis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lobelia-cardinalis"
+  },
+  {
+   "spatialId": "sp.lobelia-siphilitica",
+   "canonicalKey": "Lobelia siphilitica",
+   "scientificName": "Lobelia siphilitica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lobelia-siphilitica"
+  },
+  {
+   "spatialId": "sp.lythrum-alatum",
+   "canonicalKey": "Lythrum alatum",
+   "scientificName": "Lythrum alatum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lythrum-alatum"
+  },
+  {
+   "spatialId": "sp.m-andropogon-gerardii",
+   "canonicalKey": "Andropogon gerardii",
+   "scientificName": "Andropogon gerardii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:andropogon-gerardii"
+  },
+  {
+   "spatialId": "sp.m-anemone-canadensis",
+   "canonicalKey": "Anemone canadensis",
+   "scientificName": "Anemone canadensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:anemone-canadensis"
+  },
+  {
+   "spatialId": "sp.m-angelica-atropurpurea",
+   "canonicalKey": "Angelica atropurpurea",
+   "scientificName": "Angelica atropurpurea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:angelica-atropurpurea"
+  },
+  {
+   "spatialId": "sp.m-arnoglossum-atriplicifolium",
+   "canonicalKey": "Arnoglossum atriplicifolium",
+   "scientificName": "Arnoglossum atriplicifolium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:arnoglossum-atriplicifolium"
+  },
+  {
+   "spatialId": "sp.m-aronia-prunifolia",
+   "canonicalKey": "Aronia prunifolia",
+   "scientificName": "Aronia prunifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:aronia-prunifolia"
+  },
+  {
+   "spatialId": "sp.m-asclepias-incarnata",
+   "canonicalKey": "Asclepias incarnata",
+   "scientificName": "Asclepias incarnata",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:asclepias-incarnata"
+  },
+  {
+   "spatialId": "sp.m-baptisia-australis",
+   "canonicalKey": "Baptisia australis",
+   "scientificName": "Baptisia australis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:baptisia-australis"
+  },
+  {
+   "spatialId": "sp.m-baptisia-lactea",
+   "canonicalKey": "Baptisia lactea",
+   "scientificName": "Baptisia lactea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:baptisia-lactea"
+  },
+  {
+   "spatialId": "sp.m-carex-bebbii",
+   "canonicalKey": "Carex bebbii",
+   "scientificName": "Carex bebbii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-bebbii"
+  },
+  {
+   "spatialId": "sp.m-carex-cristatella",
+   "canonicalKey": "Carex cristatella",
+   "scientificName": "Carex cristatella",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-cristatella"
+  },
+  {
+   "spatialId": "sp.m-carex-grayi",
+   "canonicalKey": "Carex grayi",
+   "scientificName": "Carex grayi",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-grayi"
+  },
+  {
+   "spatialId": "sp.m-carex-lurida",
+   "canonicalKey": "Carex lurida",
+   "scientificName": "Carex lurida",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-lurida"
+  },
+  {
+   "spatialId": "sp.m-carex-muskingumensis",
+   "canonicalKey": "Carex muskingumensis",
+   "scientificName": "Carex muskingumensis",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:carex-muskingumensis"
+  },
+  {
+   "spatialId": "sp.m-carex-radiata",
+   "canonicalKey": "Carex radiata",
+   "scientificName": "Carex radiata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-radiata"
+  },
+  {
+   "spatialId": "sp.m-carex-scoparia",
+   "canonicalKey": "Carex scoparia",
+   "scientificName": "Carex scoparia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-scoparia"
+  },
+  {
+   "spatialId": "sp.m-carex-sprengelii",
+   "canonicalKey": "Carex sprengelii",
+   "scientificName": "Carex sprengelii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-sprengelii"
+  },
+  {
+   "spatialId": "sp.m-carex-squarrosa",
+   "canonicalKey": "Carex squarrosa",
+   "scientificName": "Carex squarrosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-squarrosa"
+  },
+  {
+   "spatialId": "sp.m-carex-stricta",
+   "canonicalKey": "Carex stricta",
+   "scientificName": "Carex stricta",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-stricta"
+  },
+  {
+   "spatialId": "sp.m-carex-tenera",
+   "canonicalKey": "Carex tenera",
+   "scientificName": "Carex tenera",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-tenera"
+  },
+  {
+   "spatialId": "sp.m-carex-vulpinoidea",
+   "canonicalKey": "Carex vulpinoidea",
+   "scientificName": "Carex vulpinoidea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:carex-vulpinoidea"
+  },
+  {
+   "spatialId": "sp.m-cephalanthus-occidentalis",
+   "canonicalKey": "Cephalanthus occidentalis",
+   "scientificName": "Cephalanthus occidentalis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:cephalanthus-occidentalis"
+  },
+  {
+   "spatialId": "sp.m-chelone-glabra",
+   "canonicalKey": "Chelone glabra",
+   "scientificName": "Chelone glabra",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:chelone-glabra"
+  },
+  {
+   "spatialId": "sp.m-coreopsis-tripteris",
+   "canonicalKey": "Coreopsis tripteris",
+   "scientificName": "Coreopsis tripteris",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:coreopsis-tripteris"
+  },
+  {
+   "spatialId": "sp.m-cornus-foemina",
+   "canonicalKey": "Cornus foemina",
+   "scientificName": "Cornus foemina",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:cornus-foemina"
+  },
+  {
+   "spatialId": "sp.m-cornus-sericea",
+   "canonicalKey": "Cornus sericea",
+   "scientificName": "Cornus sericea",
+   "cultivar": null,
+   "status": "matched",
+   "entityId": "cornus-sericea"
+  },
+  {
+   "spatialId": "sp.m-dasiphora-fruticosa",
+   "canonicalKey": "Dasiphora fruticosa",
+   "scientificName": "Dasiphora fruticosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:dasiphora-fruticosa"
+  },
+  {
+   "spatialId": "sp.m-desmodium-canadense",
+   "canonicalKey": "Desmodium canadense",
+   "scientificName": "Desmodium canadense",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:desmodium-canadense"
+  },
+  {
+   "spatialId": "sp.m-echinacea-purpurea",
+   "canonicalKey": "Echinacea purpurea",
+   "scientificName": "Echinacea purpurea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:echinacea-purpurea"
+  },
+  {
+   "spatialId": "sp.m-eleocharis-obtusa",
+   "canonicalKey": "Eleocharis obtusa",
+   "scientificName": "Eleocharis obtusa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eleocharis-obtusa"
+  },
+  {
+   "spatialId": "sp.m-elymus-virginicus",
+   "canonicalKey": "Elymus virginicus",
+   "scientificName": "Elymus virginicus",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:elymus-virginicus"
+  },
+  {
+   "spatialId": "sp.m-eryngium-yuccifolium",
+   "canonicalKey": "Eryngium yuccifolium",
+   "scientificName": "Eryngium yuccifolium",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:eryngium-yuccifolium"
+  },
+  {
+   "spatialId": "sp.m-eupatorium-perfoliatum",
+   "canonicalKey": "Eupatorium perfoliatum",
+   "scientificName": "Eupatorium perfoliatum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eupatorium-perfoliatum"
+  },
+  {
+   "spatialId": "sp.m-euphorbia-corollata",
+   "canonicalKey": "Euphorbia corollata",
+   "scientificName": "Euphorbia corollata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:euphorbia-corollata"
+  },
+  {
+   "spatialId": "sp.m-euthamia-graminifolia",
+   "canonicalKey": "Euthamia graminifolia",
+   "scientificName": "Euthamia graminifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:euthamia-graminifolia"
+  },
+  {
+   "spatialId": "sp.m-eutrochium-maculatum",
+   "canonicalKey": "Eutrochium maculatum",
+   "scientificName": "Eutrochium maculatum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:eutrochium-maculatum"
+  },
+  {
+   "spatialId": "sp.m-gentiana-andrewsii",
+   "canonicalKey": "Gentiana andrewsii",
+   "scientificName": "Gentiana andrewsii",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:gentiana-andrewsii"
+  },
+  {
+   "spatialId": "sp.m-geranium-maculatum",
+   "canonicalKey": "Geranium maculatum",
+   "scientificName": "Geranium maculatum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:geranium-maculatum"
+  },
+  {
+   "spatialId": "sp.m-glyceria-striata",
+   "canonicalKey": "Glyceria striata",
+   "scientificName": "Glyceria striata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:glyceria-striata"
+  },
+  {
+   "spatialId": "sp.m-helenium-autumnale",
+   "canonicalKey": "Helenium autumnale",
+   "scientificName": "Helenium autumnale",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:helenium-autumnale"
+  },
+  {
+   "spatialId": "sp.m-hibiscus-moscheutos",
+   "canonicalKey": "Hibiscus moscheutos",
+   "scientificName": "Hibiscus moscheutos",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:hibiscus-moscheutos"
+  },
+  {
+   "spatialId": "sp.m-ilex-verticillata",
+   "canonicalKey": "Ilex verticillata",
+   "scientificName": "Ilex verticillata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:ilex-verticillata"
+  },
+  {
+   "spatialId": "sp.m-iris-virginica",
+   "canonicalKey": "Iris virginica",
+   "scientificName": "Iris virginica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:iris-virginica"
+  },
+  {
+   "spatialId": "sp.m-juncus-dudleyi",
+   "canonicalKey": "Juncus dudleyi",
+   "scientificName": "Juncus dudleyi",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:juncus-dudleyi"
+  },
+  {
+   "spatialId": "sp.m-juncus-effusus",
+   "canonicalKey": "Juncus effusus",
+   "scientificName": "Juncus effusus",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:juncus-effusus"
+  },
+  {
+   "spatialId": "sp.m-juncus-tenuis",
+   "canonicalKey": "Juncus tenuis",
+   "scientificName": "Juncus tenuis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:juncus-tenuis"
+  },
+  {
+   "spatialId": "sp.m-juncus-torreyi",
+   "canonicalKey": "Juncus torreyi",
+   "scientificName": "Juncus torreyi",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:juncus-torreyi"
+  },
+  {
+   "spatialId": "sp.m-liatris-spicata",
+   "canonicalKey": "Liatris spicata",
+   "scientificName": "Liatris spicata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:liatris-spicata"
+  },
+  {
+   "spatialId": "sp.m-lindera-benzoin",
+   "canonicalKey": "Lindera benzoin",
+   "scientificName": "Lindera benzoin",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:lindera-benzoin"
+  },
+  {
+   "spatialId": "sp.m-lobelia-cardinalis",
+   "canonicalKey": "Lobelia cardinalis",
+   "scientificName": "Lobelia cardinalis",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:lobelia-cardinalis"
+  },
+  {
+   "spatialId": "sp.m-lobelia-siphilitica",
+   "canonicalKey": "Lobelia siphilitica",
+   "scientificName": "Lobelia siphilitica",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:lobelia-siphilitica"
+  },
+  {
+   "spatialId": "sp.m-lobelia-spicata",
+   "canonicalKey": "Lobelia spicata",
+   "scientificName": "Lobelia spicata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lobelia-spicata"
+  },
+  {
+   "spatialId": "sp.m-lysimachia-quadriflora",
+   "canonicalKey": "Lysimachia quadriflora",
+   "scientificName": "Lysimachia quadriflora",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:lysimachia-quadriflora"
+  },
+  {
+   "spatialId": "sp.m-lythrum-alatum",
+   "canonicalKey": "Lythrum alatum",
+   "scientificName": "Lythrum alatum",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:lythrum-alatum"
+  },
+  {
+   "spatialId": "sp.m-monarda-fistulosa",
+   "canonicalKey": "Monarda fistulosa",
+   "scientificName": "Monarda fistulosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:monarda-fistulosa"
+  },
+  {
+   "spatialId": "sp.m-onoclea-sensibilis",
+   "canonicalKey": "Onoclea sensibilis",
+   "scientificName": "Onoclea sensibilis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:onoclea-sensibilis"
+  },
+  {
+   "spatialId": "sp.m-packera-aurea",
+   "canonicalKey": "Packera aurea",
+   "scientificName": "Packera aurea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:packera-aurea"
+  },
+  {
+   "spatialId": "sp.m-penstemon-digitalis",
+   "canonicalKey": "Penstemon digitalis",
+   "scientificName": "Penstemon digitalis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:penstemon-digitalis"
+  },
+  {
+   "spatialId": "sp.m-physostegia-virginiana",
+   "canonicalKey": "Physostegia virginiana",
+   "scientificName": "Physostegia virginiana",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:physostegia-virginiana"
+  },
+  {
+   "spatialId": "sp.m-pycnanthemum-virginianum",
+   "canonicalKey": "Pycnanthemum virginianum",
+   "scientificName": "Pycnanthemum virginianum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:pycnanthemum-virginianum"
+  },
+  {
+   "spatialId": "sp.m-rosa-palustris",
+   "canonicalKey": "Rosa palustris",
+   "scientificName": "Rosa palustris",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:rosa-palustris"
+  },
+  {
+   "spatialId": "sp.m-rosa-setigera",
+   "canonicalKey": "Rosa setigera",
+   "scientificName": "Rosa setigera",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:rosa-setigera"
+  },
+  {
+   "spatialId": "sp.m-sambucus-canadensis",
+   "canonicalKey": "Sambucus canadensis",
+   "scientificName": "Sambucus canadensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:sambucus-canadensis"
+  },
+  {
+   "spatialId": "sp.m-schizachyrium-scoparium",
+   "canonicalKey": "Schizachyrium scoparium",
+   "scientificName": "Schizachyrium scoparium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:schizachyrium-scoparium"
+  },
+  {
+   "spatialId": "sp.m-schoenoplectus-pungens",
+   "canonicalKey": "Schoenoplectus pungens",
+   "scientificName": "Schoenoplectus pungens",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:schoenoplectus-pungens"
+  },
+  {
+   "spatialId": "sp.m-schoenoplectus-tabernaemontani",
+   "canonicalKey": "Schoenoplectus tabernaemontani",
+   "scientificName": "Schoenoplectus tabernaemontani",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:schoenoplectus-tabernaemontani"
+  },
+  {
+   "spatialId": "sp.m-scirpus-atrovirens",
+   "canonicalKey": "Scirpus atrovirens",
+   "scientificName": "Scirpus atrovirens",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:scirpus-atrovirens"
+  },
+  {
+   "spatialId": "sp.m-scirpus-pendulus",
+   "canonicalKey": "Scirpus pendulus",
+   "scientificName": "Scirpus pendulus",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:scirpus-pendulus"
+  },
+  {
+   "spatialId": "sp.m-scutellaria-lateriflora",
+   "canonicalKey": "Scutellaria lateriflora",
+   "scientificName": "Scutellaria lateriflora",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:scutellaria-lateriflora"
+  },
+  {
+   "spatialId": "sp.m-solidago-ohioensis",
+   "canonicalKey": "Solidago ohioensis",
+   "scientificName": "Solidago ohioensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:solidago-ohioensis"
+  },
+  {
+   "spatialId": "sp.m-solidago-riddellii",
+   "canonicalKey": "Solidago riddellii",
+   "scientificName": "Solidago riddellii",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:solidago-riddellii"
+  },
+  {
+   "spatialId": "sp.m-solidago-rigida",
+   "canonicalKey": "Solidago rigida",
+   "scientificName": "Solidago rigida",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:solidago-rigida"
+  },
+  {
+   "spatialId": "sp.m-sorghastrum-nutans",
+   "canonicalKey": "Sorghastrum nutans",
+   "scientificName": "Sorghastrum nutans",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:sorghastrum-nutans"
+  },
+  {
+   "spatialId": "sp.m-sparganium-eurycarpum",
+   "canonicalKey": "Sparganium eurycarpum",
+   "scientificName": "Sparganium eurycarpum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:sparganium-eurycarpum"
+  },
+  {
+   "spatialId": "sp.m-spiraea-tomentosa",
+   "canonicalKey": "Spiraea tomentosa",
+   "scientificName": "Spiraea tomentosa",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:spiraea-tomentosa"
+  },
+  {
+   "spatialId": "sp.m-sporobolus-heterolepis",
+   "canonicalKey": "Sporobolus heterolepis",
+   "scientificName": "Sporobolus heterolepis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:sporobolus-heterolepis"
+  },
+  {
+   "spatialId": "sp.m-symphyotrichum-novae-angliae",
+   "canonicalKey": "Symphyotrichum novae-angliae",
+   "scientificName": "Symphyotrichum novae-angliae",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:symphyotrichum-novae-angliae"
+  },
+  {
+   "spatialId": "sp.m-symphyotrichum-oolentangiense",
+   "canonicalKey": "Symphyotrichum oolentangiense",
+   "scientificName": "Symphyotrichum oolentangiense",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:symphyotrichum-oolentangiense"
+  },
+  {
+   "spatialId": "sp.m-thalictrum-dasycarpum",
+   "canonicalKey": "Thalictrum dasycarpum",
+   "scientificName": "Thalictrum dasycarpum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:thalictrum-dasycarpum"
+  },
+  {
+   "spatialId": "sp.m-thelypteris-palustris",
+   "canonicalKey": "Thelypteris palustris",
+   "scientificName": "Thelypteris palustris",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:thelypteris-palustris"
+  },
+  {
+   "spatialId": "sp.m-tradescantia-ohiensis",
+   "canonicalKey": "Tradescantia ohiensis",
+   "scientificName": "Tradescantia ohiensis",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:tradescantia-ohiensis"
+  },
+  {
+   "spatialId": "sp.m-verbena-hastata",
+   "canonicalKey": "Verbena hastata",
+   "scientificName": "Verbena hastata",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:verbena-hastata"
+  },
+  {
+   "spatialId": "sp.m-verbesina-alternifolia",
+   "canonicalKey": "Verbesina alternifolia",
+   "scientificName": "Verbesina alternifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:verbesina-alternifolia"
+  },
+  {
+   "spatialId": "sp.m-vernonia-missurica",
+   "canonicalKey": "Vernonia missurica",
+   "scientificName": "Vernonia missurica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:vernonia-missurica"
+  },
+  {
+   "spatialId": "sp.m-veronicastrum-virginicum",
+   "canonicalKey": "Veronicastrum virginicum",
+   "scientificName": "Veronicastrum virginicum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:veronicastrum-virginicum"
+  },
+  {
+   "spatialId": "sp.m-viburnum-cassinoides",
+   "canonicalKey": "Viburnum cassinoides",
+   "scientificName": "Viburnum cassinoides",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:viburnum-cassinoides"
+  },
+  {
+   "spatialId": "sp.m-viburnum-lentago",
+   "canonicalKey": "Viburnum lentago",
+   "scientificName": "Viburnum lentago",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:viburnum-lentago"
+  },
+  {
+   "spatialId": "sp.m-zizia-aurea",
+   "canonicalKey": "Zizia aurea",
+   "scientificName": "Zizia aurea",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:zizia-aurea"
+  },
+  {
+   "spatialId": "sp.mertensia-virginica",
+   "canonicalKey": "Mertensia virginica",
+   "scientificName": "Mertensia virginica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:mertensia-virginica"
+  },
+  {
+   "spatialId": "sp.mimulus-ringens",
+   "canonicalKey": "Mimulus ringens",
+   "scientificName": "Mimulus ringens",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:mimulus-ringens"
+  },
+  {
+   "spatialId": "sp.molinia-crystal-veil",
+   "canonicalKey": "Molinia arundinacea 'Crystal Veil'",
+   "scientificName": "Molinia arundinacea",
+   "cultivar": "Crystal Veil",
+   "entityId": "taxon:molinia-arundinacea-crystal-veil",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.molinia-whirlwind",
+   "canonicalKey": "Molinia caerulea 'Whirlwind'",
+   "scientificName": "Molinia caerulea",
+   "cultivar": "Whirlwind",
+   "entityId": "taxon:molinia-caerulea-whirlwind",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.monarda-bradburiana",
+   "canonicalKey": "Monarda bradburiana",
+   "scientificName": "Monarda bradburiana",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:monarda-bradburiana"
+  },
+  {
+   "spatialId": "sp.muscari-peppermint",
+   "canonicalKey": "Muscari 'Peppermint'",
+   "scientificName": "Muscari",
+   "cultivar": "Peppermint",
+   "entityId": "taxon:muscari-peppermint",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.muscari-valerie-finnis",
+   "canonicalKey": "Muscari armeniacum 'Valerie Finnis'",
+   "scientificName": "Muscari armeniacum",
+   "cultivar": "Valerie Finnis",
+   "entityId": "taxon:muscari-armeniacum-valerie-finnis",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.myrica-gale",
+   "canonicalKey": "Myrica gale",
+   "scientificName": "Myrica gale",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:myrica-gale"
+  },
+  {
+   "spatialId": "sp.narcissus-lemon-drops",
+   "canonicalKey": "Narcissus 'Lemon Drops'",
+   "scientificName": "Narcissus",
+   "cultivar": "Lemon Drops",
+   "entityId": "taxon:narcissus-lemon-drops",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.narcissus-poeticus",
+   "canonicalKey": "Narcissus poeticus 'Actaea'",
+   "scientificName": "Narcissus poeticus",
+   "cultivar": "Actaea",
+   "entityId": "taxon:narcissus-poeticus-actaea",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.narcissus-segovia",
+   "canonicalKey": "Narcissus 'Segovia'",
+   "scientificName": "Narcissus",
+   "cultivar": "Segovia",
+   "entityId": "taxon:narcissus-segovia",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.nyssa-sylvatica",
+   "canonicalKey": "Nyssa sylvatica",
+   "scientificName": "Nyssa sylvatica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:nyssa-sylvatica"
+  },
+  {
+   "spatialId": "sp.onoclea-sensibilis",
+   "canonicalKey": "Onoclea sensibilis",
+   "scientificName": "Onoclea sensibilis",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:onoclea-sensibilis"
+  },
+  {
+   "spatialId": "sp.ornithogalum-nutans",
+   "canonicalKey": "Ornithogalum nutans",
+   "scientificName": "Ornithogalum nutans",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:ornithogalum-nutans"
+  },
+  {
+   "spatialId": "sp.ornithogalum-sochii",
+   "canonicalKey": "Ornithogalum ponticum 'Sochii'",
+   "scientificName": "Ornithogalum ponticum",
+   "cultivar": "Sochii",
+   "entityId": "taxon:ornithogalum-ponticum-sochii",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.osmunda-cinnamomea",
+   "canonicalKey": "Osmundastrum cinnamomeum",
+   "scientificName": "Osmundastrum cinnamomeum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:osmundastrum-cinnamomeum"
+  },
+  {
+   "spatialId": "sp.papaver-matador",
+   "canonicalKey": "Papaver orientale 'Matador'",
+   "scientificName": "Papaver orientale",
+   "cultivar": "Matador",
+   "entityId": "taxon:papaver-orientale-matador",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.papaver-mrs-perry",
+   "canonicalKey": "Papaver orientale 'Mrs. Perry'",
+   "scientificName": "Papaver orientale",
+   "cultivar": "Mrs. Perry",
+   "entityId": "taxon:papaver-orientale-mrs-perry",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.parthenium-integrifolium",
+   "canonicalKey": "Parthenium integrifolium",
+   "scientificName": "Parthenium integrifolium",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:parthenium-integrifolium"
+  },
+  {
+   "spatialId": "sp.pennisetum-viridescens",
+   "canonicalKey": "Pennisetum alopecuroides 'Viridescens'",
+   "scientificName": "Pennisetum alopecuroides",
+   "cultivar": "Viridescens",
+   "entityId": "taxon:pennisetum-alopecuroides-viridescens",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.penstemon-digitalis",
+   "canonicalKey": "Penstemon digitalis",
+   "scientificName": "Penstemon digitalis",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:penstemon-digitalis"
+  },
+  {
+   "spatialId": "sp.perovskia-blue-spire",
+   "canonicalKey": "Perovskia atriplicifolia 'Blue Spire / Blue Steel'",
+   "scientificName": "Perovskia atriplicifolia",
+   "cultivar": "Blue Spire / Blue Steel",
+   "entityId": "taxon:perovskia-atriplicifolia-blue-spire-blue-steel",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.perovskia-little-spire",
+   "canonicalKey": "Perovskia atriplicifolia 'Little Spire'",
+   "scientificName": "Perovskia atriplicifolia",
+   "cultivar": "Little Spire",
+   "entityId": "taxon:perovskia-atriplicifolia-little-spire",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.persicaria-alba",
+   "canonicalKey": "Persicaria amplexicaulis 'Alba'",
+   "scientificName": "Persicaria amplexicaulis",
+   "cultivar": "Alba",
+   "entityId": "taxon:persicaria-amplexicaulis-alba",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.persicaria-firetail",
+   "canonicalKey": "Persicaria amplexicaulis 'Firetail'",
+   "scientificName": "Persicaria amplexicaulis",
+   "cultivar": "Firetail",
+   "entityId": "taxon:persicaria-amplexicaulis-firetail",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.persicaria-orange-field",
+   "canonicalKey": "Persicaria amplexicaulis 'Orange Field'",
+   "scientificName": "Persicaria amplexicaulis",
+   "cultivar": "Orange Field",
+   "entityId": "taxon:persicaria-amplexicaulis-orange-field",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.phlomis-prima-donna",
+   "canonicalKey": "Phlomis tuberosa 'Prima Donna'",
+   "scientificName": "Phlomis tuberosa",
+   "cultivar": "Prima Donna",
+   "entityId": "taxon:phlomis-tuberosa-prima-donna",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.phlox-blue-paradise",
+   "canonicalKey": "Phlox paniculata 'Blue Paradise'",
+   "scientificName": "Phlox paniculata",
+   "cultivar": "Blue Paradise",
+   "entityId": "taxon:phlox-paniculata-blue-paradise",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.phlox-sweet-laura",
+   "canonicalKey": "Phlox paniculata 'Sweet Laura'",
+   "scientificName": "Phlox paniculata",
+   "cultivar": "Sweet Laura",
+   "entityId": "taxon:phlox-paniculata-sweet-laura",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.puschkinia-libanotica",
+   "canonicalKey": "Puschkinia scilloides var. libanotica",
+   "scientificName": "Puschkinia scilloides var. libanotica",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:puschkinia-scilloides-var-libanotica"
+  },
+  {
+   "spatialId": "sp.pycnanthemum-flexuosum",
+   "canonicalKey": "Pycnanthemum flexuosum",
+   "scientificName": "Pycnanthemum flexuosum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:pycnanthemum-flexuosum"
+  },
+  {
+   "spatialId": "sp.pycnanthemum-muticum",
+   "canonicalKey": "Pycnanthemum muticum",
+   "scientificName": "Pycnanthemum muticum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:pycnanthemum-muticum"
+  },
+  {
+   "spatialId": "sp.rhododendron-viscosum",
+   "canonicalKey": "Rhododendron viscosum",
+   "scientificName": "Rhododendron viscosum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:rhododendron-viscosum"
+  },
+  {
+   "spatialId": "sp.rhus-copallina",
+   "canonicalKey": "Rhus copallina",
+   "scientificName": "Rhus copallina",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:rhus-copallina"
+  },
+  {
+   "spatialId": "sp.rudbeckia-little-henry",
+   "canonicalKey": "Rudbeckia subtomentosa 'Little Henry'",
+   "scientificName": "Rudbeckia subtomentosa",
+   "cultivar": "Little Henry",
+   "entityId": "taxon:rudbeckia-subtomentosa-little-henry",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.salix-rosmarinifolia",
+   "canonicalKey": "Salix rosmarinifolia",
+   "scientificName": "Salix rosmarinifolia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:salix-rosmarinifolia"
+  },
+  {
+   "spatialId": "sp.salvia-azurea",
+   "canonicalKey": "Salvia azurea 'Nekan'",
+   "scientificName": "Salvia azurea",
+   "cultivar": "Nekan",
+   "entityId": "taxon:salvia-azurea-nekan",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.salvia-crystal-blue",
+   "canonicalKey": "Salvia nemorosa 'Crystal Blue'",
+   "scientificName": "Salvia nemorosa",
+   "cultivar": "Crystal Blue",
+   "entityId": "taxon:salvia-nemorosa-crystal-blue",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.salvia-mainacht",
+   "canonicalKey": "Salvia nemorosa 'Mainacht'",
+   "scientificName": "Salvia nemorosa",
+   "cultivar": "Mainacht",
+   "entityId": "taxon:salvia-nemorosa-mainacht",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.salvia-pink-delight",
+   "canonicalKey": "Salvia pratensis 'Pink Delight'",
+   "scientificName": "Salvia pratensis",
+   "cultivar": "Pink Delight",
+   "entityId": "taxon:salvia-pratensis-pink-delight",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.salvia-rhapsody-in-blue",
+   "canonicalKey": "Salvia x sylvestris 'Rhapsody in Blue'",
+   "scientificName": "Salvia x sylvestris",
+   "cultivar": "Rhapsody in Blue",
+   "entityId": "taxon:salvia-x-sylvestris-rhapsody-in-blue",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.saponaria-max-frei",
+   "canonicalKey": "Saponaria x lempergii 'Max Frei'",
+   "scientificName": "Saponaria x lempergii",
+   "cultivar": "Max Frei",
+   "entityId": "taxon:saponaria-x-lempergii-max-frei",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.schizachyrium-blue-paradise",
+   "canonicalKey": "Schizachyrium scoparium 'Blue Paradise'",
+   "scientificName": "Schizachyrium scoparium",
+   "cultivar": "Blue Paradise",
+   "entityId": "taxon:schizachyrium-scoparium-blue-paradise",
+   "status": "cultivar",
+   "cultivarOf": "taxon:schizachyrium-scoparium"
+  },
+  {
+   "spatialId": "sp.schizachyrium-ha-ha-tonka",
+   "canonicalKey": "Schizachyrium scoparium 'Ha Ha Tonka'",
+   "scientificName": "Schizachyrium scoparium",
+   "cultivar": "Ha Ha Tonka",
+   "entityId": "taxon:schizachyrium-scoparium-ha-ha-tonka",
+   "status": "cultivar",
+   "cultivarOf": "taxon:schizachyrium-scoparium"
+  },
+  {
+   "spatialId": "sp.schizachyrium-smoke-signal",
+   "canonicalKey": "Schizachyrium scoparium 'Smoke Signal'",
+   "scientificName": "Schizachyrium scoparium",
+   "cultivar": "Smoke Signal",
+   "entityId": "taxon:schizachyrium-scoparium-smoke-signal",
+   "status": "cultivar",
+   "cultivarOf": "taxon:schizachyrium-scoparium"
+  },
+  {
+   "spatialId": "sp.schizachyrium-standing-ovation",
+   "canonicalKey": "Schizachyrium scoparium 'Standing Ovation'",
+   "scientificName": "Schizachyrium scoparium",
+   "cultivar": "Standing Ovation",
+   "entityId": "taxon:schizachyrium-scoparium-standing-ovation",
+   "status": "cultivar",
+   "cultivarOf": "taxon:schizachyrium-scoparium"
+  },
+  {
+   "spatialId": "sp.scilla-mischtschenkoana",
+   "canonicalKey": "Scilla mischtschenkoana",
+   "scientificName": "Scilla mischtschenkoana",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:scilla-mischtschenkoana"
+  },
+  {
+   "spatialId": "sp.scutellaria-incana",
+   "canonicalKey": "Scutellaria incana",
+   "scientificName": "Scutellaria incana",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:scutellaria-incana"
+  },
+  {
+   "spatialId": "sp.sedum-matrona",
+   "canonicalKey": "Hylotelephium 'Matrona'",
+   "scientificName": "Hylotelephium",
+   "cultivar": "Matrona",
+   "entityId": "taxon:hylotelephium-matrona",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.sporobolus-heterolepis",
+   "canonicalKey": "Sporobolus heterolepis",
+   "scientificName": "Sporobolus heterolepis",
+   "cultivar": null,
+   "status": "same_taxon",
+   "entityId": "taxon:sporobolus-heterolepis"
+  },
+  {
+   "spatialId": "sp.stachys-hummelo",
+   "canonicalKey": "Stachys monieri 'Hummelo'",
+   "scientificName": "Stachys monieri",
+   "cultivar": "Hummelo",
+   "entityId": "taxon:stachys-monieri-hummelo",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.stachys-pink",
+   "canonicalKey": "Stachys officinalis 'pink (Mrs. Magenta)'",
+   "scientificName": "Stachys officinalis",
+   "cultivar": "pink (Mrs. Magenta)",
+   "entityId": "taxon:stachys-officinalis-pink-mrs-magenta",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.stachys-rosea",
+   "canonicalKey": "Stachys officinalis 'Rosea'",
+   "scientificName": "Stachys officinalis",
+   "cultivar": "Rosea",
+   "entityId": "taxon:stachys-officinalis-rosea",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.stewartia-pseudocamellia",
+   "canonicalKey": "Stewartia pseudocamellia",
+   "scientificName": "Stewartia pseudocamellia",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:stewartia-pseudocamellia"
+  },
+  {
+   "spatialId": "sp.stokesia-peachies-pick",
+   "canonicalKey": "Stokesia laevis 'Peachie's Pick'",
+   "scientificName": "Stokesia laevis",
+   "cultivar": "Peachie's Pick",
+   "entityId": "taxon:stokesia-laevis-peachie-s-pick",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.styrax-americanus",
+   "canonicalKey": "Styrax americanus",
+   "scientificName": "Styrax americanus",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:styrax-americanus"
+  },
+  {
+   "spatialId": "sp.thalictrum-thundercloud",
+   "canonicalKey": "Thalictrum aquilegiifolium 'Thundercloud'",
+   "scientificName": "Thalictrum aquilegiifolium",
+   "cultivar": "Thundercloud",
+   "entityId": "taxon:thalictrum-aquilegiifolium-thundercloud",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.trollius-new-moon",
+   "canonicalKey": "Trollius x cultorum 'New Moon'",
+   "scientificName": "Trollius x cultorum",
+   "cultivar": "New Moon",
+   "entityId": "taxon:trollius-x-cultorum-new-moon",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-clusiana-lady-jane",
+   "canonicalKey": "Tulipa clusiana 'Lady Jane'",
+   "scientificName": "Tulipa clusiana",
+   "cultivar": "Lady Jane",
+   "entityId": "taxon:tulipa-clusiana-lady-jane",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-hageri-splendens",
+   "canonicalKey": "Tulipa hageri 'Splendens'",
+   "scientificName": "Tulipa hageri",
+   "cultivar": "Splendens",
+   "entityId": "taxon:tulipa-hageri-splendens",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-persian-pearl",
+   "canonicalKey": "Tulipa humilis 'Persian Pearl'",
+   "scientificName": "Tulipa humilis",
+   "cultivar": "Persian Pearl",
+   "entityId": "taxon:tulipa-humilis-persian-pearl",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-purple-dream",
+   "canonicalKey": "Tulipa 'Purple Dream'",
+   "scientificName": "Tulipa",
+   "cultivar": "Purple Dream",
+   "entityId": "taxon:tulipa-purple-dream",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-shirley",
+   "canonicalKey": "Tulipa 'Shirley'",
+   "scientificName": "Tulipa",
+   "cultivar": "Shirley",
+   "entityId": "taxon:tulipa-shirley",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.tulipa-spring-green",
+   "canonicalKey": "Tulipa viridiflora 'Spring Green'",
+   "scientificName": "Tulipa viridiflora",
+   "cultivar": "Spring Green",
+   "entityId": "taxon:tulipa-viridiflora-spring-green",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.unidentified-shrub",
+   "canonicalKey": "unidentified shrub",
+   "scientificName": "unidentified shrub",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:unidentified-shrub"
+  },
+  {
+   "spatialId": "sp.unidentified-tree",
+   "canonicalKey": "unidentified existing tree",
+   "scientificName": "unidentified existing tree",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:unidentified-existing-tree"
+  },
+  {
+   "spatialId": "sp.vaccinium-corymbosum",
+   "canonicalKey": "Vaccinium corymbosum",
+   "scientificName": "Vaccinium corymbosum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:vaccinium-corymbosum"
+  },
+  {
+   "spatialId": "sp.vernonia-summers-surrender",
+   "canonicalKey": "Vernonia 'Summer's Surrender'",
+   "scientificName": "Vernonia",
+   "cultivar": "Summer's Surrender",
+   "entityId": "taxon:vernonia-summer-s-surrender",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.vernonia-summers-swan-song",
+   "canonicalKey": "Vernonia 'Summer's Swan Song'",
+   "scientificName": "Vernonia",
+   "cultivar": "Summer's Swan Song",
+   "entityId": "taxon:vernonia-summer-s-swan-song",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.veronica-goodnight-irene",
+   "canonicalKey": "Veronica 'Goodnight Irene'",
+   "scientificName": "Veronica",
+   "cultivar": "Goodnight Irene",
+   "entityId": "taxon:veronica-goodnight-irene",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.veronica-pink-eveline",
+   "canonicalKey": "Veronica longifolia 'Pink Eveline'",
+   "scientificName": "Veronica longifolia",
+   "cultivar": "Pink Eveline",
+   "entityId": "taxon:veronica-longifolia-pink-eveline",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.veronicastrum-challenger",
+   "canonicalKey": "Veronicastrum virginicum 'Challenger'",
+   "scientificName": "Veronicastrum virginicum",
+   "cultivar": "Challenger",
+   "entityId": "taxon:veronicastrum-virginicum-challenger",
+   "status": "cultivar",
+   "cultivarOf": "taxon:veronicastrum-virginicum"
+  },
+  {
+   "spatialId": "sp.veronicastrum-cupid",
+   "canonicalKey": "Veronicastrum 'Cupid'",
+   "scientificName": "Veronicastrum",
+   "cultivar": "Cupid",
+   "entityId": "taxon:veronicastrum-cupid",
+   "status": "cultivar"
+  },
+  {
+   "spatialId": "sp.viburnum-dentatum",
+   "canonicalKey": "Viburnum dentatum",
+   "scientificName": "Viburnum dentatum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:viburnum-dentatum"
+  },
+  {
+   "spatialId": "sp.viburnum-nudum",
+   "canonicalKey": "Viburnum nudum",
+   "scientificName": "Viburnum nudum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:viburnum-nudum"
+  },
+  {
+   "spatialId": "sp.viburnum-trilobum",
+   "canonicalKey": "Viburnum trilobum",
+   "scientificName": "Viburnum trilobum",
+   "cultivar": null,
+   "status": "new_entity",
+   "entityId": "taxon:viburnum-trilobum"
+  }
+ ]
+}

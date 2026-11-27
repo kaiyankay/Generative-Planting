@@ -1,0 +1,684 @@
+{
+ "total": 133,
+ "ok": 133,
+ "skipped": 0,
+ "results": [
+  {
+   "name": "T01.1 ten planting-db plants load with original ids",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T01.2 615 claims; 604 in effect, 11 retired kept as history",
+   "ok": true,
+   "detail": "615"
+  },
+  {
+   "name": "T01.3 every active claim→concept pair is a graph link (1147 pairs from planting-db kg.json, retired excluded)",
+   "ok": true,
+   "detail": "1147"
+  },
+  {
+   "name": "T01.4 anonymous survey candidate evidence is retrievable (bog / moss note)",
+   "ok": true,
+   "detail": "cand:survey-r01:d2,gaultheria-shallon:vancouver_context:eflora01"
+  },
+  {
+   "name": "T01.5 rule-derived edges (KG-R2 height bands) present with supporting claims",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.1 Acer griseum not in base → plan provisional entity",
+   "ok": true,
+   "detail": "new"
+  },
+  {
+   "name": "T02.2 ten seed plants + mine: 10 → 11; all plants 150 → 151",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.3 no attributes invented: zero records about Acer griseum; retrieval reports it as known-but-empty",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.4 same name, different spacing/case → exists (no duplicate)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.5 known alias (Kinnikinnick, kinnikinnik, 熊果) → existing entity",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.6 a cultivar of a known species is its own entity, not merged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T03.1 Yarrow detected as Achillea millefolium by exact alias; ambiguous words not linked",
+   "ok": true,
+   "detail": "[\"achillea-millefolium\"]"
+  },
+  {
+   "name": "T03.2 saved verbatim with scope, place and kind=preference; extraction marked not run",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T03.3 no trait invented: Yarrow water/drainage cell unchanged, no new concept links",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T03.4 the note is retrievable and flagged as preference, not a measured trait",
+   "ok": true,
+   "detail": "my-rec-fix-yarrow,achillea-millefolium:long_term_performance:usdaplants01,achillea-millefolium:maintenance_level:rhs01"
+  },
+  {
+   "name": "T03.5 graph shows the note as a record node on Yarrow",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.1 Base unchanged after revision: the seed record is byte-identical and no seed object was written",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.2 effective view: original superseded (history), revision active with the original kept as previous value",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.3 Matrix cell shows the revision, not the original",
+   "ok": true,
+   "detail": "my-rev-fix-kinni,arctostaphylos-uva-ursi:resistances:rhs01,arctostaphylos-uva-ursi:resistances:mobot02,arctostaphylos-uva-ursi:resistances:osu01,arctostaphylos-uva-ursi:resistances:usdaplants01,arctostaphylos-uva-ursi:resistances:usdaplants02"
+  },
+  {
+   "name": "T04.4 retrieval: original gone, revision returned",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.5 excluded record leaves cell, graph support and retrieval; still in history",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.6 undo + restore → base records in effect equal the Base exactly",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.7 matrix cell back to the original records",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.8 rule-derived edges follow their evidence: excluding all supporting height claims removes the KG-R2 links",
+   "ok": true,
+   "detail": "6 / 4"
+  },
+  {
+   "name": "T05.1 preview: Achillea matched, Yarrow → same entity (flagged as the same plant as row 1), Acer griseum → existing (yours), Zizia matched, Eurybia new, “irrigation” ambiguous",
+   "ok": true,
+   "detail": "matched,matched · same plant as row 1,matched,matched,new (provisional),ambiguous"
+  },
+  {
+   "name": "T05.2 entities: +1 plant (Eurybia divaricata) + 1 list; no duplicates",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T05.3 only listed_in links are created (no co-occurs / companion / compatibility links)",
+   "ok": true,
+   "detail": "listed_in,listed_in,listed_in,listed_in"
+  },
+  {
+   "name": "T05.4 / D07 raw rows kept: dataset has 6 rows as typed; “Achillea millefolium” and “Yarrow” become ONE membership of Yarrow in the list, pointing at both rows",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T05.5 / D08 the ambiguous row (“irrigation”) is NOT a knowledge record: kept in the dataset’s unmatched rows only; records in effect grow by the 4 linked plants only",
+   "ok": true,
+   "detail": "4"
+  },
+  {
+   "name": "T05.6 (private P57, local only) Yarrow is in both lists → two listed_in links to the existing achillea-millefolium, no new Yarrow entity",
+   "ok": true,
+   "detail": "my-list:p57a,my-list:p57b"
+  },
+  {
+   "name": "T06.1 Robertson 1929 rows kept as in the source (1998 of 15261), columns intact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T06.2 values and unit header kept: Achillea 50 taxa under “visitor_taxa_listed (taxa)”; numeric columns detected; no score field",
+   "ok": true,
+   "detail": "{\"visitor_taxa_listed (taxa)\":50,\"rows_in_source\":50}"
+  },
+  {
+   "name": "T06.3 new fields are searchable and no planting rule or predicate was added",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T07.1 Metro Vancouver water rules retrievable; subjects are topics, not plants; place kept",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T07.2 no litres-saved claim: water records carry rules/periods only",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T07.3 unfamiliar knowledge (soil biology / budget) stored with project scope, no subject, searchable, no schema change",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T08.1 a role holds within one recipe: Echinacea ‘Fatal Attraction’ roles listed per recipe, each pointing at that recipe’s role entity",
+   "ok": true,
+   "detail": "role:mix.A-block:block,role:mix.A-block:block"
+  },
+  {
+   "name": "T08.2 ecological role is unknown (null) on every drawing role record",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T08.3 flowering months kept per source and place (not merged): Yarrow has ≥3 month records from different places",
+   "ok": true,
+   "detail": "place:vancouver,place:uk,place:st_louis,place:north_america"
+  },
+  {
+   "name": "T08.4 Detroit taxa have no invented phenology (gap stays a gap)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T09.1 same query, different revision: returned ids change as expected (revision in, excluded/superseded out)",
+   "ok": true,
+   "detail": "{\"b\":[\"arctostaphylos-uva-ursi:water_drainage:mobot01\",\"arctostaphylos-uva-ursi:water_drainage:usdaplants01\",\"arctostaphylos-uva-ursi:resistances:mobot01\",\"arctostaphylos-uva-ursi:resistances:rhs01\",\"arctostaphylos-uva-ursi:resistances:usdaplants01\",\"arctostaphylos-uva-ursi:water_drainage:rhs01\"],\"a\":[\"arctostaphylos-uva-ursi:water_drainage:mobot01\",\"arctostaphylos-uva-ursi:water_drainage:usdaplants01\",\"my-rev-fix-kinni\",\"arctostaphylos-uva-ursi:resistances:rhs01\",\"arctostaphylos-uva-ursi:water_"
+  },
+  {
+   "name": "T09.2 trace stores query, revision and the returned ids",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T09.3 results carry a place match against the project (same / within / broader / elsewhere / unknown); other regions are flagged, not hidden",
+   "ok": true,
+   "detail": "elsewhere|broader|unknown|elsewhere|elsewhere|elsewhere|broader|elsewhere|broader|broader|elsewhere|elsewhere|broader|broader|broader"
+  },
+  {
+   "name": "T02.7 IndexedDB round trip: reopened store rebuilds the same effective revision and counts",
+   "ok": true,
+   "detail": "{\"entities\":767,\"plants\":152,\"seedSetPlusMine\":12,\"records\":1096,\"active\":1061,\"user\":13,\"userEntities\":4,\"excluded\":1,\"revised\":1,\"edges\":1779,\"events\":7,\"activeRevision\":\"base-ebbbf3db18e5+7e:9f896dd5\"}"
+  },
+  {
+   "name": "T02.8 export → import into an empty workspace restores Acer griseum, notes and revisions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T02.9 a non-workspace file is rejected",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T11.1 instruction-like text is stored as data: exactly one record added, nothing deleted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T11.2 unknown event types are refused by the core",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T11.3 public seed has no e-mail address or API key pattern",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T12.1 resolveSpecies: Terra Cotta → its own cultivar entity, cultivarOf achillea-millefolium, spatial id sp.achillea-terracotta",
+   "ok": true,
+   "detail": "{\"query\":\"Achillea millefolium 'Terra Cotta'\",\"status\":\"exact\",\"entityId\":\"taxon:achillea-millefolium-terra-cotta\",\"candidates\":[],\"cultivarOf\":\"achillea-millefolium\",\"spatialIds\":[\"sp.achillea-terracotta\"],\"note\":\"cultivars and placeholders are never merged with a species; cultivarOf is an identity link only\"}"
+  },
+  {
+   "name": "T12.2 resolveSpecies: Cornus sericea → planting-db cornus-sericea with both spatial ids",
+   "ok": true,
+   "detail": "{\"query\":\"Cornus sericea\",\"status\":\"exact\",\"entityId\":\"cornus-sericea\",\"candidates\":[],\"cultivarOf\":null,\"spatialIds\":[\"sp.cornus-sericea\",\"sp.m-cornus-sericea\"],\"note\":\"cultivars and placeholders are never merged with a species; cultivarOf is an identity link only\"}"
+  },
+  {
+   "name": "T12.3 placeholder legend names stay unresolved",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "T04.9 after all edits in several KB instances the whole seed is unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D01 a revision does not inherit the original context: no St. Louis text, no age:established, no conditions; place only if the designer gives one",
+   "ok": true,
+   "detail": "{\"text\":\"my practice\",\"place\":null,\"time\":[\"2026-11-26\"],\"conditions\":[],\"cultivar\":null,\"scope\":\"personal\"}"
+  },
+  {
+   "name": "D02 a revision cites only “me”; the preset record is linked as respondsTo, never as a source of the designer’s words",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D03 a revision is an observation by default (or the kind the designer chooses) — never the original’s “attribute”",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D05 a cell that includes your version says so (user, mine[] with what it revises) and keeps the preset status separate — never “unverified from sources” for your words",
+   "ok": true,
+   "detail": "{\"state\":\"unverified\",\"mine\":[{\"id\":\"my-rev-d01\",\"revises\":\"arctostaphylos-uva-ursi:resistances:mobot01\",\"kind\":\"observation\"}]}"
+  },
+  {
+   "name": "D10.a your Vancouver revision matches a Metro Vancouver project as “same” (02A said “different”: duplicate place node)",
+   "ok": true,
+   "detail": "same"
+  },
+  {
+   "name": "D10.b place relations follow one hierarchy: City of Vancouver within Metro Vancouver; BC broader; UK and Detroit elsewhere",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D11 Robertson spelling-only matches are leads: evidenceStatus “name-match lead”, retrieval flags the unchecked taxonomy",
+   "ok": true,
+   "detail": "historical plant name matched by spelling only; taxonomy not checked — a research lead, not established evidence"
+  },
+  {
+   "name": "D12 one survey answer stored under two fields shows once (“2 records, one answer”); the derived duplicate joins its source note",
+   "ok": true,
+   "detail": "1,2,1,2"
+  },
+  {
+   "name": "D13 database source keys (rhs, eflora…) are not plant names",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D14 plant counts have an explicit scope, one per stable entity: 150 species · 100 cultivars · 3 placeholders · 32 unconfirmed survey names = 285 taxa (≠ records)",
+   "ok": true,
+   "detail": "{\"species\":150,\"cultivars\":100,\"placeholders\":3,\"candidates\":32,\"provisional\":0,\"total\":285,\"records\":1033}"
+  },
+  {
+   "name": "D15 a note about an existing plant adds knowledge, not a plant: counts unchanged; the plant gains “with my knowledge”, not “added by me”",
+   "ok": true,
+   "detail": "[{\"species\":150,\"cultivars\":100,\"placeholders\":3,\"candidates\":32,\"provisional\":0,\"total\":285,\"records\":1033},{\"species\":150,\"cultivars\":100,\"placeholders\":3,\"candidates\":32,\"provisional\":0,\"total\":285,\"records\":1034}]"
+  },
+  {
+   "name": "D16 cultivar coverage keeps direct and species knowledge apart: ‘Terra Cotta’ has its own recipe roles, flowering only via Achillea millefolium",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D17 recipe analysis uses the recipe’s real members (46 in B beds, incl. ‘Terra Cotta’ and Sporobolus heterolepis); no unrelated library plant is pulled in",
+   "ok": true,
+   "detail": "46"
+  },
+  {
+   "name": "D18 library network: every drawn link is backed by active records carrying that concept; concepts on ≥8 of 10 are folded, not deleted, and unfold on request",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D19 exploratory groups are computed from the data, not fixed at three: a looser threshold merges more, a strict one leaves plants ungrouped",
+   "ok": true,
+   "detail": "1/2/0"
+  },
+  {
+   "name": "D20 knowledge without shared links stays discoverable: your new plant is listed as “not linked” in the network, and its note is its neighbour in Connections",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D21 cross-collection connections of Yarrow are all grounded in records (identity links excepted) and reach recipes (via ‘Terra Cotta’), research, designers, local data and places",
+   "ok": true,
+   "detail": "Local data | Designers (survey) | Attributes · other | Sources | Attributes · Light | Attributes · Water & soil | Attributes · Tolerance | Attributes · Use & season | Attributes · Ecology | Research | Identity | Planting recipes | Where it was recorded"
+  },
+  {
+   "name": "D22 connections can start from research or a recipe and lead back to plants",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D23 shared attributes and list membership are never turned into compatibility or community links",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U01 default workspace: Plant Library network of the 10 full profiles with illustrations; Combined layer; rail counts 285 taxa (150 species · 100 cultivars)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U02 selecting a plant opens the inspector, which narrows the canvas instead of covering it",
+   "ok": true,
+   "detail": "1208 → 836; canvas.right 1068 insp.left 1068"
+  },
+  {
+   "name": "U03 one selection across views: Compare row and Profiles plate are highlighted for the same plant the inspector shows",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U04 Explore connections from the inspector: Yarrow’s graph reaches the B beds recipe, Robertson 1929, the designer survey and Metro Vancouver",
+   "ok": true,
+   "detail": "achillea-millefolium,taxon:achillea-millefolium-terra-cotta,system:mix.B-matrix,src:survey,polystichum-munitum,ds:robertson-1929,src:eflora,src:inat,src:iscbc,place:st_louis,place:uk,place:north_america,place:vancouver,place:bc,place:illinois,src:mobot,src:rhs,src:usda_plants,ecology:pollinator,agg:achillea-millefolium|Attributes · Light"
+  },
+  {
+   "name": "U05 walking the graph: double-click Robertson 1929 → it becomes the centre, its plants include Yarrow, the trail leads back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U06 Add knowledge opens beside the canvas (not a modal), reads a short name as a plant name, marks it provisional and invents nothing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U07 adding a new plant: 150 → 151 species; it is marked provisional and yours; the dialog then asks what you know about it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U08 a sentence is read as knowledge in your words: Yarrow linked, “prefer” pre-selects Preference, Vancouver pre-selects the place — all visible and changeable",
+   "ok": true,
+   "detail": "preference place:vancouver"
+  },
+  {
+   "name": "U09 the note does not add a plant (still 151 species) and appears at once in the inspector and in Compare (Mine)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U10 Edit my version: the inspector shows Preset (struck through) against my version; it does not carry St. Louis or MOBOT",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U11 retrieval reads the same state: my version is returned, the replaced MOBOT record is not",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U12 Preset / My knowledge / Combined use one view: My knowledge fades the rest and keeps my plants; Preset shows no personal marks and the original record in effect",
+   "ok": true,
+   "detail": "faded 8 mine arctostaphylos-uva-ursi,achillea-millefolium,my:acer-griseum presetMine 0"
+  },
+  {
+   "name": "U13 Leave out → gone from retrieval, shown as “left out”; Restore → back in effect",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U14 a pasted list is read as a list; import waits for a title and a source; Yarrow twice = one membership; “irrigation” is not linked and not counted",
+   "ok": true,
+   "detail": "2"
+  },
+  {
+   "name": "U15 Personal knowledge lists the added plant, the note, my version against the original, the exclusion+restore and the list with its unlinked row",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U16 Planting recipes: B beds composition draws its 46 real members by plan role, with a ground line before the bulbs",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U17 technical detail is folded: record ids, licences and original fields live under “Details”, closed by default",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "U18 after reload every change is still in effect (IndexedDB): 152 species (Acer griseum + Eurybia divaricata from the list), my version, the list",
+   "ok": true,
+   "detail": "events 6/6 rail Plant Library287"
+  },
+  {
+   "name": "U19 undoing everything returns the effective state to the Preset exactly (150 species, Preset records)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "U20 the LLM query interface on the page is read-only and frozen",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A01 Expand in place: Robertson 1929 adds its plants to the same picture; Yarrow and Metro Vancouver stay where they were",
+   "ok": true,
+   "detail": "24→30 moved 0.0 vb 1208"
+  },
+  {
+   "name": "A02 shared neighbours are drawn once: Yarrow is both an expanded object and one of Robertson's plants, and appears once",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A03 switching Preset / Combined keeps every node where it was",
+   "ok": true,
+   "detail": "659.8,514 vs 659.8,514"
+  },
+  {
+   "name": "A04 keyboard: Enter selects a graph node, Shift+Enter expands it in place",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A05 collapsing an expansion removes only what it brought; the rest stays",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A06 Network: double-click Yarrow adds its recipe, research, survey and place neighbours around it; no plant moves",
+   "ok": true,
+   "detail": "system:mix.B-matrix,ds:robertson-1929,src:survey,taxon:achillea-millefolium-terra-cotta,src:eflora,src:inat,src:iscbc,place:uk"
+  },
+  {
+   "name": "A07 a satellite is a real object: clicking B beds opens the recipe in the inspector",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A08 Network keeps plant positions across layers",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A09 Compare: a water cell (keyboard Enter) opens its records, and the cell is marked as the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A10 Seasons: clicking a flowering bar opens exactly that record",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A11 Survey: clicking a reason dot opens the respondents' statements behind it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A12 Recipe layers diagram: a member symbol selects that plant; the same plant is marked in the diagram and in the list below",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A13 a band in the layers diagram selects its drawing role (records behind it in the inspector)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A14 Recipe Compare opens on the members with knowledge (Terra Cotta first) and shows all 46 on request",
+   "ok": true,
+   "detail": "8 / 46"
+  },
+  {
+   "name": "A15 Robertson: the chart and the rows table do not overlap; rows are shown for the selected plant",
+   "ok": true,
+   "detail": "730 ≤ 766"
+  },
+  {
+   "name": "A16 evidence classes are kept apart: an RHS value read by a language model says so, and is not a person-checked database fact",
+   "ok": true,
+   "detail": "professional plant database · value read by a language model · not checked by a person · AI re-read the page: partly supported (not verification)"
+  },
+  {
+   "name": "A17 language-model inference (planting-db \"model placeholder\" values) is labelled as not evidence and is out of effect",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A18 Full profile + my plants is explicit: a \"+ mine\" chip names the provisional plant added beyond the filter and can be switched off",
+   "ok": true,
+   "detail": "10 / 286"
+  },
+  {
+   "name": "A19 tablet width (1000 px): collections fold behind a menu button and still navigate",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A20 phone-sized window (720 px): the inspector takes the screen instead of squeezing the canvas",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B01 \"Ask about this\" opens Ask in the inspector column (no extra panel), with the selected plant as removable context",
+   "ok": true,
+   "detail": "3 columns"
+  },
+  {
+   "name": "B02 Add and Ask share one text box: what was typed stays when switching",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B03 Retrieve lists exactly what window.GPK retrieval returns for the question (same ids, same order)",
+   "ok": true,
+   "detail": "12 vs 12"
+  },
+  {
+   "name": "B04 the knowledge server rebuilt the same version from the browser's events and returned the same records",
+   "ok": true,
+   "detail": "Server read the same version and returned the same 12 records."
+  },
+  {
+   "name": "B05 with my note added, server retrieval = browser retrieval for Combined (includes the note) and for Preset (excludes it)",
+   "ok": true,
+   "detail": "200/200"
+  },
+  {
+   "name": "B06 a request whose revision differs from what the server rebuilds is refused (409), so Claude never reads another version",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B07 connection state matches the server (SDK, credentials, authorisation); \"Ask Claude\" is enabled only when connected",
+   "ok": true,
+   "detail": "Claude Sonnet 5.5 · not connected✕ Python package \"anthropic\" is not installed — pip install anthropic✕ no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth "
+  },
+  {
+   "name": "B08 the panel says what would be sent to Anthropic (own notes included; licence-restricted text stays local; key stays in the server)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B09 not connected: /api/ask answers \"not_connected\" with the reasons and no answer text (nothing imitates a reply)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B10 answer references: records become numbered citations, plants become links, ids not in the knowledge are flagged and not linked (parser fixture)",
+   "ok": true,
+   "detail": "arctostaphylos-uva-ursi:water_drainage:mobot01,my-rec-mwyjj13b-659df489,not-a-record"
+  },
+  {
+   "name": "B11 retrieved, cited and the answer are kept apart: Answer · Cited (with \"not retrieved by a tool\" marked) · Retrieved by Claude's tools · Retrieved here",
+   "ok": true,
+   "detail": "Answer|Cited|Retrieved by Claude's tools"
+  },
+  {
+   "name": "B12 clicking a citation opens that record in the inspector, marks its plant on the canvas, and offers \"Back to your question\"",
+   "ok": true,
+   "detail": "arctostaphylos-uva-ursi:water_drainage:mobot01"
+  },
+  {
+   "name": "B13 \"Back to your question\" restores the composer with the question and the answer intact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B14 clicking a plant in the answer locates it (Plant Library selection + inspector)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B15 keyboard: Ctrl/⌘+Enter in Ask runs retrieval",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B16 \"Understand with Claude\" is enabled only when connected; without it, the panel says Save keeps the words as written",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B17 preview: statements, plants, kind, place, time and conditions are editable fields; unknown ids are not linked; nothing saved yet",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B18 edits stick: text, a new provisional plant to add, the kind of statement",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B19 Confirm saves one event: a new provisional plant and two personal records, each keeping the raw input, the proposal, the model and that the designer confirmed",
+   "ok": true,
+   "detail": "[[\"achillea-millefolium\",\"my:achillea-filipendulina\"],[\"achillea-millefolium\"]]"
+  },
+  {
+   "name": "B20 Undo removes the whole confirmed extraction (plant and both records)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "B21 Discard drops the proposal without saving anything; the plain Add form returns",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "url": "http://127.0.0.1:58061/Generative-Planting/knowledge/tests.html",
+ "runner": "headless Chrome via DevTools protocol (tools/knowledge/cdp.py)",
+ "wallSeconds": 32.8,
+ "pythonParity": {
+  "ok": true,
+  "checked": {
+   "queries": 9,
+   "baseQueries": 9,
+   "activeIds": 1062
+  },
+  "problems": []
+ }
+}

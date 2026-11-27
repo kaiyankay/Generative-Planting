@@ -1,0 +1,135 @@
+{
+ "inputs": {
+  "claims": 615,
+  "plants": 10,
+  "relations": 41,
+  "outside_db": 19,
+  "candidate_evidence": 39,
+  "ontology_nodes": 438,
+  "sources": 35,
+  "synonym_entries": 42,
+  "ai_assessments": 534
+ },
+ "out": {
+  "entities": {
+   "concept": 440,
+   "plant": 182,
+   "dataset": 2,
+   "cultivar": 103,
+   "planting_system": 8,
+   "role": 26,
+   "topic": 2
+  },
+  "entities_total": 763,
+  "records": {
+   "planting-db claim": 615,
+   "planting-db relation": 60,
+   "survey candidate": 39,
+   "Detroit model recipe": 324,
+   "Phase 02A": 45
+  },
+  "records_total": 1083,
+  "records_active": 1050,
+  "relations": {
+   "documented": 506,
+   "derived": 204,
+   "candidate": 42
+  },
+  "relations_total": 752,
+  "datasets": {
+   "ds:robertson-1929": 1998
+  },
+  "sources": 55,
+  "aiChecks": 534,
+  "baseVersion": "base-ebbbf3db18e5"
+ },
+ "excluded": [
+  {
+   "what": "planting-db review/*.md, review/screenshots, review/exports",
+   "why": "human review reports and UI screenshots, not knowledge statements; decisions they record are already in claim status"
+  },
+  {
+   "what": "planting-db data/cov_trees/*.csv, data/inat/*.json",
+   "why": "raw pulls; the claims built from them (cov_trees, inat sources) are migrated with their counts and locators"
+  },
+  {
+   "what": "planting-db inputs/t5/*.json",
+   "why": "assisted-extraction inputs already merged into claims (merge_t5.py)"
+  },
+  {
+   "what": "planting-db designs/, design/, eval/, platform/, brain/ UI code",
+   "why": "design sessions and applications, not knowledge; brain/data/kg.json rule edges are imported"
+  },
+  {
+   "what": "kg.json claim/entity edges",
+   "why": "re-projected live from records so edits change them (see kg_edges_not_imported)"
+  },
+  {
+   "what": "planting-survey raw responses (Supabase / CSV)",
+   "why": "private; only the de-identified candidate queue and claims already public in planting-db are used"
+  },
+  {
+   "what": "course slides (P56 table, P57/P58 lists)",
+   "why": "copyright: not in the public seed. P57 lists are only used as a local, git-ignored import fixture"
+  }
+ ],
+ "aliases_not_used": [
+  {
+   "entity": "achillea-millefolium",
+   "name": "rhs"
+  },
+  {
+   "entity": "achillea-millefolium",
+   "name": "eflora"
+  },
+  {
+   "entity": "achillea-millefolium",
+   "name": "eflora_native_bc_taxon"
+  },
+  {
+   "entity": "achillea-millefolium",
+   "name": "eflora_varieties_recognised_in_bc"
+  }
+ ],
+ "kg_edges_not_imported": {
+  "claim / documented": 1291,
+  "design unknown (no evidence; kept as a gap, not an edge) / unknown": 47,
+  "relation / candidate": 4,
+  "relation / derived": 21,
+  "relation / documented": 16
+ },
+ "kg_counts_at_sha": {
+  "nodes": 491,
+  "edges": 2115,
+  "concepts": 378,
+  "concepts_in_use": 220,
+  "architecture_nodes": 60,
+  "plants": 10,
+  "claims": 615,
+  "by_type": {
+   "claim": 1291,
+   "classification": 10,
+   "concept": 53,
+   "cultivar_of": 8,
+   "design": 122,
+   "entity": 20,
+   "height_band": 105,
+   "hierarchy": 338,
+   "layer": 15,
+   "parent": 93,
+   "relation": 41,
+   "taxonomy": 19
+  },
+  "by_status": {
+   "documented": 1811,
+   "derived": 211,
+   "candidate": 46,
+   "unknown": 47
+  },
+  "design_edges": {
+   "derived": 33,
+   "candidate": 42,
+   "unknown": 47
+  }
+ }
+}
