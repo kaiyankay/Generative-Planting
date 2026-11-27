@@ -1,7 +1,7 @@
 {
- "ok": 128,
- "total": 128,
- "loadMs": 169.30000001192093,
+ "ok": 177,
+ "total": 177,
+ "loadMs": 184.19999998807907,
  "results": [
   {
    "name": "app loads and exposes window.GP",
@@ -581,7 +581,7 @@
   {
    "name": "UX \u00b7 selection card is compact by default (no ids, no record)",
    "ok": true,
-   "detail": "Main Garden\nBed B1\nBed \u00b7 Matrix (B)\n232.8 m\u00b2 \u00b7 code B1 \u00b7 125 patches\nReference\nDocumented\nDetails\nZoom to\nUp"
+   "detail": "Main Garden\nBed B1\nBed \u00b7 Matrix (B)\n232.8 m\u00b2 \u00b7 code B1 \u00b7 125 patches\n\nElevation 175.97\u2013176.47 m \u00b7 slope 0.2\u20133.4\u00b0 \u00b7 0\u20135.3"
   },
   {
    "name": "UX \u00b7 Details opens the full record with data & sources",
@@ -594,9 +594,234 @@
    "detail": ""
   },
   {
+   "name": "CS \u00b7 five model levels exposed; the computation never reads the planting",
+   "ok": true,
+   "detail": "{\"beds\":20,\"mainBeds\":15,\"designBeds\":20,\"designAreaM2\":8635.6,\"ok\":true}"
+  },
+  {
+   "name": "CS \u00b7 one lattice aligned with the 3DEP DEM (origin and 1 m cells)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a grid finer than the terrain data is refused (no false precision); 2 m allowed",
+   "ok": true,
+   "detail": "cellSize 0.5 m is finer than the terrain data (1 m): refused, a finer grid would suggest a precision the sources do not have"
+  },
+  {
+   "name": "CS \u00b7 B1 domain: cells clipped to the real outline, area = bed area, bed untouched",
+   "ok": true,
+   "detail": "[232.821,232.82084050000012,274]"
+  },
+  {
+   "name": "CS \u00b7 every design bed (20) is its own domain; areas match the beds to 1 mm\u00b2",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 whole cells carry the DEM value at their node exactly",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 distribution over the whole bed (min \u2264 p10 \u2264 median \u2264 p90 \u2264 max; histogram areas add up)",
+   "ok": true,
+   "detail": "{\"field\":\"field.elevation\",\"name\":\"Elevation\",\"units\":\"m\",\"status\":\"source\",\"dataKind\":\"source\",\"hypothetical\":false,\"source\":\"S-3DEP\",\"method\":\"Bilinear sample"
+  },
+  {
+   "name": "CS \u00b7 B1 real ranges: elevation, slope and distance to path vary inside the bed",
+   "ok": true,
+   "detail": "[0.4959,3.2266,5.3043]"
+  },
+  {
+   "name": "CS \u00b7 sun, moisture and pH stay unknown over the whole area (null, never 0)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 planting context carries the distribution in the bed, not only the centre point",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 two conditions overlaid: B1 splits into zones that tile the bed exactly",
+   "ok": true,
+   "detail": "[[\"0|0\",72.26],[\"0|1\",137],[\"1|0\",15.56],[\"1|1\",8]]"
+  },
+  {
+   "name": "CS \u00b7 zones never overlap and never leave the bed outline (vector check)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "name": "CS \u00b7 a point\u2019s zone agrees with its own cell values (zoneAt \u2194 fields)",
+   "ok": true,
+   "detail": "39/39"
+  },
+  {
+   "name": "CS \u00b7 moving the slope threshold moves the zones (steeper area 1\u00b0 > 2\u00b0 > 3\u00b0)",
+   "ok": true,
+   "detail": "[155.62,23.560000000000002,1.67]"
+  },
+  {
+   "name": "CS \u00b7 uniform ground is not split: TN elevation varies < 0.1 m, a threshold inside its range gives one zone",
+   "ok": true,
+   "detail": "[0.0552,1]"
+  },
+  {
+   "name": "CS \u00b7 a threshold outside the bed\u2019s range gives one zone (no artificial split)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a rule on an unknown field gives \u201cno data\u201d, never a value class",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 three conditions incl. a hypothetical test field: flagged hypothetical in every result",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 a hypothetical field cannot pose as site data (id must be hyp.*)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 several beds: one computation, every zone keeps its bed id, each bed tiled exactly",
+   "ok": true,
+   "detail": "{\"bed.B1\":4,\"bed.A1\":4,\"bed.B2\":3}"
+  },
+  {
+   "name": "CS \u00b7 all 20 design beds classified together",
+   "ok": true,
+   "detail": "70 zones, 0 ms"
+  },
+  {
+   "name": "CS \u00b7 an arbitrary area as scope: cells clipped to bed \u2229 area",
+   "ok": true,
+   "detail": "[85.356,85.35626428732046,[\"bed.B1\"]]"
+  },
+  {
+   "name": "CS \u00b7 sampleAt: exact point values + the lattice cell + its zone",
+   "ok": true,
+   "detail": "{\"id\":\"zone.B1.0-1\",\"key\":\"0|1\",\"label\":\"Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m\",\"computation\":\"cmp.8651b0e0\"}"
+  },
+  {
+   "name": "CS \u00b7 position sampling for point planting: hex points all inside B1, about one per 0.87 m\u00b2",
+   "ok": true,
+   "detail": "266 vs 269"
+  },
+  {
+   "name": "CS \u00b7 zones are queryable with any geometry (a line across B1)",
+   "ok": true,
+   "detail": "0|0,0|1"
+  },
+  {
+   "name": "CS \u00b7 an area patch over the boardwalk inside East Meadow is refused (exact overlap test)",
+   "ok": true,
+   "detail": "[{\"index\":0,\"op\":\"add\",\"code\":\"E_NOT_PLANTABLE\",\"message\":\"overlaps boardwalk built.east-meadow-boardwalk\"}]"
+  },
+  {
+   "name": "CS \u00b7 the space carries point, line, area/block, matrix, grouping and mixed planting (validated dry runs)",
+   "ok": true,
+   "detail": "{\"point\":\"ok\",\"line\":\"ok\",\"area / block\":\"ok\",\"matrix\":\"ok\",\"grouping\":\"ok\",\"mixed\":\"ok\"}"
+  },
+  {
+   "name": "CS \u00b7 with every design bed empty, levels 1\u20134 still work and compute the same",
+   "ok": true,
+   "detail": "placements left in design beds: 0"
+  },
+  {
+   "name": "CS \u00b7 the bed framework (ids, outlines, areas) is never changed by computing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 1 \u00b7 click B1 in Axo selects the bed; its card shows the bed\u2019s condition ranges",
+   "ok": true,
+   "detail": "Main Garden\nBed B1\nBed \u00b7 Matrix (B)\n232.8 m\u00b2 \u00b7 code B1 \u00b7 125 patches\n\nElevation 175.97\u2013176.47 m \u00b7 slope 0.2\u20133.4\u00b0 \u00b7 0\u20135.3 m to path\n\nReference\nDocumented\nConditi"
+  },
+  {
+   "name": "ACC 1 \u00b7 Conditions opens on B1 (card gives way to the panel)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 2 \u00b7 Plan keeps the same selection, scope and place",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 3 \u00b7 Hide planting hides, it does not clear: placements kept, bed outline still drawn",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 4 \u00b7 Elevation: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[159,136,115],\"#977C68\"]"
+  },
+  {
+   "name": "ACC 4 \u00b7 Slope: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[196,169,108],\"#C3A35F\"]"
+  },
+  {
+   "name": "ACC 4 \u00b7 To path: drawn in bands inside B1 (pixel at a cell = its band colour)",
+   "ok": true,
+   "detail": "[[118,166,167],\"#67A0A6\"]"
+  },
+  {
+   "name": "ACC 5 \u00b7 Zones: slope \u00d7 distance to path computed and drawn (pixel in a 0|0 cell is its zone colour)",
+   "ok": true,
+   "detail": "[[\"0|0\",72.26],[\"0|1\",137],[\"1|0\",15.56],[\"1|1\",8]]"
+  },
+  {
+   "name": "ACC 6 \u00b7 changing the slope threshold to 1\u00b0 recomputes the zones and the list",
+   "ok": true,
+   "detail": "[23.560000000000002,155.62]"
+  },
+  {
+   "name": "ACC 7 \u00b7 blank working design in B1 only: B1 empty, other beds kept, zones and fields unchanged",
+   "ok": true,
+   "detail": "[\"bed.B1\"]"
+  },
+  {
+   "name": "ACC 8 \u00b7 Axo: zones are painted on the terrain at the right place (texture pixel = zone colour; screen \u2194 ground round trip < 5 cm)",
+   "ok": true,
+   "detail": "[[135,145,189,255],[133,145,201],[-34.99999998891697,-9.000000030450508]]"
+  },
+  {
+   "name": "ACC 9 \u00b7 back to Reference: the original planting is complete (instance fingerprint, B1 patches)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ACC 10 \u00b7 shift-click A1 and B2: one computation over three beds, zones per bed",
+   "ok": true,
+   "detail": "[\"bed.B1\",\"bed.A1\",\"bed.B2\"]"
+  },
+  {
+   "name": "ACC 10 \u00b7 All design beds: 20 beds in one computation",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "CS \u00b7 URL keeps the conditions state (scope, display, thresholds)",
+   "ok": true,
+   "detail": "?view=plan&cond=all&rules=slope%3A2%2Cdistance-to-path%3A1.5&filter=site&show=zones"
+  },
+  {
+   "name": "CS \u00b7 closing Conditions clears the overlay (view state only)",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "3D renders triangles",
    "ok": true,
-   "detail": "{\"fps\":4.7,\"triangles\":1184311,\"calls\":201,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
+   "detail": "{\"fps\":2.3,\"triangles\":1184347,\"calls\":204,\"instances\":20788,\"dpr\":1,\"rebuildMs\":0}"
   },
   {
    "name": "no horizontal overflow at 1440\u00d7900",
@@ -636,16 +861,115 @@
   {
    "name": "embed: postMessage bridge works (read, view, design data) and refuses unlisted methods",
    "ok": true,
-   "detail": "[{\"gp\":\"result\",\"id\":0.028176406669586207,\"ok\":true,\"value\":{\"view\":\"axo\",\"design\":\"reference\",\"filter\":\"all\",\"solo\":null,\"panel\":false,\"axoHome\":true}},true,\"not available: exportModel\"]"
+   "detail": "[{\"gp\":\"result\",\"id\":0.9596620208759752,\"ok\":true,\"value\":{\"view\":\"axo\",\"design\":\"reference\",\"filter\":\"all\",\"solo\":null,\"panel\":false,\"axoHome\":true}},true,\"not available: exportModel\"]"
+  },
+  {
+   "name": "embed: the computational space answers over postMessage (plain data)",
+   "ok": true,
+   "detail": "[true,true,true]"
   },
   {
    "name": "no runtime errors (embed)",
    "ok": true,
    "detail": ""
+  },
+  {
+   "name": "entry: a plain visit shows the site preset first; tools appear after Open site",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "entry: Open site enters the same Axo workspace",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no runtime errors (entry)",
+   "ok": true,
+   "detail": ""
   }
  ],
  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+ "compute": {
+  "zonesB1": [
+   {
+    "key": "0|0",
+    "label": "Slope < 2\u00b0 \u00b7 To path < 1.5 m",
+    "areaM2": 72.26,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.3104
+   },
+   {
+    "key": "0|1",
+    "label": "Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m",
+    "areaM2": 137,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.5884
+   },
+   {
+    "key": "1|0",
+    "label": "Slope \u2265 2\u00b0 \u00b7 To path < 1.5 m",
+    "areaM2": 15.56,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.0668
+   },
+   {
+    "key": "1|1",
+    "label": "Slope \u2265 2\u00b0 \u00b7 To path \u2265 1.5 m",
+    "areaM2": 8,
+    "beds": [
+     "bed.B1"
+    ],
+    "share": 0.0344
+   }
+  ],
+  "thresholds": {
+   "1\u00b0": 155.62,
+   "2\u00b0": 23.560000000000002,
+   "3\u00b0": 1.67
+  },
+  "allBeds": {
+   "zones": 70,
+   "ms": 0,
+   "summary": [
+    [
+     "Slope < 2\u00b0 \u00b7 To path < 1.5 m",
+     1012.76,
+     19
+    ],
+    [
+     "Slope < 2\u00b0 \u00b7 To path \u2265 1.5 m",
+     6336.67,
+     19
+    ],
+    [
+     "Slope \u2265 2\u00b0 \u00b7 To path < 1.5 m",
+     226.93,
+     14
+    ],
+    [
+     "Slope \u2265 2\u00b0 \u00b7 To path \u2265 1.5 m",
+     1059.23,
+     18
+    ]
+   ]
+  },
+  "carry": {
+   "point": "ok",
+   "line": "ok",
+   "area / block": "ok",
+   "matrix": "ok",
+   "grouping": "ok",
+   "mixed": "ok"
+  }
+ },
  "url": "http://127.0.0.1:8791/Generative-Planting/tests.html",
  "runner": "headless Chrome (SwiftShader software WebGL) --dump-dom",
- "wallSeconds": 501.4
+ "wallSeconds": 1073.6
 }

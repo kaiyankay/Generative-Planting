@@ -369,6 +369,171 @@ try {
   log('UX · coordinates only in Plan, compass only in Axo', doc.getElementById('coords').hidden === true && doc.getElementById('compass').hidden === false);
   try { w.localStorage.clear(); } catch {}
 
+  // ================================================================ Phase 01.3 · computational space (levels 1–4 work with no planting)
+  { // own block scope: names here never clash with the earlier sections
+  const pc = (await import(base + 'vendor/polygon-clipping/polygon-clipping.esm.js')).default;
+  const G = await import(base + 'src/geom.js');
+  const CS = GP._cs; const cs = CS; const X = window.__cs = {};
+  const coordsOf = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
+  const bedHash = () => JSON.stringify(S.baseline.objects.filter((o) => o.type === 'bed').map((o) => [o.id, o.geometry, o.props.areaM2]));
+  const bedH0 = bedHash();
+  const lv = GP.spatialModel();
+  log('CS · five model levels exposed; the computation never reads the planting', lv.baseSite.ok && lv.framework.ok && lv.framework.mainBeds === 15 && lv.framework.designBeds === 20 && lv.fields.length >= 9 && lv.computation.readsPlanting === false && !!lv.design, JSON.stringify(lv.framework));
+  log('CS · one lattice aligned with the 3DEP DEM (origin and 1 m cells)', lv.computation.lattice.ox === S.terrain.meta.origin[0] && lv.computation.lattice.oy === S.terrain.meta.origin[1] && lv.computation.lattice.cellSize === S.terrain.meta.cellSize);
+  const fine = GP.domain('bed.B1', { cellSize: 0.5 }), odd = GP.domain('bed.B1', { cellSize: 1.5 }), two = GP.domain('bed.B1', { cellSize: 2 });
+  log('CS · a grid finer than the terrain data is refused (no false precision); 2 m allowed', !fine.ok && /finer than the terrain/.test(fine.error) && !odd.ok && two.ok, fine.error);
+  const b1 = S.getObject('bed.B1'); const dB1 = GP.domain('bed.B1');
+  log('CS · B1 domain: cells clipped to the real outline, area = bed area, bed untouched', dB1.ok && Math.abs(dB1.areaM2 - G.areaOf(b1.geometry)) < 1e-3 && dB1.cells > 200 && dB1.byBed[0].bedId === 'bed.B1', JSON.stringify([dB1.areaM2, G.areaOf(b1.geometry), dB1.cells]));
+  const all = GP.domain('all'); let worst = 0;
+  for (const r of all.byBed) worst = Math.max(worst, Math.abs(r.areaM2 - r.bedAreaM2));
+  log('CS · every design bed (20) is its own domain; areas match the beds to 1 mm²', all.ok && all.byBed.length === 20 && worst < 1e-3, worst);
+  // whole cells sit on DEM nodes: the cell value IS the 3DEP sample
+  const cellsB1 = GP.cells('bed.B1').cells; const whole = cellsB1.filter((c) => c.areaM2 > 0.999999);
+  const m = S.terrain.meta; let maxDz = 0;
+  for (const c of whole.slice(0, 80)) { const raw = m.datumZ + S.terrain.data[c.r * m.cols + c.c] / 100; maxDz = Math.max(maxDz, Math.abs(c.values['field.elevation'] - raw)); }
+  log('CS · whole cells carry the DEM value at their node exactly', whole.length > 150 && maxDz < 1e-3, maxDz);
+  const D = GP.distribution('bed.B1');
+  const ok3 = ['field.elevation', 'field.slope', 'field.distance-to-path', 'field.distance-to-edge'].every((k) => { const f = D.fields[k]; return f.known && f.min <= f.p10 && f.p10 <= f.p50 && f.p50 <= f.p90 && f.p90 <= f.max && Math.abs(f.histogram.areaM2.reduce((a, v) => a + v, 0) - f.areaKnownM2) < 1e-2; });
+  log('CS · distribution over the whole bed (min ≤ p10 ≤ median ≤ p90 ≤ max; histogram areas add up)', ok3, JSON.stringify(D.fields['field.elevation']).slice(0, 160));
+  log('CS · B1 real ranges: elevation, slope and distance to path vary inside the bed', D.fields['field.elevation'].range > 0.3 && D.fields['field.slope'].range > 2 && D.fields['field.distance-to-path'].min < 0.1 && D.fields['field.distance-to-path'].max > 4, JSON.stringify([D.fields['field.elevation'].range, D.fields['field.slope'].range, D.fields['field.distance-to-path'].max]));
+  log('CS · sun, moisture and pH stay unknown over the whole area (null, never 0)', ['field.sun', 'field.moisture', 'field.ph'].every((k) => D.fields[k].known === false && D.fields[k].min === null && Math.abs(D.fields[k].areaUnknownM2 - D.areaM2) < 1e-3));
+  const pctx = GP.getPlantingContext('bed.B1');
+  log('CS · planting context carries the distribution in the bed, not only the centre point', pctx.conditionsInBed && pctx.conditionsInBed.ok && pctx.conditionsInBed.fields['field.slope'].max > pctx.conditionsInBed.fields['field.slope'].min && !!pctx.conditionsAtCentroid);
+  // classification -> zones
+  const R2 = [{ field: 'field.slope', breaks: [2] }, { field: 'field.distance-to-path', breaks: [1.5] }];
+  const Z = GP.classify('bed.B1', { rules: R2 }); X.zonesB1 = Z.summary;
+  const zsum = Z.zones.reduce((a, z) => a + z.areaM2, 0);
+  log('CS · two conditions overlaid: B1 splits into zones that tile the bed exactly', Z.ok && Z.zones.length === 4 && Math.abs(zsum - G.areaOf(b1.geometry)) < 1e-2 && Z.zones.every((z) => z.bedId === 'bed.B1'), JSON.stringify(Z.summary.map((z) => [z.key, z.areaM2])));
+  let ovl = 0; for (let i = 0; i < Z.zones.length; i++) for (let j = i + 1; j < Z.zones.length; j++) ovl += G.areaOf({ type: 'MultiPolygon', coordinates: pc.intersection(Z.zones[i].geometry.coordinates, Z.zones[j].geometry.coordinates) });
+  const inside = Z.zones.every((z) => G.areaOf({ type: 'MultiPolygon', coordinates: pc.difference(z.geometry.coordinates, coordsOf(b1.geometry)) }) < 1e-6);
+  log('CS · zones never overlap and never leave the bed outline (vector check)', ovl < 1e-6 && inside, ovl);
+  let agree = 0, n = 0;
+  for (const c of whole.filter((_, k) => k % 5 === 0)) { const z = cs.zoneAt(c.x, c.y, Z); const k1 = (c.values['field.slope'] >= 2 ? 1 : 0) + '|' + (c.values['field.distance-to-path'] >= 1.5 ? 1 : 0); n++; if (z && z.key === k1) agree++; }
+  log('CS · a point’s zone agrees with its own cell values (zoneAt ↔ fields)', n > 20 && agree === n, `${agree}/${n}`);
+  const Z1 = GP.classify('bed.B1', { rules: [{ field: 'field.slope', breaks: [1] }, R2[1]] }), Z3 = GP.classify('bed.B1', { rules: [{ field: 'field.slope', breaks: [3] }, R2[1]] });
+  const steep = (r) => r.summary.filter((z) => z.key.startsWith('1|')).reduce((a, z) => a + z.areaM2, 0);
+  log('CS · moving the slope threshold moves the zones (steeper area 1° > 2° > 3°)', steep(Z1) > steep(Z) && steep(Z) > steep(Z3) && Z1.fingerprint !== Z.fingerprint, JSON.stringify([steep(Z1), steep(Z), steep(Z3)]));
+  X.thresholds = { '1°': steep(Z1), '2°': steep(Z), '3°': steep(Z3) };
+  const dTN = GP.distribution('bed.TN').fields['field.elevation'];
+  const zTN = GP.classify('bed.TN', { rules: [{ field: 'field.elevation', breaks: [+((dTN.min + dTN.max) / 2).toFixed(3)] }] });
+  log('CS · uniform ground is not split: TN elevation varies < 0.1 m, a threshold inside its range gives one zone', dTN.uniform && zTN.zones.length === 1 && zTN.rules[0].uniformIn.includes('bed.TN') && /not split/.test(zTN.notes.join(' ')), JSON.stringify([dTN.range, zTN.zones.length]));
+  const zOut = GP.classify('bed.B1', { rules: [{ field: 'field.slope', breaks: [30] }] });
+  log('CS · a threshold outside the bed’s range gives one zone (no artificial split)', zOut.zones.length === 1 && zOut.zones[0].key === '0');
+  const zSun = GP.classify('bed.B1', { rules: [{ field: 'field.sun', breaks: [0.5] }] });
+  log('CS · a rule on an unknown field gives “no data”, never a value class', zSun.ok && zSun.zones.length === 1 && zSun.zones[0].key === '?' && /no data/.test(zSun.zones[0].label) && /not zero/.test(zSun.notes.join(' ')));
+  const hyp = GP.classify('bed.B1', { rules: [R2[0], R2[1], { field: 'hyp.low-ground-wetter', breaks: [0.4] }] });
+  log('CS · three conditions incl. a hypothetical test field: flagged hypothetical in every result', hyp.ok && hyp.hypothetical && hyp.zones.length > 4 && hyp.zones.every((z) => z.hypothetical) && /hypothetical/.test(hyp.notes.join(' ')) && GP.field('hyp.low-ground-wetter').dataKind === 'hypothetical');
+  const badH = GP.registerHypotheticalField({ id: 'field.fake-sun', sample: () => 1 });
+  log('CS · a hypothetical field cannot pose as site data (id must be hyp.*)', !badH.ok);
+  // multi-bed and all
+  const M3 = GP.classify(['bed.B1', 'bed.A1', 'bed.B2'], { rules: R2 });
+  const perBedOk = ['bed.B1', 'bed.A1', 'bed.B2'].every((b) => Math.abs(M3.zones.filter((z) => z.bedId === b).reduce((a, z) => a + z.areaM2, 0) - G.areaOf(S.getObject(b).geometry)) < 1e-2);
+  log('CS · several beds: one computation, every zone keeps its bed id, each bed tiled exactly', M3.ok && perBedOk && M3.scope.bedIds.length === 3 && Math.abs(M3.summary.reduce((a, z) => a + z.areaM2, 0) - M3.areaM2) < 0.05, JSON.stringify(M3.splits));
+  const t0a = performance.now(); const MA = GP.classify('all', { rules: R2 }); const tAll = performance.now() - t0a;
+  log('CS · all 20 design beds classified together', MA.ok && Object.keys(MA.splits).length === 20 && MA.zones.every((z) => z.bedId.startsWith('bed.')), `${MA.zones.length} zones, ${tAll.toFixed(0)} ms`);
+  X.allBeds = { zones: MA.zones.length, ms: Math.round(tAll), summary: MA.summary.map((z) => [z.label, z.areaM2, z.beds.length]) };
+  const region = { type: 'Polygon', coordinates: [[[-40, 0], [-28, 0], [-28, 8], [-40, 8], [-40, 0]]] };
+  const dR = GP.domain({ geometry: region }); const expR = S.beds.filter((b) => G.intersects(b.geometry, region)).reduce((a, b) => a + G.areaOf({ type: 'MultiPolygon', coordinates: pc.intersection(coordsOf(b.geometry), region.coordinates) }), 0);
+  log('CS · an arbitrary area as scope: cells clipped to bed ∩ area', dR.ok && Math.abs(dR.areaM2 - expR) < 1e-3 && dR.scope.region, JSON.stringify([dR.areaM2, expR, dR.scope.bedIds]));
+  const cB1 = [-33.9, 3.1]; const sp = GP.sampleAt(cB1[0], cB1[1]); GP.computeZones('bed.B1', { rules: R2 });
+  const sp2 = GP.sampleAt(cB1[0], cB1[1]);
+  log('CS · sampleAt: exact point values + the lattice cell + its zone', sp.ok && sp.bedId === 'bed.B1' && sp.cell && sp.cell.values['field.elevation'] > 175 && sp2.zone && sp2.zone.key === cs.zoneAt(cB1[0], cB1[1]).key && GP.sampleAt(0, 200).bedId === null, JSON.stringify(sp2.zone));
+  const pts = GP.samplePoints('bed.B1', { spacing: 1, pattern: 'hex' });
+  const expN = G.areaOf(b1.geometry) / (Math.sqrt(3) / 2);
+  log('CS · position sampling for point planting: hex points all inside B1, about one per 0.87 m²', pts.ok && pts.points.every((q) => G.pointInGeom(b1.geometry, q.x, q.y)) && Math.abs(pts.count - expN) / expN < 0.12 && pts.points.every((q) => q.zone), `${pts.count} vs ${expN.toFixed(0)}`);
+  const qz = GP.queryZones({ type: 'LineString', coordinates: [[-40, 3], [-28, 3]] });
+  log('CS · zones are queryable with any geometry (a line across B1)', qz.ok && qz.zones.length >= 2 && qz.zones.every((z) => z.bedId === 'bed.B1'), qz.zones.map((z) => z.key).join(','));
+  // future planting types carried by the space (dry run only: nothing is written)
+  const zs = GP.computation().zones; const big = zs.slice().sort((a, b) => b.areaM2 - a.areaM2)[0];
+  const reg = big.geometry.coordinates.slice().sort((a, b) => G.areaOf({ type: 'Polygon', coordinates: b }) - G.areaOf({ type: 'Polygon', coordinates: a }))[0];
+  const inZ = pts.points.filter((q) => q.zone === big.key);
+  const sq = (x, y, h) => ({ type: 'Polygon', coordinates: [[[x - h, y - h], [x + h, y - h], [x + h, y + h], [x - h, y + h], [x - h, y - h]]] });
+  const p0 = inZ[Math.floor(inZ.length / 2)], p1 = inZ[Math.floor(inZ.length / 3)], p2 = inZ[Math.floor(inZ.length / 4)];
+  const lineStrip = { type: 'Polygon', coordinates: [[[p0.x - 2, p0.y - 0.15], [p0.x + 2, p0.y - 0.15], [p0.x + 2, p0.y + 0.15], [p0.x - 2, p0.y + 0.15], [p0.x - 2, p0.y - 0.15]]] };
+  const blockG = { type: 'Polygon', coordinates: reg };
+  const lineOk = G.within(lineStrip, b1.geometry);
+  const sp1 = 'sp.achillea-moonshine';
+  const carry = [
+    ['point', [{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'emergent', speciesIds: [sp1], geometry: { type: 'Point', coordinates: [p0.x, p0.y] } } }]],
+    ['line', lineOk ? [{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'bulb-line', speciesIds: [sp1], geometry: lineStrip } }] : null],
+    ['area / block', [{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'block', speciesIds: [sp1], geometry: blockG } }]],
+    ['matrix', [{ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'matrix', speciesIds: [sp1], geometry: b1.geometry } }]],
+    ['grouping', [p0, p1, p2].map((q) => ({ op: 'add', collection: 'placements', value: { bedId: 'bed.B1', role: 'group', speciesIds: [sp1], geometry: sq(q.x, q.y, 0.4) } }))],
+  ];
+  carry.push(['mixed', [...carry[0][1], ...carry[2][1], ...carry[4][1]]]);
+  const fpRef0 = JSON.stringify(S.refInst.fingerprint()); const dr = {};
+  for (const [k, ops] of carry) { if (!ops) { dr[k] = 'line strip not inside'; continue; } const r = S.applyPatch(ops, { dryRun: true }); dr[k] = r.ok ? 'ok' : r.errors.map((e) => e.code).join(','); }
+  X.carry = dr;
+  { const bw = S.getObject('built.east-meadow-boardwalk'); const me = S.getObject('bed.ME').geometry; const bb = G.bboxOf(bw.geometry); let c = null; for (let x = bb[0]; x < bb[2] && !c; x += 0.25) for (let y = bb[1]; y < bb[3] && !c; y += 0.25) if (G.pointInGeom(bw.geometry, x, y) && G.within(sq(x, y, 0.6), me)) c = [x, y]; const r = S.applyPatch([{ op: 'add', collection: 'placements', value: { bedId: 'bed.ME', role: 'block', speciesIds: [sp1], geometry: sq(c[0], c[1], 0.6) } }], { dryRun: true });
+    log('CS · an area patch over the boardwalk inside East Meadow is refused (exact overlap test)', !r.ok && r.errors[0].code === 'E_NOT_PLANTABLE', JSON.stringify(r.errors || r)); }
+  log('CS · the space carries point, line, area/block, matrix, grouping and mixed planting (validated dry runs)', Object.values(dr).every((v) => v === 'ok') && !S.draft && JSON.stringify(S.refInst.fingerprint()) === fpRef0, JSON.stringify(dr));
+  // planting independence
+  const fpZ = GP.classify('main', { rules: R2 }).fingerprint, dist0 = JSON.stringify(GP.distribution('main').fields);
+  GP.createDraft({ from: 'blank', scope: cs.designBeds().map((b) => b.id) });
+  const emptyAll = S.model.placements.filter((p) => cs.designBeds().some((b) => b.id === (p.bedId || p.districtId))).length;
+  const lv2 = GP.spatialModel();
+  log('CS · with every design bed empty, levels 1–4 still work and compute the same', emptyAll === 0 && lv2.baseSite.ok && lv2.framework.ok && GP.classify('main', { rules: R2 }).fingerprint === fpZ && JSON.stringify(GP.distribution('main').fields) === dist0, `placements left in design beds: ${emptyAll}`);
+  GP.discardDraft();
+  log('CS · the bed framework (ids, outlines, areas) is never changed by computing', bedHash() === bedH0);
+
+  // ---- the acceptance run (B1), driven like a user: real pointer events, real buttons
+  GP.closeConditions(); GP.select(null); GP.setViewFilter('all'); GP.setView('3d'); scene.home(); await sleep(60); scene.renderNow();
+  const cB = (await import(base + 'src/model.js')).centroidOf(b1.geometry);
+  const [sx, sy] = scene.screenOf(cB[0], cB[1]); const rr = scene.c.getBoundingClientRect();
+  const fire = (el, type, x, y, extra = {}) => el.dispatchEvent(new w.PointerEvent(type, { clientX: x, clientY: y, bubbles: true, pointerId: 1, ...extra }));
+  fire(scene.c, 'pointerdown', sx, sy); fire(scene.c, 'pointerup', sx, sy); await sleep(40);
+  const card = doc.getElementById('inspector');
+  log('ACC 1 · click B1 in Axo selects the bed; its card shows the bed’s condition ranges', GP.selection() && GP.selection().id === 'bed.B1' && /Elevation .*slope .*to path/.test(card.innerText) && !!card.querySelector('[data-act=cond]'), card.innerText.slice(0, 160));
+  card.querySelector('[data-act=cond]').click(); await sleep(40);
+  log('ACC 1 · Conditions opens on B1 (card gives way to the panel)', GP.conditions().open && JSON.stringify(GP.conditions().scope) === '["bed.B1"]' && card.hidden && !doc.getElementById('conditions').hidden);
+  const vc3 = scene.viewCenter();
+  doc.querySelector('.obs [data-v=plan]').click(); await sleep(60);
+  log('ACC 2 · Plan keeps the same selection, scope and place', GP.view() === 'plan' && GP.selection().id === 'bed.B1' && JSON.stringify(GP.conditions().scope) === '["bed.B1"]' && Math.abs(plan.view.cx - vc3.x) < 0.05 && Math.abs(plan.view.cy - vc3.y) < 0.05);
+  const nPl = S.model.placements.length; const nB1 = S.placementsByBed.get('bed.B1').length;
+  doc.querySelector('#conditions [data-a=hide]').click(); await sleep(40);
+  log('ACC 3 · Hide planting hides, it does not clear: placements kept, bed outline still drawn', GP.viewFilter() === 'site' && S.model.placements.length === nPl && S.placementsByBed.get('bed.B1').length === nB1 && S.layerVisible('structure.beds') && !S.layerVisible('structure.patches') && GP.design() === 'reference');
+  const clickField = async (id) => { doc.querySelector(`#conditions input[value="field:${id}"]`).click(); await sleep(30); };
+  const pxAt = (x, y) => { plan.drawNow(); const [px, py] = plan.T(x, y); const d = plan.ctx.getImageData(Math.round(px * plan.dpr), Math.round(py * plan.dpr), 1, 1).data; return [d[0], d[1], d[2]]; };
+  const P = await import(base + 'src/paint.js'); const ST = await import(base + 'src/style.js');
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const near = (a, b, t = 40) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < t;
+  const wc = whole[Math.floor(whole.length / 2)];
+  for (const fid of ['field.elevation', 'field.slope', 'field.distance-to-path']) {
+    await clickField(fid);
+    const dc = cs.displayCells(); const want = P.fieldBandColor(cs.field(fid), dc.bands, wc.values[fid]);
+    const got = pxAt(wc.x, wc.y);
+    log(`ACC 4 · ${cs.field(fid).short}: drawn in bands inside B1 (pixel at a cell = its band colour)`, GP.conditions().show === 'field' && GP.conditions().field === fid && near(got, hex(want), 45), JSON.stringify([got, want]));
+  }
+  doc.querySelector('#conditions input[value="zones"]').click(); await sleep(40);
+  const cz = GP.computation(); const z00 = cz.zones.find((z) => z.key === '0|0');
+  const zc = whole.find((c) => c.values['field.slope'] < 2 && c.values['field.distance-to-path'] < 1.5 && c.values['field.distance-to-path'] > 0.6);
+  log('ACC 5 · Zones: slope × distance to path computed and drawn (pixel in a 0|0 cell is its zone colour)', GP.conditions().show === 'zones' && cz.zones.length === 4 && !!z00 && zc && near(pxAt(zc.x, zc.y), hex(P.zoneStyle(cz, '0|0').fill), 45), JSON.stringify(cz.summary.map((z) => [z.key, z.areaM2])));
+  const id5 = cz.id; const steep5 = steep(cz);
+  const inp = doc.querySelector('#conditions [data-rn="0"]'); inp.value = '1'; inp.dispatchEvent(new w.Event('change', { bubbles: true })); await sleep(40);
+  const cz6 = GP.computation();
+  log('ACC 6 · changing the slope threshold to 1° recomputes the zones and the list', cz6.id !== id5 && steep(cz6) > steep5 && cz6.rules[0].breaks[0] === 1 && new RegExp(cz6.summary[0].areaM2.toFixed(1)).test(doc.querySelector('#conditions .zlist').innerText), JSON.stringify([steep5, steep(cz6)]));
+  inp.value = '2'; inp.dispatchEvent(new w.Event('change', { bubbles: true })); await sleep(30);
+  const fp6 = GP.computation().fingerprint; const dist6 = JSON.stringify(GP.distribution('bed.B1').fields);
+  doc.querySelector('#conditions [data-a=blank]').click(); await sleep(60);
+  log('ACC 7 · blank working design in B1 only: B1 empty, other beds kept, zones and fields unchanged', GP.design() === 'working' && JSON.stringify(S.draft.scope) === '["bed.B1"]' && (S.placementsByBed.get('bed.B1') || []).length === 0 && (S.placementsByBed.get('bed.A1') || []).length > 0 && GP.computation().fingerprint === fp6 && JSON.stringify(GP.distribution('bed.B1').fields) === dist6 && GP.conditions().show === 'zones', JSON.stringify(S.draft.scope));
+  doc.querySelector('.obs [data-v="3d"]').click(); await sleep(80); scene.repaintGroundNow();
+  const zfill = hex(P.zoneStyle(GP.computation(), '0|0').fill); const gp = scene.groundPixel(zc.x, zc.y);
+  const sc0 = scene.screenOf(zc.x, zc.y); const back = scene.groundAt(sc0[0], sc0[1]);
+  log('ACC 8 · Axo: zones are painted on the terrain at the right place (texture pixel = zone colour; screen ↔ ground round trip < 5 cm)', GP.viewState().view === 'axo' && near(gp, zfill, 40) && back && Math.hypot(back[0] - zc.x, back[1] - zc.y) < 0.05, JSON.stringify([gp, zfill, back]));
+  doc.querySelector('.design [data-d=reference]').click(); await sleep(60);
+  log('ACC 9 · back to Reference: the original planting is complete (instance fingerprint, B1 patches)', GP.design() === 'reference' && JSON.stringify(S.inst.fingerprint()) === refFP && S.placementsByBed.get('bed.B1').length === nB1 && S.model.placements.length === nPl);
+  doc.querySelector('.obs [data-v=plan]').click(); await sleep(40); GP.select(null);
+  for (const id of ['bed.A1', 'bed.B2']) { const c = (await import(base + 'src/model.js')).centroidOf(S.getObject(id).geometry); const [px, py] = plan.T(c[0], c[1]); const r0 = plan.c.getBoundingClientRect(); fire(plan.c, 'pointerdown', r0.left + px, r0.top + py, { shiftKey: true }); fire(plan.c, 'pointerup', r0.left + px, r0.top + py, { shiftKey: true }); await sleep(30); }
+  const cm = GP.computation();
+  log('ACC 10 · shift-click A1 and B2: one computation over three beds, zones per bed', JSON.stringify(GP.conditions().scope) === '["bed.B1","bed.A1","bed.B2"]' && ['bed.B1', 'bed.A1', 'bed.B2'].every((b) => cm.zones.some((z) => z.bedId === b)) && !!doc.querySelector('#conditions details.perbed'), JSON.stringify(GP.conditions().scope));
+  doc.querySelector('#conditions [data-a=all]').click(); await sleep(60);
+  log('ACC 10 · All design beds: 20 beds in one computation', GP.conditions().scope.length === 20 && Object.keys(GP.computation().splits).length === 20);
+  log('CS · URL keeps the conditions state (scope, display, thresholds)', /cond=all/.test(w.location.search) && /show=zones/.test(w.location.search) && /rules=slope%3A2/.test(w.location.search), w.location.search);
+  doc.querySelector('#conditions [data-a=close]').click(); GP.setViewFilter('all'); GP.discardDraft(); GP.select(null); await sleep(30);
+  log('CS · closing Conditions clears the overlay (view state only)', !GP.conditions().open && cs.display.mode === null && !/cond=/.test(w.location.search));
+  try { w.localStorage.clear(); } catch {}
+  }
+
   // ---- rendering sanity
   scene.renderNow();
   const st = scene.stats();
@@ -393,12 +558,21 @@ try {
   log('embed: product name hidden, site chip and design selector kept', E.w.getComputedStyle(where).display === 'none' && E.w.getComputedStyle(E.w.document.getElementById('btnSite')).display !== 'none' && !!E.w.document.querySelector('.design .seg'));
   const r1 = await callE('viewState'), r2 = await callE('solo', ['framework']), r3 = await callE('getPlantingContext', ['bed.A1']), r4 = await callE('exportModel');
   log('embed: postMessage bridge works (read, view, design data) and refuses unlisted methods', r1.ok && r1.value.view === 'axo' && r2.ok && E.GP.isolation().group === 'framework' && r3.ok && r3.value.placementCount > 0 && !r4.ok, JSON.stringify([r1, r2.ok, r4.error]));
+  const e1 = await callE('distribution', ['bed.B1']), e2 = await callE('computeZones', [['bed.B1', 'bed.A1'], { rules: [{ field: 'field.slope', breaks: [2] }] }]), e3 = await callE('sampleAt', [-33.9, 3.1]);
+  log('embed: the computational space answers over postMessage (plain data)', e1.ok && e1.value.fields['field.slope'].known && e2.ok && e2.value.zones.every((z) => z.geometry.type === 'MultiPolygon') && e3.ok && e3.value.bedId === 'bed.B1', JSON.stringify([e1.ok, e2.ok, e3.ok]));
   log('no runtime errors (embed)', E.errors.length === 0, E.errors.slice(0, 3).join(' | '));
+  // ---- entry: a first visit shows the site preset, then the same workspace
+  const N = await boot(document.getElementById('phone'), base + 'index.html');
+  const en = N.w.document.getElementById('entry');
+  log('entry: a plain visit shows the site preset first; tools appear after Open site', N.w.document.getElementById('app').getBoundingClientRect().width === N.w.innerWidth && !en.hidden && /Oudolf Garden Detroit/.test(en.innerText) && N.w.getComputedStyle(N.w.document.querySelector('.toolbar')).visibility === 'hidden' && N.GP.entered() === false);
+  N.w.document.getElementById('btnEnter').click(); await sleep(30);
+  log('entry: Open site enters the same Axo workspace', en.hidden && N.GP.entered() && N.GP.viewState().view === 'axo' && N.w.getComputedStyle(N.w.document.querySelector('.toolbar')).visibility === 'visible');
+  log('no runtime errors (entry)', N.errors.length === 0, N.errors.slice(0, 3).join(' | '));
 
   const ok = res.filter((r) => r.ok).length;
   document.getElementById('summary').textContent = `${ok}/${res.length} passed · app load ${Math.round(loadMs)} ms`;
   document.body.dataset.done = '1';
-  window.__results = { ok, total: res.length, loadMs, results: res, ua: navigator.userAgent };
+  window.__results = { ok, total: res.length, loadMs, results: res, ua: navigator.userAgent, compute: window.__cs || null };
   document.getElementById('summary').dataset.json = JSON.stringify(window.__results);
 } catch (e) {
   log('test harness error', false, e.stack || e);

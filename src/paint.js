@@ -1,13 +1,13 @@
 // Group painters: one function per layer group and phase ('ground' under the planting, 'top' over it).
 // The world plan, the isolated layer plan, the exploded plates and the 3D ground texture all call these,
 // so every view draws the same objects with the same symbols.
-import { TOK, mix, rgba, speciesPlanColor, speciesLeaf, speciesFlower, tracePoly, traceLine, RAMPS, ramp, SANS } from './style.js';
+import { TOK, mix, rgba, speciesPlanColor, speciesLeaf, speciesFlower, tracePoly, traceLine, RAMPS, ramp, SANS, ZONE_RAMP, rampSteps, fieldRamp } from './style.js';
 import { centroidOf, bboxOf } from './model.js';
 
 // o: { scale: px per metre, vb: [x0,y0,x1,y1] visible metres, texture: bool (3D ground), focus: group id (isolated) }
 export const ORDER = [
   ['terrain', 'ground'], ['infrastructure', 'ground'], ['siteveg', 'ground'], ['framework', 'ground'], ['analysis', 'ground'],
-  ['composition', 'ground'], ['representation', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'],
+  ['composition', 'ground'], ['representation', 'ground'], ['compute', 'ground'], ['framework', 'top'], ['infrastructure', 'top'], ['siteveg', 'top'], ['terrain', 'top'],
 ];
 export function paintGroup(ctx, s, T, gid, phase, o) {
   const f = PAINTERS[gid] && PAINTERS[gid][phase];
@@ -197,6 +197,8 @@ const PAINTERS = {
       paintCanopies(ctx, s, T, o, (i) => s.inst.pl[i] >= 0, false);
     },
   },
+  // computational space: a field shown in bands inside the scope beds, or the zones of the current computation
+  compute: { ground(ctx, s, T, o) { paintCompute(ctx, s, T, o); } },
   analysis: {
     ground(ctx, s, T, o) {
       if (o.texture) { if (vis(s, 'analysis.slope')) drawRaster(ctx, s, T, 'slope', 0.65); else if (vis(s, 'analysis.pathdist')) drawRaster(ctx, s, T, 'pathdist', 0.65); return; }
@@ -366,4 +368,97 @@ function buildRaster(s, kind) {
   }
   cx.putImageData(img, 0, 0);
   return { canvas: cv, x0, x1, y0, y1, lo, hi };
+}
+
+// ---------------------------------------------------------------- computational space
+const ND = '#E2DED3';
+export function zoneStyle(cmp, key) {
+  const parts = key.split('|'); const R = cmp.rules;
+  const unknown = parts.includes('?');
+  const fill = parts[0] === '?' ? ND : rampSteps(ZONE_RAMP, R[0].breaks.length + 1)[+parts[0]];
+  const hatch = R[1] ? (parts[1] === '?' ? -1 : +parts[1]) : 0; // 0 none · 1 diagonal · 2 cross · 3+ dense cross · -1 no data
+  const dots = R[2] ? (parts[2] === '?' ? -1 : +parts[2]) : 0;  // 0 none · 1 dots · 2 dense dots · -1 no data
+  return { fill, hatch, dots, unknown };
+}
+export function fieldBandColor(f, bands, v) {
+  if (Number.isNaN(v) || v == null) return null;
+  const R = fieldRamp(f.id, f.hypothetical);
+  if (f.categorical) return v >= 0.5 ? R[4] : null;
+  if (bands.uniform) return R[3];
+  const k = Math.min(bands.n - 1, Math.max(0, Math.floor((v - bands.lo) / bands.step + 1e-9)));
+  return rampSteps(R, bands.n)[k];
+}
+function hatchIn(ctx, T, g, gap, color, width, angles) {
+  const b = bboxOf(g); const p0 = T(b[0], b[3]), p1 = T(b[2], b[1]);
+  const w = p1[0] - p0[0], h = p1[1] - p0[1]; if (w <= 0 || h <= 0) return;
+  ctx.save(); ctx.beginPath(); tracePoly(ctx, g, T); ctx.clip('evenodd'); ctx.beginPath();
+  for (const a of angles) for (let k = -h; k < w + gap; k += gap) {
+    if (a > 0) { ctx.moveTo(p0[0] + k, p1[1]); ctx.lineTo(p0[0] + k + h, p0[1]); } else { ctx.moveTo(p0[0] + k, p0[1]); ctx.lineTo(p0[0] + k + h, p1[1]); }
+  }
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke(); ctx.restore();
+}
+function dotsIn(ctx, T, g, gap, color, r) {
+  const b = bboxOf(g); const p0 = T(b[0], b[3]), p1 = T(b[2], b[1]);
+  ctx.save(); ctx.beginPath(); tracePoly(ctx, g, T); ctx.clip('evenodd'); ctx.beginPath(); ctx.fillStyle = color;
+  let row = 0;
+  for (let y = p0[1]; y < p1[1] + gap; y += gap, row++) for (let x = p0[0] + (row % 2 ? gap / 2 : 0); x < p1[0] + gap; x += gap) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); }
+  ctx.fill(); ctx.restore();
+}
+function paintCompute(ctx, s, T, o) {
+  const cs = s.compute; if (!cs || o.plate) return;
+  const D = cs.display; const scope = D.scope || [];
+  if (!scope.length) return;
+  const tex = !!o.texture; const sc = o.scale || 8;
+  const gap = tex ? 8 : Math.max(5, Math.min(9, sc * 0.6));
+  if (D.mode === 'field') {
+    const dc = cs.displayCells(); if (!dc) return;
+    const f = dc.field;
+    for (const part of dc.parts) {
+      const dom = part.dom; const bb = bboxOf(dom.geom); if (!inView(o, bb, 2)) continue;
+      ctx.save(); ctx.beginPath(); tracePoly(ctx, dom.geom, T); ctx.clip('evenodd');
+      if (!part.v) { // unknown field: paper-grey with a no-data cross hatch, never a value colour
+        fill(ctx, T, dom.geom, rgba(ND, 0.9)); ctx.restore(); hatchIn(ctx, T, dom.geom, gap, rgba(TOK.inkSoft, 0.55), tex ? 1.4 : 0.7, [1, -1]); continue;
+      }
+      const paths = new Map(); const nd = new Path2D();
+      for (let i = 0; i < dom.n; i++) {
+        const c = dom.c[i], r = dom.r[i]; const a = T(dc.ox + (c - 0.5) * dc.cs, dc.oy + (r + 0.5) * dc.cs), b = T(dc.ox + (c + 0.5) * dc.cs, dc.oy + (r - 0.5) * dc.cs);
+        const col = fieldBandColor(f, dc.bands, part.v[i]);
+        if (col == null) { if (Number.isNaN(part.v[i])) nd.rect(a[0], a[1], b[0] - a[0], b[1] - a[1]); continue; }
+        let P = paths.get(col); if (!P) paths.set(col, (P = new Path2D())); P.rect(a[0], a[1], b[0] - a[0], b[1] - a[1]);
+      }
+      ctx.globalAlpha = tex ? 0.9 : 0.84;
+      for (const [col, P] of paths) { ctx.fillStyle = col; ctx.fill(P); }
+      ctx.fillStyle = ND; ctx.fill(nd);
+      ctx.globalAlpha = 1;
+      if (!tex && sc >= 10) latticeLines(ctx, T, dom, dc, sc);
+      ctx.restore();
+    }
+  } else if (D.mode === 'zones' && cs.current) {
+    const cmp = cs.current;
+    for (const z of cmp.zones) {
+      const bb = z._bb || (z._bb = bboxOf(z.geometry)); if (!inView(o, bb, 2)) continue;
+      const st = zoneStyle(cmp, z.key);
+      ctx.save(); ctx.globalAlpha = tex ? 0.9 : 0.82; fill(ctx, T, z.geometry, st.fill); ctx.restore();
+      const ink = rgba(TOK.inkDeep, 0.62), lw = tex ? 1.5 : 0.85;
+      if (st.hatch === -1) hatchIn(ctx, T, z.geometry, gap, rgba(TOK.inkSoft, 0.6), lw, [1, -1]);
+      else if (st.hatch === 1) hatchIn(ctx, T, z.geometry, gap, ink, lw, [1]);
+      else if (st.hatch === 2) hatchIn(ctx, T, z.geometry, gap, ink, lw, [1, -1]);
+      else if (st.hatch >= 3) hatchIn(ctx, T, z.geometry, gap * 0.6, ink, lw, [1, -1]);
+      if (st.dots === -1) dotsIn(ctx, T, z.geometry, gap * 1.3, rgba(TOK.inkSoft, 0.7), tex ? 1.6 : 0.9);
+      else if (st.dots >= 1) dotsIn(ctx, T, z.geometry, st.dots >= 2 ? gap * 0.8 : gap * 1.3, rgba(TOK.inkDeep, 0.75), tex ? 2 : 1.1);
+      // a paper gap between neighbouring zones (no fill touches another)
+      ctx.beginPath(); tracePoly(ctx, z.geometry, T); ctx.strokeStyle = rgba(TOK.paper, 0.95); ctx.lineWidth = tex ? 2.6 : 1.4; ctx.stroke();
+    }
+    for (const z of cmp.zones) if (z.id === cs.hoverZone || z.key === cs.hoverKey) { ctx.beginPath(); tracePoly(ctx, z.geometry, T); ctx.setLineDash([4, 3]); ctx.strokeStyle = TOK.inkDeep; ctx.lineWidth = tex ? 3 : 1.6; ctx.stroke(); ctx.setLineDash([]); }
+  }
+  // the scope: every bed in it outlined in ink
+  for (const id of scope) { const b = s.getObject(id); if (!b) continue; ctx.beginPath(); tracePoly(ctx, b.geometry, T); ctx.strokeStyle = TOK.inkDeep; ctx.lineWidth = tex ? 3.2 : 1.6; ctx.stroke(); }
+}
+function latticeLines(ctx, T, dom, dc, sc) {
+  const bb = bboxOf(dom.geom); const cs = dc.cs;
+  const i0 = Math.floor((bb[0] - dc.ox) / cs + 0.5), i1 = Math.ceil((bb[2] - dc.ox) / cs + 0.5), j0 = Math.floor((bb[1] - dc.oy) / cs + 0.5), j1 = Math.ceil((bb[3] - dc.oy) / cs + 0.5);
+  ctx.beginPath();
+  for (let i = i0; i <= i1; i++) { const x = dc.ox + (i - 0.5) * cs; const a = T(x, bb[1]), b = T(x, bb[3]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+  for (let j = j0; j <= j1; j++) { const y = dc.oy + (j - 0.5) * cs; const a = T(bb[0], y), b = T(bb[2], y); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+  ctx.strokeStyle = rgba(TOK.paper, Math.min(0.55, 0.2 + sc / 80)); ctx.lineWidth = 1; ctx.stroke();
 }

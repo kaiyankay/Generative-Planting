@@ -14,7 +14,7 @@ export class Plan2D {
     this.pad = { l: 40, r: 40, t: 70, b: 76 };
     this.active = false;
     this._bind();
-    for (const ev of ['layers', 'selection', 'hover', 'model']) store.on(ev, () => this.request());
+    for (const ev of ['layers', 'selection', 'hover', 'model', 'compute']) store.on(ev, () => this.request());
   }
   setActive(a) { this.active = a; if (a) { this.resize(); this.request(); } }
   setIsolation(iso) { this.iso = iso; this.picker.scope = iso ? iso.group : null; this.request(); }
@@ -49,11 +49,11 @@ export class Plan2D {
   padFor() {
     const p = { ...this.pad };
     if (this.w < 760) { // phones: panels are bottom sheets, so fit into the space above them
-      for (const id of ['layers', 'inspector']) { const e = document.getElementById(id); if (e && !e.hidden) p.b = Math.max(p.b, this.h - e.getBoundingClientRect().top + 10); }
+      for (const id of ['layers', 'inspector', 'conditions']) { const e = document.getElementById(id); if (e && !e.hidden) p.b = Math.max(p.b, this.h - e.getBoundingClientRect().top + 10); }
       p.t = Math.max(p.t, 56); return p;
     }
     const lg = document.getElementById('layers'); if (lg && !lg.hidden) p.l = Math.max(p.l, lg.getBoundingClientRect().right + 16);
-    const ins = document.getElementById('inspector'); if (ins && !ins.hidden) p.r = Math.max(p.r, this.w - ins.getBoundingClientRect().left + 16);
+    for (const id of ['inspector', 'conditions']) { const e = document.getElementById(id); if (e && !e.hidden) p.r = Math.max(p.r, this.w - e.getBoundingClientRect().left + 16); }
     return p;
   }
   focus(id) {
@@ -113,7 +113,7 @@ export class Plan2D {
     if (this.showGrid || (this.iso && sc > 6)) this._grid();
     const o = { scale: sc, vb: this.viewBox(), focus: this.iso ? this.iso.group : null };
     for (const [gid, phase] of ORDER) {
-      if (!this.iso) { paintGroup(ctx, s, T, gid, phase, o); continue; }
+      if (!this.iso || gid === 'compute') { paintGroup(ctx, s, T, gid, phase, o); continue; }
       if (gid === this.iso.group) { paintGroup(ctx, s, T, gid, phase, o); continue; }
       const op = this.iso.overlays && this.iso.overlays[gid];
       if (op > 0) { ctx.save(); ctx.globalAlpha = op; paintGroup(ctx, s, T, gid, phase, { ...o, overlay: true }); ctx.restore(); }

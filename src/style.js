@@ -98,3 +98,25 @@ export function traceLine(ctx, geom, T) {
 }
 export const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif';
 export const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';
+
+// ---------------------------------------------------------------- computational space (Phase 01.3)
+// One-hue ordinal ramps for banded field display (7 steps, OKLCH L 0.73 → 0.36, validated with the data-viz
+// ordinal checks against the paper: monotone lightness, ΔL ≥ 0.06, light end ≥ 2:1). Distinct from species colours
+// and from the state colours (select = rust, hover = violet, draft = ochre).
+export const FIELD_RAMPS = {
+  'field.elevation': ['#BEA18C', '#AA8E7A', '#977C68', '#846A56', '#725845', '#604734', '#4F3724'],
+  'field.slope': ['#C3A35F', '#AF904C', '#9C7D38', '#896B24', '#77590A', '#624902', '#4D3905'],
+  'field.distance-to-path': ['#7AB3BA', '#67A0A6', '#548D93', '#427A80', '#2F686E', '#1C565D', '#03454B'],
+  'field.distance-to-edge': ['#99B182', '#869E70', '#748B5E', '#62784C', '#51663B', '#40552A', '#30441A'],
+  'field.distance-to-obstacle': ['#93AAC4', '#8097B0', '#6E859C', '#5C728A', '#4B6077', '#3A4F65', '#2A3E53'],
+  hypothetical: ['#B5A0B2', '#A18D9F', '#8E7A8C', '#7B6879', '#695667', '#574555', '#463444'],
+};
+// zones: the first condition's classes take indigo steps (ordinal), the second adds hatching, the third stipple,
+// so a zone is never told apart by colour alone and at most three colours meet on the map.
+export const ZONE_RAMP = ['#98A4DE', '#8591C9', '#737EB5', '#616CA1', '#505A8E', '#40487B', '#303769'];
+export function rampSteps(stops, n) {
+  if (n <= 1) return [stops[Math.floor(stops.length / 2)]];
+  if (n === 2) return [stops[1], stops[stops.length - 2]];
+  return Array.from({ length: n }, (_, k) => stops[Math.round((k * (stops.length - 1)) / (n - 1))]);
+}
+export function fieldRamp(fieldId, hypothetical = false) { return FIELD_RAMPS[fieldId] || (hypothetical ? FIELD_RAMPS.hypothetical : FIELD_RAMPS['field.distance-to-obstacle']); }

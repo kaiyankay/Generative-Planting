@@ -45,14 +45,21 @@ export class Scene3D {
     this._selectionLayer(); this._labels(opts.labelRoot); this._bind();
     store.on('layers', () => this._applyLayers());
     store.on('selection', () => this._applySelection());
+    store.on('layers', (e) => { if (e && e.view) this._applySelection(); }); // hide planting changes how high a bed outline sits
     store.on('hover', () => this._applyHover());
     store.on('model', () => this._onModel());
+    store.on('compute', () => { clearTimeout(this._cmpT); this._cmpT = setTimeout(() => this._repaintGround(), this.active === false ? 250 : 40); }); // fields and zones are painted on the terrain itself
     this._applyLayers();
     this.frames = 0; this.fps = 0; this._fpsT = performance.now();
     this._loop = this._loop.bind(this);
   }
 
   // ---- coordinate mapping
+  // screen position (client px) of a ground point, and the ground texture's pixel there (tests: overlays sit on the terrain)
+  screenOf(x, y) { const v = this.W(x, y).project(this.cam); const r = this.c.getBoundingClientRect(); return [r.left + ((v.x + 1) / 2) * r.width, r.top + ((1 - v.y) / 2) * r.height]; }
+  groundAt(clientX, clientY) { return this._ground({ clientX, clientY }); }
+  groundPixel(x, y) { const cv = this.groundCanvas; const sx = cv.width / (BOARD.x1 - BOARD.x0); return [...cv.getContext('2d').getImageData(Math.floor((x - BOARD.x0) * sx), Math.floor((BOARD.y1 - y) * sx), 1, 1).data]; }
+  repaintGroundNow() { clearTimeout(this._cmpT); this._repaintGround(); }
   W(x, y, dz = 0) { const z = this.s.sampleElevation(x, y); return new THREE.Vector3(x, ((z == null ? this.z0 : z) - this.z0) * this.VEX + dz, -y); }
   hY(x, y) { const z = this.s.sampleElevation(x, y); return ((z == null ? this.z0 : z) - this.z0) * this.VEX; }
 
@@ -503,8 +510,10 @@ export class Scene3D {
         else this._outline(g, C, 0.14, this.selGroup, o.role === 'matrix' ? 0.6 : 0.9);
       } else if (o && !sel.point) {
         if (o.type === 'bed') focusBed = o.id;
+        // a bed outline is lifted above its plants; with nothing standing in it (empty or planting hidden) it lies on the ground
+        const bare = o.type === 'bed' && (s.view.hidePlanting || s.view.mode === 'terrain' || !(s.placementsByBed.get(o.id) || []).length);
         if (o.geometry && o.geometry.type === 'Point') this._marker(o.geometry.coordinates[0], o.geometry.coordinates[1], 1.5, C, this.selGroup);
-        else if (o.type !== 'site') this._outline(o.geometry, C, 0.22, this.selGroup, 0.9);
+        else if (o.type !== 'site') this._outline(o.geometry, C, 0.22, this.selGroup, bare ? 0.04 : 0.9);
       }
     }
     const t = s.inst;

@@ -1,0 +1,64 @@
+{
+  "schema": "generative-planting/compute-config",
+  "version": "0.1",
+  "note": "Configuration of the Computational Space. Nothing here is a planting rule. Field methods and their accuracy are listed so that results never claim more precision than the sources have; the thresholds under `experiments` are starting values for trying the space out and every call can override them.",
+  "lattice": {
+    "alignTo": "field.elevation",
+    "cellSizeM": 1,
+    "minCellSizeM": 1,
+    "why": "One lattice for the whole site, aligned with the USGS 3DEP 1 m DEM: a cell centre is a DEM sample point. Cells finer than the DEM are refused so the grid never suggests a precision the terrain data does not have."
+  },
+  "fields": {
+    "field.elevation": {
+      "name": "Elevation", "short": "Elevation", "units": "m", "decimals": 2, "status": "source", "dataKind": "source", "source": "S-3DEP",
+      "method": "Bilinear sample of the USGS 3DEP 1 m DEM at the cell's representative point (a DEM node for whole cells).",
+      "tolerance": 0.1, "toleranceBasis": "3DEP vertical accuracy is about 0.1 m: smaller differences are treated as equal."
+    },
+    "field.slope": {
+      "name": "Slope", "short": "Slope", "units": "°", "decimals": 1, "status": "derived", "dataKind": "inferred", "source": "S-3DEP",
+      "method": "Central difference of the DEM over the baseline below (2 m = ±1 m), in degrees.",
+      "baselineM": 2,
+      "tolerance": 1.5, "toleranceBasis": "A few centimetres of relative DEM noise over a 2 m baseline is about ±1.5°: smaller slope differences are not meaningful."
+    },
+    "field.distance-to-path": {
+      "name": "Distance to path", "short": "To path", "units": "m", "decimals": 1, "status": "derived", "dataKind": "inferred", "source": "S-OSM",
+      "method": "Exact planar distance to the nearest path polygon (gravel walks, grass walks, sidewalks); 0 inside a path.",
+      "tolerance": 0.5, "toleranceBasis": "Path and bed outlines from OpenStreetMap are good to about ±0.5 m."
+    },
+    "field.distance-to-edge": {
+      "name": "Distance to bed edge", "short": "To bed edge", "units": "m", "decimals": 1, "status": "derived", "dataKind": "inferred", "source": "S-OSM",
+      "method": "Exact planar distance from the point to the outline of its own bed (the planting boundary).",
+      "tolerance": 0.5, "toleranceBasis": "Bed outlines (steel edging, OSM) are good to about ±0.5 m."
+    },
+    "field.distance-to-obstacle": {
+      "name": "Distance to wall or structure", "short": "To wall / structure", "units": "m", "decimals": 1, "status": "derived", "dataKind": "inferred", "source": "S-OSM",
+      "method": "Exact planar distance to the nearest object on the layers below (walls, Carillon, memorial, boardwalk, swale, benches); 0 inside one.",
+      "layers": ["built.walls", "built.structures"],
+      "tolerance": 0.5, "toleranceBasis": "OpenStreetMap outlines, about ±0.5 m."
+    },
+    "field.canopy": {
+      "name": "Existing tree crown above", "short": "Tree crown", "units": null, "decimals": 0, "status": "derived", "dataKind": "inferred", "source": "S-NAIP",
+      "method": "1 where the point lies under an existing tree crown digitised from NAIP imagery (circle of the crown radius), else 0. A physical obstacle, not a sun or shade measurement.",
+      "categorical": true, "classes": [{ "value": 0, "label": "open" }, { "value": 1, "label": "under a tree crown" }],
+      "tolerance": 0, "toleranceBasis": "Crown outlines are circles fitted to aerial imagery."
+    },
+    "field.sun": { "name": "Sun / shade", "short": "Sun / shade", "units": null, "status": "unknown", "dataKind": null, "note": "No measured or modelled insolation. Unknown, never 0." },
+    "field.moisture": { "name": "Soil moisture", "short": "Soil moisture", "units": null, "status": "unknown", "dataKind": null, "note": "Hydrology zones are not mapped. Unknown, never 0." },
+    "field.ph": { "name": "Soil pH", "short": "Soil pH", "units": "pH", "status": "unknown", "dataKind": null, "note": "Not published. Unknown, never 0." }
+  },
+  "hypothetical": {
+    "hyp.low-ground-wetter": {
+      "name": "Hypothetical: lower ground is wetter", "short": "Hypothetical wetness", "units": "index 0–1", "decimals": 2,
+      "method": "relative-elevation-inverse",
+      "note": "A made-up test field for overlaying more than two conditions: 1 at the lowest point of the design beds, 0 at the highest. It is NOT soil moisture and NOT Detroit data.",
+      "tolerance": 0.05
+    }
+  },
+  "experiments": {
+    "note": "Starting thresholds for the acceptance experiment. They are experiments, not planting rules.",
+    "twoConditions": [
+      { "field": "field.slope", "breaks": [2] },
+      { "field": "field.distance-to-path", "breaks": [1.5] }
+    ]
+  }
+}

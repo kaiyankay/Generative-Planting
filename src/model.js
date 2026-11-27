@@ -7,6 +7,7 @@
 //               placements, plant-instance table and spatial index. Patches are validated and atomic.
 // Views read store.model / store.inst*, which always point at the ACTIVE scenario.
 
+import polygonClipping from '../vendor/polygon-clipping/polygon-clipping.esm.js';
 import {
   EPS, pointInGeom, distToGeom as gDist, bboxOf as gBbox, intersects, within, bboxPolygon, bboxOverlap,
   validateGeometry, areaOf, polysOf, pointsOf,
@@ -441,6 +442,7 @@ export class ModelStore extends Emitter {
       recipeId: recipe ? recipe.id : null, placementCount: placements.length, placementsByRole: byRole, instanceCount: instances,
       species: speciesIds.map((s) => { const r = this.getObject(s); return { id: s, name: r.canonicalKey, type: r.plantType }; }),
       conditionsAtCentroid: c ? this.sampleConditions(c[0], c[1]) : null,
+      conditionsInBed: bed && this.compute && this.compute.designBeds().some((u) => u.id === bed.id) ? this.compute.distribution(bed.id, { fields: ['field.elevation', 'field.slope', 'field.distance-to-path', 'field.distance-to-edge', 'field.canopy', 'field.sun', 'field.moisture', 'field.ph'] }) : null,
     };
   }
   // per-species tally of the active scenario (inspector, legend, tests)
@@ -793,15 +795,12 @@ const PLANTING_LAYERS = new Set(['structure.patches', 'structure.bulbs', 'veg.tr
 function cellKey(a, b) { return (a << 16) ^ (b & 0xffff); }
 function summarize(c) { return { placementsAdded: c.added.slice(), placementsRemoved: c.removed.slice(), placementsModified: c.modified.slice(), instancesAdded: c.instancesAdded.slice(), instancesRemoved: c.instancesRemoved, instancesChanged: c.instancesChanged }; }
 function compressRuns(a) { const out = []; for (let i = 0; i < a.length; i++) { const s = a[i]; while (i + 1 < a.length && a[i + 1] === a[i] + 1) i++; out.push(s === a[i] ? s : [s, a[i]]); } return out; }
-// interior overlap test (edge contact alone is allowed: a patch may share a bed edge with a path)
+// interior overlap test (edge contact alone is allowed: a patch may share a bed edge with a path).
+// Exact: the area of A ∩ B (polygon-clipping, holes included) must exceed 1 cm². A bed that sits in a hole of the
+// path polygon touches it and is allowed; a strip laid across a thin path overlaps it and is refused.
 function areaOverlapsInterior(A, B) {
-  for (const p of polysOf(A)) for (const r of p) for (let i = 0; i < r.length - 1; i++) {
-    const mx = (r[i][0] + r[i + 1][0]) / 2, my = (r[i][1] + r[i + 1][1]) / 2;
-    if (pointInGeom(B, mx, my) && distToGeom({ type: 'LineString', coordinates: polysOf(B).flat().flat().length ? polysOf(B)[0][0] : [] }, mx, my) > EPS * 10) return true;
-    if (pointInGeom(B, r[i][0], r[i][1]) && distToGeom({ type: 'LineString', coordinates: polysOf(B)[0][0] }, r[i][0], r[i][1]) > EPS * 10) return true;
-  }
-  for (const p of polysOf(B)) for (const q of p[0]) if (pointInGeom(A, q[0], q[1]) && distToGeom({ type: 'LineString', coordinates: polysOf(A)[0][0] }, q[0], q[1]) > EPS * 10) return true;
-  return false;
+  const co = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
+  try { return areaOf({ type: 'MultiPolygon', coordinates: polygonClipping.intersection(co(A), co(B)) }) > 1e-4; } catch { return true; } // undecidable geometry: refuse, never guess
 }
 // distance between two geometries (for radius queries); 0 when they intersect
 function geomDistanceFast(A, B) {

@@ -1,0 +1,66 @@
+{
+ "ok": 12,
+ "total": 12,
+ "results": [
+  {
+   "name": "B1 domain: cell parts tile the bed (shapely)",
+   "ok": true,
+   "detail": "232.820841 vs 232.820841"
+  },
+  {
+   "name": "field.elevation: min / max / area-weighted mean agree with the browser",
+   "ok": true,
+   "detail": "py 175.9706/176.4665/176.2076  js 175.9706/176.4665/176.2076"
+  },
+  {
+   "name": "field.slope: min / max / area-weighted mean agree with the browser",
+   "ok": true,
+   "detail": "py 0.1884/3.4150/1.2743  js 0.1884/3.415/1.2743"
+  },
+  {
+   "name": "field.distance-to-path: min / max / area-weighted mean agree with the browser",
+   "ok": true,
+   "detail": "py 0.0073/5.3043/2.1925  js 0.0073/5.3043/2.1925"
+  },
+  {
+   "name": "sun / soil moisture / pH stay unknown in the browser result",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "slope 2\u00b0 \u00d7 path 1.5 m: same zones with the same areas (\u00b10.05 m\u00b2)",
+   "ok": true,
+   "detail": "{\"py\": {\"0|0\": 72.26, \"0|1\": 137.0, \"1|0\": 15.56, \"1|1\": 8.0}, \"js\": {\"0|0\": 72.26, \"0|1\": 137, \"1|0\": 15.56, \"1|1\": 8}}"
+  },
+  {
+   "name": "zones tile B1 (browser vector geometry)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "uniform bed not split (TN elevation range below the DEM accuracy)",
+   "ok": true,
+   "detail": "{\"min\": 176.4906, \"max\": 176.5458, \"range\": 0.0552, \"tolerance\": 0.1, \"uniform\": true}"
+  },
+  {
+   "name": "blank design in B1: fields and zones unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Axo: zone vertices land on the terrain within 5 cm",
+   "ok": true,
+   "detail": "{\"view\": \"axo\", \"design\": \"working\", \"zoneVerticesTested\": 10, \"maxRoundTripErrorM\": 0.005624691052232723, \"elevationRangeOfB1\": 0.4959, \"verticalExaggeration\": 1.6}"
+  },
+  {
+   "name": "Reference restored identically",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "acceptance run without runtime errors",
+   "ok": true,
+   "detail": "[]"
+  }
+ ]
+}

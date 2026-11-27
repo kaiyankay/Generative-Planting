@@ -1,0 +1,1436 @@
+{
+ "runner": "headless Chrome (SwiftShader) over the DevTools protocol; real mouse input events",
+ "steps": [
+  {
+   "step": "0a",
+   "name": "first visit: the site preset (axonometric) before the workspace tools",
+   "screenshot": "docs/screenshots/phase-01-3/00a-entry-site-preset.png",
+   "data": {
+    "entered": false,
+    "view": "axo",
+    "preset": {
+     "id": "detroit",
+     "name": "Oudolf Garden Detroit",
+     "location": "Belle Isle, Detroit, Michigan",
+     "base": "data/detroit/",
+     "designer": "Piet Oudolf",
+     "status": "available"
+    },
+    "levels": {
+     "baseSite": {
+      "terrain": {
+       "source": "S-3DEP",
+       "cellSizeM": 1,
+       "cols": 361,
+       "rows": 261,
+       "zMin": 175.101,
+       "zMax": 177.328
+      },
+      "structures": 22,
+      "paths": 3,
+      "ok": true
+     },
+     "framework": {
+      "beds": 20,
+      "mainBeds": 15,
+      "designBeds": 20,
+      "designAreaM2": 8635.6,
+      "ok": true
+     },
+     "fields": [
+      {
+       "id": "field.elevation",
+       "name": "Elevation",
+       "status": "source",
+       "hypothetical": false
+      },
+      {
+       "id": "field.slope",
+       "name": "Slope",
+       "status": "derived",
+       "hypothetical": false
+      },
+      {
+       "id": "field.distance-to-path",
+       "name": "Distance to path",
+       "status": "derived",
+       "hypothetical": false
+      },
+      {
+       "id": "field.distance-to-edge",
+       "name": "Distance to bed edge",
+       "status": "derived",
+       "hypothetical": false
+      },
+      {
+       "id": "field.distance-to-obstacle",
+       "name": "Distance to wall or structure",
+       "status": "derived",
+       "hypothetical": false
+      },
+      {
+       "id": "field.canopy",
+       "name": "Existing tree crown above",
+       "status": "derived",
+       "hypothetical": false
+      },
+      {
+       "id": "field.sun",
+       "name": "Sun / shade",
+       "status": "unknown",
+       "hypothetical": false
+      },
+      {
+       "id": "field.moisture",
+       "name": "Soil moisture",
+       "status": "unknown",
+       "hypothetical": false
+      },
+      {
+       "id": "field.ph",
+       "name": "Soil pH",
+       "status": "unknown",
+       "hypothetical": false
+      },
+      {
+       "id": "hyp.low-ground-wetter",
+       "name": "Hypothetical: lower ground is wetter",
+       "status": "hypothetical",
+       "hypothetical": true
+      }
+     ],
+     "computation": {
+      "version": "0.1",
+      "lattice": {
+       "ox": -200,
+       "oy": -150,
+       "cellSize": 1,
+       "minCellSize": 1,
+       "alignedTo": "field.elevation",
+       "crs": "OGD-LOCAL-2026"
+      },
+      "cachedDomains": 0,
+      "current": null,
+      "readsPlanting": false,
+      "ok": true
+     },
+     "design": {
+      "scenario": "reference",
+      "placements": 2041,
+      "liveInstances": 20788,
+      "draft": null
+     }
+    }
+   }
+  },
+  {
+   "step": "0b",
+   "name": "Open site: the same axonometric becomes the workspace",
+   "screenshot": "docs/screenshots/phase-01-3/00b-workspace-entered.png",
+   "data": {
+    "entered": true,
+    "view": "axo",
+    "axoHome": true
+   }
+  },
+  {
+   "step": "1a",
+   "name": "click B1 in Axo: the bed is selected, its card shows the condition ranges across the bed",
+   "screenshot": "docs/screenshots/phase-01-3/01a-axo-select-b1.png",
+   "data": {
+    "selection": {
+     "id": "bed.B1",
+     "at": [
+      -33.74,
+      2.37
+     ]
+    },
+    "card": [
+     "Main Garden",
+     "Bed B1",
+     "Bed · Matrix (B)",
+     "232.8 m² · code B1 · 125 patches",
+     "",
+     "Elevation 175.97–176.47 m · slope 0.2–3.4° · 0–5.3 m to path"
+    ]
+   }
+  },
+  {
+   "step": "1b",
+   "name": "Conditions opens on B1 (scope = B1, 1 m terrain cells)",
+   "screenshot": "docs/screenshots/phase-01-3/01b-axo-conditions-b1.png",
+   "data": {
+    "conditions": {
+     "open": true,
+     "scope": [
+      "bed.B1"
+     ],
+     "show": null,
+     "field": null,
+     "rules": [
+      {
+       "field": "field.slope",
+       "breaks": [
+        2
+       ]
+      },
+      {
+       "field": "field.distance-to-path",
+       "breaks": [
+        1.5
+       ]
+      }
+     ],
+     "computation": {
+      "id": "cmp.8651b0e0",
+      "zones": 4,
+      "summary": [
+       {
+        "key": "0|0",
+        "label": "Slope < 2° · To path < 1.5 m",
+        "areaM2": 72.26,
+        "beds": [
+         "bed.B1"
+        ],
+        "share": 0.3104
+       },
+       {
+        "key": "0|1",
+        "label": "Slope < 2° · To path ≥ 1.5 m",
+        "areaM2": 137,
+        "beds": [
+         "bed.B1"
+        ],
+        "share": 0.5884
+       },
+       {
+        "key": "1|0",
+        "label": "Slope ≥ 2° · To path < 1.5 m",
+        "areaM2": 15.56,
+        "beds": [
+         "bed.B1"
+        ],
+        "share": 0.0668
+       },
+       {
+        "key": "1|1",
+        "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+        "areaM2": 8,
+        "beds": [
+         "bed.B1"
+        ],
+        "share": 0.0344
+       }
+      ],
+      "notes": [
+       "103.62 m² lie within ±0.75° of the slope threshold: their class is within the data's accuracy.",
+       "26 m² lie within ±0.25 m of the distance to path threshold: their class is within the data's accuracy."
+      ]
+     },
+     "point": null
+    },
+    "domain": {
+     "ok": true,
+     "scope": {
+      "bedIds": [
+       "bed.B1"
+      ],
+      "region": false
+     },
+     "cellSize": 1,
+     "lattice": {
+      "ox": -200,
+      "oy": -150,
+      "cellSize": 1,
+      "minCellSize": 1,
+      "alignedTo": "field.elevation",
+      "crs": "OGD-LOCAL-2026"
+     },
+     "areaM2": 232.821,
+     "cells": 274,
+     "wholeCells": 194,
+     "plantableAreaM2": 232.821,
+     "byBed": [
+      {
+       "bedId": "bed.B1",
+       "cells": 274,
+       "areaM2": 232.821,
+       "bedAreaM2": 232.821
+      }
+     ],
+     "ms": 0.1
+    }
+   }
+  },
+  {
+   "step": "2",
+   "name": "switch to Plan: same selection, same scope, same centre and scale",
+   "screenshot": "docs/screenshots/phase-01-3/02-plan-same-scope.png",
+   "data": {
+    "view": "plan",
+    "selection": {
+     "id": "bed.B1",
+     "at": [
+      -33.74,
+      2.37
+     ]
+    },
+    "scope": [
+     "bed.B1"
+    ],
+    "axoCentre": {
+     "x": -33.835,
+     "y": 2.8659999999999997,
+     "ppm": 28.03060282284659
+    },
+    "planCentre": {
+     "x": -33.835,
+     "y": 2.8659999999999997,
+     "ppm": 28.03060282284659
+    }
+   }
+  },
+  {
+   "step": "3",
+   "name": "Hide planting: the reference is only hidden (placements kept), B1's real outline stays",
+   "screenshot": "docs/screenshots/phase-01-3/03-plan-planting-hidden.png",
+   "data": {
+    "filter": "site",
+    "design": "reference",
+    "placementsInB1": 125,
+    "bedOutlineVisible": true,
+    "bedAreaM2": 232.8
+   }
+  },
+  {
+   "step": "4a",
+   "name": "elevation across B1, in bands no finer than its accuracy",
+   "screenshot": "docs/screenshots/phase-01-3/04a-b1-elevation.png",
+   "data": {
+    "min": 175.9706,
+    "p10": 176.04,
+    "p50": 176.22,
+    "p90": 176.36,
+    "max": 176.4665,
+    "mean": 176.2076,
+    "range": 0.4959,
+    "tolerance": 0.1,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      175.9706,
+      176.0326,
+      176.0946,
+      176.1566,
+      176.2186,
+      176.2806,
+      176.3425,
+      176.4045,
+      176.4665
+     ],
+     "areaM2": [
+      23.185,
+      32.309,
+      30.364,
+      29.291,
+      32.911,
+      55.605,
+      18.996,
+      10.16
+     ]
+    }
+   }
+  },
+  {
+   "step": "4b",
+   "name": "slope across B1, in bands no finer than its accuracy",
+   "screenshot": "docs/screenshots/phase-01-3/04b-b1-slope.png",
+   "data": {
+    "min": 0.1884,
+    "p10": 0.5729,
+    "p50": 1.1823,
+    "p90": 2.0045,
+    "max": 3.415,
+    "mean": 1.2743,
+    "range": 3.2266,
+    "tolerance": 1.5,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      0.1884,
+      0.5917,
+      0.995,
+      1.3984,
+      1.8017,
+      2.205,
+      2.6083,
+      3.0116,
+      3.415
+     ],
+     "areaM2": [
+      23.933,
+      53.266,
+      58.342,
+      51.98,
+      31.613,
+      7.865,
+      4.149,
+      1.672
+     ]
+    }
+   }
+  },
+  {
+   "step": "4c",
+   "name": "path across B1, in bands no finer than its accuracy",
+   "screenshot": "docs/screenshots/phase-01-3/04c-b1-path.png",
+   "data": {
+    "min": 0.0073,
+    "p10": 0.4268,
+    "p50": 2.0483,
+    "p90": 4.2767,
+    "max": 5.3043,
+    "mean": 2.1925,
+    "range": 5.297,
+    "tolerance": 0.5,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      0.0073,
+      0.6694,
+      1.3315,
+      1.9937,
+      2.6558,
+      3.3179,
+      3.98,
+      4.6422,
+      5.3043
+     ],
+     "areaM2": [
+      41.821,
+      37,
+      37,
+      32,
+      26,
+      26,
+      21,
+      12
+     ]
+    }
+   }
+  },
+  {
+   "step": "5",
+   "name": "slope 2° × distance to path 1.5 m: four zones that tile B1",
+   "screenshot": "docs/screenshots/phase-01-3/05-b1-zones-slope-path.png",
+   "data": {
+    "id": "cmp.8651b0e0",
+    "rules": [
+     {
+      "field": "field.slope",
+      "breaks": [
+       2
+      ],
+      "uncertainAreaM2": 103.62,
+      "uniformIn": []
+     },
+     {
+      "field": "field.distance-to-path",
+      "breaks": [
+       1.5
+      ],
+      "uncertainAreaM2": 26,
+      "uniformIn": []
+     }
+    ],
+    "summary": [
+     {
+      "key": "0|0",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 72.26,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.3104
+     },
+     {
+      "key": "0|1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 137,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.5884
+     },
+     {
+      "key": "1|0",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 15.56,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0668
+     },
+     {
+      "key": "1|1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 8,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0344
+     }
+    ],
+    "zones": [
+     {
+      "id": "zone.B1.0-0",
+      "bedId": "bed.B1",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 72.261,
+      "regions": 3,
+      "cells": 105,
+      "stats": {
+       "field.slope": {
+        "min": 0.188,
+        "max": 1.964,
+        "mean": 1.172
+       },
+       "field.distance-to-path": {
+        "min": 0.007,
+        "max": 1.494,
+        "mean": 0.752
+       }
+      }
+     },
+     {
+      "id": "zone.B1.0-1",
+      "bedId": "bed.B1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 137,
+      "regions": 1,
+      "cells": 137,
+      "stats": {
+       "field.slope": {
+        "min": 0.286,
+        "max": 1.921,
+        "mean": 1.138
+       },
+       "field.distance-to-path": {
+        "min": 1.518,
+        "max": 5.304,
+        "mean": 3.105
+       }
+      }
+     },
+     {
+      "id": "zone.B1.1-0",
+      "bedId": "bed.B1",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 15.56,
+      "regions": 5,
+      "cells": 24,
+      "stats": {
+       "field.slope": {
+        "min": 2.005,
+        "max": 3.415,
+        "mean": 2.467
+       },
+       "field.distance-to-path": {
+        "min": 0.051,
+        "max": 1.397,
+        "mean": 0.691
+       }
+      }
+     },
+     {
+      "id": "zone.B1.1-1",
+      "bedId": "bed.B1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 8,
+      "regions": 5,
+      "cells": 8,
+      "stats": {
+       "field.slope": {
+        "min": 2.065,
+        "max": 2.361,
+        "mean": 2.211
+       },
+       "field.distance-to-path": {
+        "min": 1.579,
+        "max": 3.551,
+        "mean": 2.495
+       }
+      }
+     }
+    ],
+    "notes": [
+     "103.62 m² lie within ±0.75° of the slope threshold: their class is within the data's accuracy.",
+     "26 m² lie within ±0.25 m of the distance to path threshold: their class is within the data's accuracy."
+    ],
+    "areaM2": 232.821,
+    "ms": 6.4
+   }
+  },
+  {
+   "step": "6a",
+   "name": "slope threshold changed 2° → 1°: zones recomputed",
+   "screenshot": "docs/screenshots/phase-01-3/06a-b1-threshold-1deg.png",
+   "data": {
+    "before": [
+     {
+      "key": "0|0",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 72.26,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.3104
+     },
+     {
+      "key": "0|1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 137,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.5884
+     },
+     {
+      "key": "1|0",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 15.56,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0668
+     },
+     {
+      "key": "1|1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 8,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0344
+     }
+    ],
+    "after": {
+     "id": "cmp.4dc8be18",
+     "threshold": [
+      1
+     ],
+     "summary": [
+      {
+       "key": "0|0",
+       "label": "Slope < 1° · To path < 1.5 m",
+       "areaM2": 28.2,
+       "beds": [
+        "bed.B1"
+       ],
+       "share": 0.1211
+      },
+      {
+       "key": "0|1",
+       "label": "Slope < 1° · To path ≥ 1.5 m",
+       "areaM2": 49,
+       "beds": [
+        "bed.B1"
+       ],
+       "share": 0.2105
+      },
+      {
+       "key": "1|0",
+       "label": "Slope ≥ 1° · To path < 1.5 m",
+       "areaM2": 59.62,
+       "beds": [
+        "bed.B1"
+       ],
+       "share": 0.2561
+      },
+      {
+       "key": "1|1",
+       "label": "Slope ≥ 1° · To path ≥ 1.5 m",
+       "areaM2": 96,
+       "beds": [
+        "bed.B1"
+       ],
+       "share": 0.4123
+      }
+     ],
+     "notes": [
+      "186.8 m² lie within ±0.75° of the slope threshold: their class is within the data's accuracy.",
+      "26 m² lie within ±0.25 m of the distance to path threshold: their class is within the data's accuracy."
+     ]
+    }
+   }
+  },
+  {
+   "step": "6b",
+   "name": "uniform ground is not split: TN's elevation varies less than the DEM accuracy, so a threshold inside its range leaves it whole",
+   "screenshot": "docs/screenshots/phase-01-3/06b-tn-uniform-no-split.png",
+   "data": {
+    "bed": "bed.TN",
+    "elevation": {
+     "min": 176.4906,
+     "max": 176.5458,
+     "range": 0.0552,
+     "tolerance": 0.1,
+     "uniform": true
+    },
+    "threshold": 176.518,
+    "zones": 1,
+    "notes": [
+     "Elevation varies less than its accuracy (0.1 m) in TN: not split there."
+    ],
+    "inPanel": {
+     "id": "cmp.a1ffbfb4",
+     "zones": 1,
+     "summary": [
+      {
+       "key": "0",
+       "label": "Elevation < 176.52 m",
+       "areaM2": 5.71,
+       "beds": [
+        "bed.TN"
+       ],
+       "share": 1
+      }
+     ],
+     "notes": [
+      "Elevation varies less than its accuracy (0.1 m) in TN: not split there."
+     ]
+    }
+   }
+  },
+  {
+   "step": "6c",
+   "name": "the same bed shown as a field: one band, marked uniform (no colour stretch over noise)",
+   "screenshot": "docs/screenshots/phase-01-3/06c-tn-uniform-field.png",
+   "data": {
+    "field": {
+     "field": "field.elevation",
+     "name": "Elevation",
+     "units": "m",
+     "status": "source",
+     "dataKind": "source",
+     "hypothetical": false,
+     "source": "S-3DEP",
+     "method": "Bilinear sample of the USGS 3DEP 1 m DEM at the cell's representative point (a DEM node for whole cells).",
+     "tolerance": 0.1,
+     "toleranceBasis": "3DEP vertical accuracy is about 0.1 m: smaller differences are treated as equal.",
+     "note": null,
+     "known": true,
+     "areaKnownM2": 5.71,
+     "areaUnknownM2": 0,
+     "min": 176.4906,
+     "max": 176.5458,
+     "range": 0.0552,
+     "mean": 176.5136,
+     "sd": 0.0154,
+     "p10": 176.4924,
+     "p50": 176.5195,
+     "p90": 176.5384,
+     "uniform": true,
+     "histogram": {
+      "edges": [
+       176.4906,
+       176.4975,
+       176.5044,
+       176.5113,
+       176.5182,
+       176.5251,
+       176.532,
+       176.5389,
+       176.5458
+      ],
+      "areaM2": [
+       0.725,
+       1.645,
+       0.185,
+       0.287,
+       1.82,
+       0,
+       0.969,
+       0.077
+      ]
+     },
+     "byBed": {
+      "bed.TN": {
+       "min": 176.4906,
+       "max": 176.5458,
+       "mean": 176.5136,
+       "range": 0.0552,
+       "uniform": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "step": "7",
+   "name": "blank working design in B1 only: B1 empty, neighbours keep their planting, fields and zones unchanged",
+   "screenshot": "docs/screenshots/phase-01-3/07-plan-blank-b1-zones-kept.png",
+   "data": {
+    "design": "working",
+    "draft": {
+     "from": "blank",
+     "scope": [
+      "bed.B1"
+     ],
+     "changes": 0,
+     "batches": 0,
+     "locks": [],
+     "dirty": true,
+     "saved": true
+    },
+    "placementsB1": 0,
+    "placementsA1": 141,
+    "zonesUnchanged": true,
+    "fieldsUnchanged": true,
+    "zones": [
+     {
+      "key": "0|0",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 72.26,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.3104
+     },
+     {
+      "key": "0|1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 137,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.5884
+     },
+     {
+      "key": "1|0",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 15.56,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0668
+     },
+     {
+      "key": "1|1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 8,
+      "beds": [
+       "bed.B1"
+      ],
+      "share": 0.0344
+     }
+    ]
+   }
+  },
+  {
+   "step": "8",
+   "name": "Axo: zones painted on the terrain surface, aligned with the bed outline (screen↔ground round trip)",
+   "screenshot": "docs/screenshots/phase-01-3/08-axo-zones-on-terrain.png",
+   "data": {
+    "view": "axo",
+    "design": "working",
+    "zoneVerticesTested": 10,
+    "maxRoundTripErrorM": 0.005624691052232723,
+    "elevationRangeOfB1": 0.4959,
+    "verticalExaggeration": 1.6
+   }
+  },
+  {
+   "step": "9",
+   "name": "Reference: the original planting is complete (same instance fingerprint)",
+   "screenshot": "docs/screenshots/phase-01-3/09-axo-reference-restored.png",
+   "data": {
+    "design": "reference",
+    "referenceFingerprint": {
+     "live": 20788,
+     "hash": "73a2b0ac"
+    },
+    "activeFingerprint": {
+     "live": 20788,
+     "hash": "73a2b0ac"
+    },
+    "placementsB1": 125,
+    "placements": 2041,
+    "workingDesignKept": true,
+    "identical": true
+   }
+  },
+  {
+   "step": "10a",
+   "name": "shift-click A1 and B2: one computation over three beds, every zone keeps its bed id",
+   "screenshot": "docs/screenshots/phase-01-3/10a-plan-three-beds.png",
+   "data": {
+    "scope": [
+     "bed.B1",
+     "bed.A1",
+     "bed.B2"
+    ],
+    "splits": {
+     "bed.B1": 4,
+     "bed.A1": 4,
+     "bed.B2": 3
+    },
+    "summary": [
+     {
+      "key": "0|0",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 235.24,
+      "beds": [
+       "bed.B1",
+       "bed.A1",
+       "bed.B2"
+      ],
+      "share": 0.3586
+     },
+     {
+      "key": "0|1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 376,
+      "beds": [
+       "bed.B1",
+       "bed.A1",
+       "bed.B2"
+      ],
+      "share": 0.5733
+     },
+     {
+      "key": "1|0",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 28.67,
+      "beds": [
+       "bed.B1",
+       "bed.A1"
+      ],
+      "share": 0.0437
+     },
+     {
+      "key": "1|1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 16,
+      "beds": [
+       "bed.B1",
+       "bed.A1",
+       "bed.B2"
+      ],
+      "share": 0.0244
+     }
+    ],
+    "perBed": [
+     {
+      "bed": "bed.B1",
+      "zones": [
+       [
+        "Slope < 2° · To path < 1.5 m",
+        72.261
+       ],
+       [
+        "Slope < 2° · To path ≥ 1.5 m",
+        137
+       ],
+       [
+        "Slope ≥ 2° · To path < 1.5 m",
+        15.56
+       ],
+       [
+        "Slope ≥ 2° · To path ≥ 1.5 m",
+        8
+       ]
+      ]
+     },
+     {
+      "bed": "bed.A1",
+      "zones": [
+       [
+        "Slope < 2° · To path < 1.5 m",
+        75.022
+       ],
+       [
+        "Slope < 2° · To path ≥ 1.5 m",
+        99
+       ],
+       [
+        "Slope ≥ 2° · To path < 1.5 m",
+        13.106
+       ],
+       [
+        "Slope ≥ 2° · To path ≥ 1.5 m",
+        7
+       ]
+      ]
+     },
+     {
+      "bed": "bed.B2",
+      "zones": [
+       [
+        "Slope < 2° · To path < 1.5 m",
+        87.957
+       ],
+       [
+        "Slope < 2° · To path ≥ 1.5 m",
+        140
+       ],
+       [
+        "Slope ≥ 2° · To path ≥ 1.5 m",
+        1
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "step": "10b",
+   "name": "All design beds: 20 beds, one computation",
+   "screenshot": "docs/screenshots/phase-01-3/10b-plan-all-design-beds.png",
+   "data": {
+    "beds": 20,
+    "zones": 70,
+    "areaM2": 8635.583,
+    "summary": [
+     {
+      "key": "0|0",
+      "label": "Slope < 2° · To path < 1.5 m",
+      "areaM2": 1012.76,
+      "beds": [
+       "bed.C1",
+       "bed.C2",
+       "bed.B1",
+       "bed.B2",
+       "bed.A1",
+       "bed.A2",
+       "bed.B3N",
+       "bed.B3S",
+       "bed.A3N",
+       "bed.A3S",
+       "bed.C3",
+       "bed.C4",
+       "bed.B4",
+       "bed.B5",
+       "bed.A4",
+       "bed.TN",
+       "bed.TE",
+       "bed.MW",
+       "bed.ME"
+      ],
+      "share": 0.1173
+     },
+     {
+      "key": "0|1",
+      "label": "Slope < 2° · To path ≥ 1.5 m",
+      "areaM2": 6336.67,
+      "beds": [
+       "bed.C1",
+       "bed.C2",
+       "bed.B1",
+       "bed.B2",
+       "bed.A1",
+       "bed.A2",
+       "bed.B3N",
+       "bed.B3S",
+       "bed.A3N",
+       "bed.A3S",
+       "bed.C3",
+       "bed.C4",
+       "bed.B4",
+       "bed.B5",
+       "bed.A4",
+       "bed.TE",
+       "bed.RG",
+       "bed.MW",
+       "bed.ME"
+      ],
+      "share": 0.7338
+     },
+     {
+      "key": "1|0",
+      "label": "Slope ≥ 2° · To path < 1.5 m",
+      "areaM2": 226.93,
+      "beds": [
+       "bed.C1",
+       "bed.B1",
+       "bed.A1",
+       "bed.A2",
+       "bed.B3N",
+       "bed.B3S",
+       "bed.A3N",
+       "bed.A3S",
+       "bed.C3",
+       "bed.B4",
+       "bed.B5",
+       "bed.A4",
+       "bed.TE",
+       "bed.ME"
+      ],
+      "share": 0.0263
+     },
+     {
+      "key": "1|1",
+      "label": "Slope ≥ 2° · To path ≥ 1.5 m",
+      "areaM2": 1059.23,
+      "beds": [
+       "bed.C1",
+       "bed.B1",
+       "bed.B2",
+       "bed.A1",
+       "bed.A2",
+       "bed.B3N",
+       "bed.B3S",
+       "bed.A3N",
+       "bed.A3S",
+       "bed.C3",
+       "bed.C4",
+       "bed.B4",
+       "bed.B5",
+       "bed.A4",
+       "bed.TE",
+       "bed.RG",
+       "bed.MW",
+       "bed.ME"
+      ],
+      "share": 0.1227
+     }
+    ],
+    "ms": 82.4
+   }
+  },
+  {
+   "step": "10c",
+   "name": "All design beds in Axo",
+   "screenshot": "docs/screenshots/phase-01-3/10c-axo-all-design-beds.png",
+   "data": {
+    "view": "axo"
+   }
+  }
+ ],
+ "distributionB1": {
+  "ok": true,
+  "scope": {
+   "bedIds": [
+    "bed.B1"
+   ],
+   "region": false
+  },
+  "cellSize": 1,
+  "areaM2": 232.821,
+  "cells": 274,
+  "fields": {
+   "field.elevation": {
+    "field": "field.elevation",
+    "name": "Elevation",
+    "units": "m",
+    "status": "source",
+    "dataKind": "source",
+    "hypothetical": false,
+    "source": "S-3DEP",
+    "method": "Bilinear sample of the USGS 3DEP 1 m DEM at the cell's representative point (a DEM node for whole cells).",
+    "tolerance": 0.1,
+    "toleranceBasis": "3DEP vertical accuracy is about 0.1 m: smaller differences are treated as equal.",
+    "note": null,
+    "known": true,
+    "areaKnownM2": 232.821,
+    "areaUnknownM2": 0,
+    "min": 175.9706,
+    "max": 176.4665,
+    "range": 0.4959,
+    "mean": 176.2076,
+    "sd": 0.1233,
+    "p10": 176.04,
+    "p50": 176.22,
+    "p90": 176.36,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      175.9706,
+      176.0326,
+      176.0946,
+      176.1566,
+      176.2186,
+      176.2806,
+      176.3425,
+      176.4045,
+      176.4665
+     ],
+     "areaM2": [
+      23.185,
+      32.309,
+      30.364,
+      29.291,
+      32.911,
+      55.605,
+      18.996,
+      10.16
+     ]
+    },
+    "byBed": {
+     "bed.B1": {
+      "min": 175.9706,
+      "max": 176.4665,
+      "mean": 176.2076,
+      "range": 0.4959,
+      "uniform": false
+     }
+    }
+   },
+   "field.slope": {
+    "field": "field.slope",
+    "name": "Slope",
+    "units": "°",
+    "status": "derived",
+    "dataKind": "inferred",
+    "hypothetical": false,
+    "source": "S-3DEP",
+    "method": "Central difference of the DEM over the baseline below (2 m = ±1 m), in degrees.",
+    "tolerance": 1.5,
+    "toleranceBasis": "A few centimetres of relative DEM noise over a 2 m baseline is about ±1.5°: smaller slope differences are not meaningful.",
+    "note": null,
+    "known": true,
+    "areaKnownM2": 232.821,
+    "areaUnknownM2": 0,
+    "min": 0.1884,
+    "max": 3.415,
+    "range": 3.2266,
+    "mean": 1.2743,
+    "sd": 0.5676,
+    "p10": 0.5729,
+    "p50": 1.1823,
+    "p90": 2.0045,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      0.1884,
+      0.5917,
+      0.995,
+      1.3984,
+      1.8017,
+      2.205,
+      2.6083,
+      3.0116,
+      3.415
+     ],
+     "areaM2": [
+      23.933,
+      53.266,
+      58.342,
+      51.98,
+      31.613,
+      7.865,
+      4.149,
+      1.672
+     ]
+    },
+    "byBed": {
+     "bed.B1": {
+      "min": 0.1884,
+      "max": 3.415,
+      "mean": 1.2743,
+      "range": 3.2266,
+      "uniform": false
+     }
+    }
+   },
+   "field.distance-to-path": {
+    "field": "field.distance-to-path",
+    "name": "Distance to path",
+    "units": "m",
+    "status": "derived",
+    "dataKind": "inferred",
+    "hypothetical": false,
+    "source": "S-OSM",
+    "method": "Exact planar distance to the nearest path polygon (gravel walks, grass walks, sidewalks); 0 inside a path.",
+    "tolerance": 0.5,
+    "toleranceBasis": "Path and bed outlines from OpenStreetMap are good to about ±0.5 m.",
+    "note": null,
+    "known": true,
+    "areaKnownM2": 232.821,
+    "areaUnknownM2": 0,
+    "min": 0.0073,
+    "max": 5.3043,
+    "range": 5.297,
+    "mean": 2.1925,
+    "sd": 1.414,
+    "p10": 0.4268,
+    "p50": 2.0483,
+    "p90": 4.2767,
+    "uniform": false,
+    "histogram": {
+     "edges": [
+      0.0073,
+      0.6694,
+      1.3315,
+      1.9937,
+      2.6558,
+      3.3179,
+      3.98,
+      4.6422,
+      5.3043
+     ],
+     "areaM2": [
+      41.821,
+      37,
+      37,
+      32,
+      26,
+      26,
+      21,
+      12
+     ]
+    },
+    "byBed": {
+     "bed.B1": {
+      "min": 0.0073,
+      "max": 5.3043,
+      "mean": 2.1925,
+      "range": 5.297,
+      "uniform": false
+     }
+    }
+   },
+   "field.sun": {
+    "field": "field.sun",
+    "name": "Sun / shade",
+    "units": null,
+    "status": "unknown",
+    "dataKind": null,
+    "hypothetical": false,
+    "source": null,
+    "method": null,
+    "tolerance": 0,
+    "toleranceBasis": null,
+    "note": "No measured or modelled insolation. Unknown, never 0.",
+    "known": false,
+    "areaKnownM2": 0,
+    "areaUnknownM2": 232.821,
+    "min": null,
+    "max": null,
+    "mean": null,
+    "sd": null,
+    "uniform": null,
+    "histogram": null,
+    "byBed": {
+     "bed.B1": {
+      "known": false
+     }
+    }
+   }
+  },
+  "readsPlanting": false,
+  "ms": 0.8
+ },
+ "errors": [],
+ "levels": {
+  "baseSite": {
+   "terrain": {
+    "source": "S-3DEP",
+    "cellSizeM": 1,
+    "cols": 361,
+    "rows": 261,
+    "zMin": 175.101,
+    "zMax": 177.328
+   },
+   "structures": 22,
+   "paths": 3,
+   "ok": true
+  },
+  "framework": {
+   "beds": 20,
+   "mainBeds": 15,
+   "designBeds": 20,
+   "designAreaM2": 8635.6,
+   "ok": true
+  },
+  "fields": [
+   {
+    "id": "field.elevation",
+    "name": "Elevation",
+    "status": "source",
+    "hypothetical": false
+   },
+   {
+    "id": "field.slope",
+    "name": "Slope",
+    "status": "derived",
+    "hypothetical": false
+   },
+   {
+    "id": "field.distance-to-path",
+    "name": "Distance to path",
+    "status": "derived",
+    "hypothetical": false
+   },
+   {
+    "id": "field.distance-to-edge",
+    "name": "Distance to bed edge",
+    "status": "derived",
+    "hypothetical": false
+   },
+   {
+    "id": "field.distance-to-obstacle",
+    "name": "Distance to wall or structure",
+    "status": "derived",
+    "hypothetical": false
+   },
+   {
+    "id": "field.canopy",
+    "name": "Existing tree crown above",
+    "status": "derived",
+    "hypothetical": false
+   },
+   {
+    "id": "field.sun",
+    "name": "Sun / shade",
+    "status": "unknown",
+    "hypothetical": false
+   },
+   {
+    "id": "field.moisture",
+    "name": "Soil moisture",
+    "status": "unknown",
+    "hypothetical": false
+   },
+   {
+    "id": "field.ph",
+    "name": "Soil pH",
+    "status": "unknown",
+    "hypothetical": false
+   },
+   {
+    "id": "hyp.low-ground-wetter",
+    "name": "Hypothetical: lower ground is wetter",
+    "status": "hypothetical",
+    "hypothetical": true
+   }
+  ],
+  "computation": {
+   "version": "0.1",
+   "lattice": {
+    "ox": -200,
+    "oy": -150,
+    "cellSize": 1,
+    "minCellSize": 1,
+    "alignedTo": "field.elevation",
+    "crs": "OGD-LOCAL-2026"
+   },
+   "cachedDomains": 20,
+   "current": "cmp.206df793",
+   "readsPlanting": false,
+   "ok": true
+  },
+  "design": {
+   "scenario": "reference",
+   "placements": 2041,
+   "liveInstances": 20788,
+   "draft": {
+    "from": "blank",
+    "scope": [
+     "bed.B1"
+    ]
+   }
+  }
+ },
+ "ok": true
+}

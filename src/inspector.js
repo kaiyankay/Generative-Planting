@@ -26,7 +26,7 @@ export function renderInspector(store, sel, ctx) {
   if (!o) { el.hidden = true; return; }
   const kind = store.kindOf(sel.id);
   const crumbs = [];
-  let title = '', what = '', fact = '', body = '', status = o.status;
+  let title = '', what = '', fact = '', body = '', status = o.status, cond = '', canCond = false;
   const data = []; // ids, files and machine detail: only under Details › Data & sources
   const crumbFor = (id) => { const r = store.getObject(id); return r ? { id, label: r.name || r.id.replace('bed.', 'Bed ') } : null; };
   if (sel.point) {
@@ -80,6 +80,16 @@ export function renderInspector(store, sel, ctx) {
     }
     data.push(['Id', `<span class="mono">${esc(o.id)}</span>`]);
     if (rows.length || P.note || P.codeNote) body += sec(o.type === 'bed' ? 'Bed' : 'Properties', kv(rows) + (P.codeNote ? `<p class="note">${esc(P.codeNote)}</p>` : '') + (P.note ? `<p class="note">${esc(P.note)}</p>` : ''));
+    if (o.type === 'bed' && ctx.cs && ctx.cs.designBeds().some((b) => b.id === o.id)) {
+      const D = ctx.cs.distribution(o.id, { fields: ['field.elevation', 'field.slope', 'field.distance-to-path', 'field.distance-to-edge'] });
+      if (D.ok) {
+        const F = D.fields; const r = (f, d, u) => (f.known ? `${fmt(f.min, d)}–${fmt(f.max, d)}${u}` : '<span class="unk">no data</span>');
+        cond = `Elevation ${r(F['field.elevation'], 2, ' m')} · slope ${r(F['field.slope'], 1, '°')} · ${r(F['field.distance-to-path'], 1, ' m')} to path`;
+        canCond = true;
+        const row = (f, d, u) => `<tr><th>${esc(f.name)}</th><td>${f.known ? `${fmt(f.min, d)}` : '—'}</td><td>${f.known ? fmt(f.p50, d) : '—'}</td><td>${f.known ? fmt(f.max, d) : '—'}${f.known ? esc(u) : ''}${f.uniform ? ' <span class="unk">uniform</span>' : ''}</td></tr>`;
+        body += sec('Conditions in this bed', `<table class="dist"><thead><tr><th></th><th>min</th><th>median</th><th>max</th></tr></thead><tbody>${row(F['field.elevation'], 2, ' m')}${row(F['field.slope'], 1, '°')}${row(F['field.distance-to-path'], 1, ' m')}${row(F['field.distance-to-edge'], 1, ' m')}</tbody></table><p class="note">Over the whole bed, area-weighted on the 1 m terrain grid (${D.cells} cells) — not a single centre point. Sun, soil moisture and pH: no data.</p>`);
+      }
+    }
     if (o.type === 'bed' && P.style !== 'M') {
       const ctxp = store.getPlantingContext(o.id);
       const pls = store.placementsByBed.get(o.id) || [];
@@ -108,8 +118,8 @@ export function renderInspector(store, sel, ctx) {
   const cr = crumbs.filter(Boolean).map((c) => `<button data-id="${esc(c.id)}">${esc(c.label)}</button>`).join('<span class="sep">›</span>');
   const open = !!ctx.st.inspectorOpen;
   el.classList.toggle('compact', !open);
-  el.innerHTML = `<div class="ins-h"><button class="ins-x" aria-label="Clear selection" title="Clear selection (Esc)"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"/></svg></button>${cr ? `<div class="crumbs">${cr}</div>` : ''}<div class="ins-title">${esc(title)}</div><div class="ins-sub">${esc(what)}${fact ? `<span class="fact">${fact}</span>` : ''}</div><div class="badges">${design}${ev}</div>
-    <div class="actions"><button class="btn" data-act="more" aria-expanded="${open}">${open ? 'Less' : 'Details'}</button><button class="btn" data-act="focus">Zoom to</button>${kind !== 'object' || (o.type !== 'site' && o.parent) ? '<button class="btn" data-act="up" title="Select what contains it (Backspace)">Up</button>' : ''}</div></div>
+  el.innerHTML = `<div class="ins-h"><button class="ins-x" aria-label="Clear selection" title="Clear selection (Esc)"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"/></svg></button>${cr ? `<div class="crumbs">${cr}</div>` : ''}<div class="ins-title">${esc(title)}</div><div class="ins-sub">${esc(what)}${fact ? `<span class="fact">${fact}</span>` : ''}</div>${cond ? `<p class="ins-cond">${cond}</p>` : ''}<div class="badges">${design}${ev}</div>
+    <div class="actions">${canCond ? '<button class="btn primary" data-act="cond" title="Fields and zones inside this bed (C)">Conditions</button>' : ''}<button class="btn" data-act="more" aria-expanded="${open}">${open ? 'Less' : 'Details'}</button><button class="btn" data-act="focus">Zoom to</button>${kind !== 'object' || (o.type !== 'site' && o.parent) ? '<button class="btn" data-act="up" title="Select what contains it (Backspace)">Up</button>' : ''}</div></div>
     <div class="ins-body">${body}</div>`;
   el.hidden = false;
   el.querySelector('.ins-x').onclick = () => store.select(null);
@@ -121,6 +131,7 @@ export function renderInspector(store, sel, ctx) {
     try { await navigator.clipboard.writeText(JSON.stringify(rec, null, 2)); e.target.textContent = 'Copied'; } catch { e.target.textContent = 'Copy failed'; }
   };
   const up = el.querySelector('[data-act="up"]'); if (up) up.onclick = () => ctx.picker.up();
+  const cb = el.querySelector('[data-act="cond"]'); if (cb) cb.onclick = () => ctx.openConditions([o.id]);
   el.querySelectorAll('[data-dev]').forEach((b) => b.addEventListener('click', () => devAction(store, o, b.dataset.dev, el)));
 }
 // developer test entry (?dev=1, working design only): exercises the same validated patch API an AI client would use

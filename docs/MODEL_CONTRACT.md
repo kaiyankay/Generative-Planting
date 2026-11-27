@@ -1,4 +1,4 @@
-# Model contract — `generative-planting/spatial-model` v0.3 data · runtime API 0.5 (Phase 01.2, Site setup component)
+# Model contract — `generative-planting/spatial-model` v0.3 data · runtime API 0.6 (Phase 01.3, computational space)
 
 One JSON document (`data/detroit/model.json`) plus two binary buffers. The 2D plan, the 3D scene and any AI client read the same data; no view owns geometry.
 
@@ -144,6 +144,22 @@ frame.contentWindow.postMessage({ gp: 'call', id: 1, method: 'solo', args: ['com
 Bridged methods: `site, sites, getObject, getBedAt, queryObjects, query, sampleConditions, getPlantingContext, plantableAt, speciesTally, instancesOfPlacement, design, setDesign, createDraft, blankScopePreview, draftInfo, draftSummary, applyPatch, resetDraft, discardDraft, exportDraft, importDraft, diffDraft, viewState, setView, setViewFilter, setExploded, setPanel, fit, solo, exitSolo, setOverlay, layerGroups, setLayerGroup, select, selection`. In the page, the same object is `window.GP` (plus `on(type, fn)` for events). `tools/embed_check.html` is a QA fixture that exercises the bridge.
 
 Phase 01.1 calls keep working: `setMode('reference'|'canvas'|'terrain')` maps to design + show filter, `setView('layers')` to the exploded view, `openLayer` / `closeLayer` to `solo` / `exitSolo`.
+
+## Computational space (Phase 01.3)
+
+Five model levels — base site, planting framework, environmental fields, computational space, planting design —
+and the API for the first four (domains, distributions, zones, sampling, queries) are specified in
+[COMPUTATIONAL_SPACE.md](COMPUTATIONAL_SPACE.md). Levels 1–4 never read the planting design.
+API 0.6 adds: `spatialModel, fields, field, domain, cells, distribution, classify, computeZones, computation,
+clearComputation, zoneAt, queryZones, sampleAt, samplePoints, registerHypotheticalField, unregisterField,
+openConditions, closeConditions, conditions, setConditionScope, showField, showZones, hideConditionDisplay,
+setConditionRules, startBlank, enter, entered` (all plain-data ones are on the `postMessage` bridge).
+`getPlantingContext(bedId).conditionsInBed` is the distribution over the bed.
+
+Edit-API fix found by the carrying test: an area patch running along a bed edge was refused as "overlapping a path"
+when the bed sits in a hole of the path polygon (the old interior test only measured the outer ring). The test is
+now exact — area of patch ∩ obstacle (polygon-clipping, holes included) > 1 cm² — so edge contact is allowed and a
+patch over the East Meadow boardwalk is still refused.
 
 ## URL states
 

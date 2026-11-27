@@ -12,6 +12,8 @@ import { TOK, speciesPlanColor, RAMPS } from './style.js';
 import { GROUPS, GROUP, LAYER_NAME, groupVisible, groupLocked, setGroup } from './layers.js';
 import { getRaster } from './paint.js';
 import { renderInspector, renderAbout } from './inspector.js';
+import { ComputeSpace } from './compute.js';
+import { createConditions } from './conditions.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -30,6 +32,9 @@ async function loadPreset() {
 async function main() {
   const { preset, presets } = await loadPreset();
   const store = await ModelStore.load(preset.base);
+  // computational space (levels 1–4): built from the site, never from the planting design
+  let csCfg = null; try { const r = await fetch('data/compute.json'); if (r.ok) csCfg = await r.json(); } catch { /* built-in defaults */ }
+  const cs = new ComputeSpace(store, csCfg); store.compute = cs;
   const picker = new Picker(store);
   const app = $('#app');
   if (EMBED) app.classList.add('embed');
@@ -41,10 +46,17 @@ async function main() {
     scene = new Scene3D($('#c3d'), store, picker, { labelRoot: $('#labels3d'), preserve: params.has('shot'), quality: params.get('q') || 'high', vex: params.get('vex') === '1' ? 1 : 1.6 });
   } catch (err) { console.error('3D unavailable', err); }
 
-  const st = { view: scene ? '3d' : 'plan', explode: false, design: 'reference', filter: 'all', solo: null, soloFrom: null, autoOn: [], plateFocus: null, panel: false, inspectorOpen: false };
-  const ctx = { store, plan, scene, picker, st, dev: DEV };
+  const st = { view: scene ? '3d' : 'plan', explode: false, design: 'reference', filter: 'all', solo: null, soloFrom: null, autoOn: [], plateFocus: null, panel: false, inspectorOpen: false, entered: true };
+  const ctx = { store, plan, scene, picker, st, dev: DEV, cs, app };
   const bus = new EventTarget();
   const emit = (type, detail) => { bus.dispatchEvent(new CustomEvent(type, { detail })); if (EMBED && window.parent !== window) { try { window.parent.postMessage({ gp: 'event', type, detail: JSON.parse(JSON.stringify(detail ?? null)) }, '*'); } catch { /* not serialisable */ } } };
+  ctx.emit = emit;
+  ctx.syncUrl = () => syncUrl();
+  ctx.setFilter = (f) => setFilter(f);
+  ctx.startBlank = (scope) => startBlank(scope);
+  ctx.afterClose = () => { if (store.selection) renderInspector(store, store.selection, ctx); };
+  const cond = createConditions(ctx);
+  ctx.openConditions = (scope) => { const r = cond.open(scope); if (r.ok && plan) plan.request(); return r; };
 
   // ================================================================ canvas: Axo | Plan are two observations of one canvas
   function applyCanvas() {
@@ -120,11 +132,13 @@ async function main() {
     const dlg = $('#draftdlg'); const P = store.caseCfg.planting || {};
     const def = store.defaultBlankScope(); const opt = P.blankOptional || {};
     const dirty = store.draft && store.draft.ops.length;
+    const selBeds = st.an.open ? st.an.scope.slice() : (bedOfSel(store.selection) ? [bedOfSel(store.selection)] : []);
     dlg.innerHTML = `<div class="dlg-in"><h3 id="dlgTitle">Start a working design</h3>
       <p class="sub">The reference stays as it is. Your design is kept in this browser and can be exported.</p>
       <div class="choices">
         <button class="choice" data-a="copy"><b>From the reference planting</b><span>Copy the reconstructed planting and change it.</span></button>
         <button class="choice" data-a="blank"><b>Blank beds</b><span>Empty the ${def.length} main beds. Bed outlines, paths, existing trees, lawn, Rain Garden and meadows stay.</span></button>
+        ${selBeds.length ? `<button class="choice" data-a="blanksel"><b>Blank: ${esc(selBeds.map((b) => b.replace('bed.', '')).join(', '))} only</b><span>Empty only the selected bed${selBeds.length === 1 ? '' : 's'}; every other bed keeps the reference planting.</span></button>` : ''}
       </div>
       <details class="extra"><summary>Also empty…</summary><div class="opts">${Object.entries(opt).map(([u, n]) => `<label><input type="checkbox" data-u="${esc(u)}"> ${esc(n)}</label>`).join('')}</div></details>
       ${dirty ? `<p class="warn">This replaces your current working design (${store.draft.ops.length} change${store.draft.ops.length === 1 ? '' : 's'}). <button class="lnk" data-a="exp">Export it first</button></p>` : ''}
@@ -141,6 +155,7 @@ async function main() {
     };
     dlg.querySelector('[data-a=copy]').onclick = () => go('copy');
     dlg.querySelector('[data-a=blank]').onclick = () => go('blank');
+    const bs = dlg.querySelector('[data-a=blanksel]'); if (bs) bs.onclick = () => { const r = store.createDraft({ from: 'blank', scope: selBeds }); if (!r.ok) { const e = dlg.querySelector('.err'); e.textContent = `Could not start the design: ${r.error}`; e.hidden = false; return; } dlg.hidden = true; setDesign('working'); };
     dlg.querySelector('[data-a=copy]').focus();
   }
 
@@ -150,6 +165,7 @@ async function main() {
     st.filter = f;
     store.setViewState({ mode: f === 'terrain' ? 'terrain' : 'normal', hidePlanting: f === 'site' });
     renderPanel(); renderStatus(); syncUrl(); emit('view', api.viewState());
+    const hb = document.querySelector('#conditions [data-a=hide]'); if (hb) hb.checked = f !== 'all';
   }
   document.querySelectorAll('.filters button').forEach((b) => b.addEventListener('click', () => setFilter(b.dataset.f)));
 
@@ -363,8 +379,19 @@ async function main() {
   }
 
   // ================================================================ selection card, hover, coordinates
-  store.on('selection', (sel) => { renderInspector(store, sel, ctx); emit('selection', sel); });
-  store.on('model', () => renderInspector(store, store.selection, ctx));
+  let shiftDown = false;
+  window.addEventListener('pointerdown', (e) => { shiftDown = e.shiftKey; }, true);
+  const bedOfSel = (sel) => { if (!sel) return null; const o = store.getObject(sel.id); if (!o) return null; const id = o.type === 'bed' ? o.id : o.bedId || null; return id && cs.designBeds().some((b) => b.id === id) ? id : null; };
+  const showCard = (sel) => { if (st.an.open) { $('#inspector').hidden = true; return; } renderInspector(store, sel, ctx); };
+  store.on('selection', (sel) => {
+    if (st.an.open && sel) {
+      const b = bedOfSel(sel) || (sel.at ? (cs.designBeds().find((q) => store.getBedAt(sel.at[0], sel.at[1])?.id === q.id) || {}).id : null);
+      if (b && shiftDown) cond.toggleBed(b); else if (b && !st.an.scope.includes(b)) cond.setScope([b]);
+      cond.setPoint(sel.at || null);
+    } else if (st.an.open) cond.setPoint(null);
+    showCard(sel); emit('selection', sel);
+  });
+  store.on('model', () => { showCard(store.selection); if (st.an.open) cond.render(); });
   const coords = $('#coords');
   const showXY = (x, y) => { const z = store.sampleElevation(x, y); coords.textContent = `x ${x.toFixed(1)}  y ${y.toFixed(1)}  z ${z == null ? '—' : z.toFixed(2)} m`; };
   plan.onCursor = showXY;
@@ -388,6 +415,7 @@ async function main() {
     if (!menu.hidden) { closeMenu(); return true; }
     if (!$('#about').hidden) { $('#about').hidden = true; return true; }
     if (store.selection) { store.select(null); return true; }
+    if (st.an.open) { cond.close(); return true; }
     if (st.solo) { exitSolo(); return true; }
     if (st.explode) { if (st.plateFocus) focusPlate(null); else setExplode(false); return true; }
     if (st.panel) { setPanel(false); return true; }
@@ -405,6 +433,7 @@ async function main() {
     else if (e.key === '3' && scene) setExplode(true);
     else if ((e.key === 'e' || e.key === 'E') && scene) setExplode(!st.explode);
     else if (e.key === 'l' || e.key === 'L') setPanel(!st.panel);
+    else if (e.key === 'c' || e.key === 'C') { if (st.an.open) cond.close(); else { const b = bedOfSel(store.selection); if (b) ctx.openConditions([b]); } }
   });
 
   // ================================================================ URL state
@@ -419,13 +448,34 @@ async function main() {
     ov ? q.set('overlay', ov) : q.delete('overlay');
     st.explode && st.plateFocus ? q.set('layer', st.plateFocus) : q.delete('layer');
     st.panel ? q.set('panel', '1') : q.delete('panel');
+    if (st.an && st.an.open) {
+      q.set('cond', st.an.scope.length === cs.designBeds().length ? 'all' : st.an.scope.map((b) => b.replace(/^bed\./, '')).join(','));
+      st.an.show ? q.set('show', st.an.show === 'zones' ? 'zones' : st.an.field.replace(/^(field|hyp)\./, (m, k) => (k === 'hyp' ? 'hyp.' : ''))) : q.delete('show');
+      q.set('rules', st.an.rules.map((r) => `${r.field.replace(/^field\./, '')}:${r.breaks.join('/')}`).join(','));
+    } else for (const k of ['cond', 'show', 'rules']) q.delete(k);
     for (const k of ['explode', 'draft', 'then', 'mode']) q.delete(k);
     history.replaceState(null, '', u);
   }
 
+  // a blank working design in which only the given beds are empty (hiding the planting is a separate, view-only switch)
+  function startBlank(scope, { confirmReplace = true } = {}) {
+    const sc = cs.resolveScope(scope); if (!sc.ok) return sc;
+    if (confirmReplace && store.draft && store.draft.ops.length && !confirm(`Replace your working design (${store.draft.ops.length} change${store.draft.ops.length === 1 ? '' : 's'}) with a new one in which ${sc.bedIds.map((b) => b.replace('bed.', '')).join(', ')} ${sc.bedIds.length === 1 ? 'is' : 'are'} empty? The reference is not affected.`)) return { ok: false, error: 'cancelled' };
+    const r = store.createDraft({ from: 'blank', scope: sc.bedIds });
+    if (r.ok) setDesign('working', { silent: true });
+    if (st.an.open) cond.render();
+    return r;
+  }
+  // entry: the site preset first (axonometric), then the same workspace with its tools
+  function enterSite() {
+    if (st.entered) return true;
+    st.entered = true; app.classList.remove('at-entry'); $('#entry').hidden = true;
+    emit('entered', { site: preset.id }); return true;
+  }
+
   // ================================================================ API: same calls in the page (window.GP) and, embedded, over postMessage
   const api = {
-    version: store.model.project.version, api: '0.5', component: 'site-setup',
+    version: store.model.project.version, api: '0.6', component: 'site-setup',
     get model() { return store.model.project; },
     site: () => ({ ...preset }), sites: () => presets.map((p) => ({ ...p })),
     getObject: (id) => store.getObject(id), getBedAt: (x, y) => store.getBedAt(x, y),
@@ -461,13 +511,28 @@ async function main() {
     // compatibility with Phase 01.1 (Reference / Canvas / Terrain were one switch)
     mode: () => (st.filter === 'terrain' ? 'terrain' : st.design === 'working' ? 'canvas' : 'reference'),
     setMode: (m) => (m === 'terrain' ? (setFilter('terrain'), true) : (setFilter('all'), setDesign(m === 'canvas' ? 'working' : 'reference', { silent: true }))),
-    _store: store, _plan: plan, _scene: scene, _ui: st,
+    // computational space (levels 1–4; never reads the planting design)
+    spatialModel: () => cs.levels(), fields: () => cs.fields(), field: (id) => { const f = cs.field(id); return f ? { ...f, sample: undefined } : null; },
+    domain: (scope, o) => cs.domain(scope, o), cells: (scope, o) => cs.cells(scope, o), distribution: (scope, o) => cs.distribution(scope, o),
+    classify: (scope, spec) => cs.classify(scope, spec), computeZones: (scope, spec) => cs.run(scope, spec), computation: () => cs.current, clearComputation: () => cs.clear(),
+    zoneAt: (x, y) => { const z = cs.zoneAt(x, y); if (!z) return null; const { _bb, ...rest } = z; return rest; }, queryZones: (g, o) => cs.queryZones(g, o),
+    sampleAt: (x, y, o) => cs.sampleAt(x, y, o), samplePoints: (scope, o) => cs.samplePoints(scope, o),
+    registerHypotheticalField: (def) => cs.registerHypotheticalField(def), unregisterField: (id) => cs.unregisterField(id),
+    // the Conditions panel (view state)
+    openConditions: (scope) => ctx.openConditions(scope || (bedOfSel(store.selection) ? [bedOfSel(store.selection)] : 'bed.B1')), closeConditions: () => cond.close(),
+    conditions: () => cond.state(), setConditionScope: (scope) => (st.an.open ? cond.setScope(scope) : ctx.openConditions(scope)),
+    showField: (id) => cond.show(id ? 'field' : null, id), showZones: () => cond.show('zones'), hideConditionDisplay: () => cond.show(null),
+    setConditionRules: (rules) => cond.setRules(rules), startBlank: (scope) => startBlank(scope, { confirmReplace: false }),
+    enter: () => enterSite(), entered: () => st.entered,
+    _store: store, _plan: plan, _scene: scene, _ui: st, _cs: cs,
   };
   window.GP = api;
   // embedded in a workflow: the parent calls the same API by message; only plain-data methods are exposed
   const BRIDGE = new Set(['site', 'sites', 'getObject', 'getBedAt', 'queryObjects', 'query', 'sampleConditions', 'getPlantingContext', 'plantableAt', 'speciesTally', 'instancesOfPlacement',
     'design', 'setDesign', 'createDraft', 'blankScopePreview', 'draftInfo', 'draftSummary', 'applyPatch', 'resetDraft', 'discardDraft', 'exportDraft', 'importDraft', 'diffDraft',
-    'viewState', 'setView', 'setViewFilter', 'setExploded', 'setPanel', 'fit', 'solo', 'exitSolo', 'setOverlay', 'layerGroups', 'setLayerGroup', 'select', 'selection']);
+    'viewState', 'setView', 'setViewFilter', 'setExploded', 'setPanel', 'fit', 'solo', 'exitSolo', 'setOverlay', 'layerGroups', 'setLayerGroup', 'select', 'selection',
+    'spatialModel', 'fields', 'field', 'domain', 'cells', 'distribution', 'classify', 'computeZones', 'computation', 'clearComputation', 'zoneAt', 'queryZones', 'sampleAt', 'samplePoints',
+    'openConditions', 'closeConditions', 'conditions', 'setConditionScope', 'showField', 'showZones', 'hideConditionDisplay', 'setConditionRules', 'startBlank', 'entered']);
   window.addEventListener('message', (e) => {
     const m = e.data; if (!m || m.gp !== 'call' || e.source !== window.parent || window.parent === window) return;
     let reply;
@@ -500,7 +565,28 @@ async function main() {
     if (st.view === 'plan') { plan.focus(store.selection.id); if (params.get('z')) { plan.view.scale *= +params.get('z'); plan.request(); } }
     else if (scene) scene.focus(store.selection.id, +(params.get('z') || 1), true);
   }
+  const cq = params.get('cond');
+  if (cq) {
+    const scope = cq === 'all' ? 'all' : cq.split(',').filter(Boolean).map((b) => (b.startsWith('bed.') ? b : 'bed.' + b));
+    const rq = params.get('rules');
+    if (rq) { const rules = rq.split(',').filter(Boolean).map((t) => { const [f, v] = t.split(':'); return { field: f.startsWith('hyp.') ? f : 'field.' + f, breaks: (v || '0').split('/').map(Number) }; }).filter((r) => cs.field(r.field)); if (rules.length) st.an.rules = rules; }
+    if (ctx.openConditions(scope).ok) {
+      if (params.get('zoom') === '1') cond.zoomTo();
+      const sq = params.get('show');
+      if (sq === 'zones') cond.show('zones'); else if (sq) cond.show('field', sq.startsWith('hyp.') ? sq : 'field.' + sq);
+      if (params.get('at')) { const at = params.get('at').split(',').map(Number); if (at.length === 2 && at.every(isFinite)) cond.setPoint(at); }
+    }
+  }
   if (params.get('about') === '1') $('#btnSite').click();
+  // first visit without any state in the URL: the site preset is shown first, then entered
+  if (!EMBED && ![...params.keys()].length) {
+    st.entered = false; app.classList.add('at-entry'); // not 'entry': that is the card's own class
+    const e = $('#entry'); const beds = cs.designBeds(); const main = beds.filter((b) => 'ABC'.includes(b.props.style)).length;
+    e.innerHTML = `<p class="kicker">Site preset</p><h1>${esc(preset.name)}</h1><p class="loc">${esc(preset.location || '')}</p>
+      <ul class="facts"><li><b>${main}</b> planting beds${beds.length > main ? `, plus ${beds.length - main} meadow, rain-garden and edge beds` : ''}</li><li><b>1 m</b> terrain grid (USGS 3DEP)</li><li>Reference planting, reconstructed from the designer's plans</li></ul>
+      <button class="btn primary" id="btnEnter">Open site</button>`;
+    e.hidden = false; $('#btnEnter').onclick = enterSite; $('#btnEnter').focus();
+  }
   if (params.get('newdesign') === '1') openDraftDialog();
   st._noSync = false; syncUrl();
   renderDesign(); renderStatus();
