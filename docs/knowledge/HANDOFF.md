@@ -15,7 +15,7 @@
 | | |
 |---|---|
 | 工作目录 | 公开分支：`ARCH540/Generative-Planting-knowledge-public`。原本地分支：`ARCH540/Generative-Planting-knowledge`。两个都是 git worktree，与另一 Agent 的 `ARCH540/Generative-Planting` 分开 |
-| 分支 | **公开**：`feature/knowledge-workspace`，已推送到 kaiyankay/Generative-Planting。基于 main 3615e93，一个提交，只新增文件，另加 `.gitignore` 的几行。**未合并 main，网站不变。** **本地**：`feature/dynamic-knowledge-canvas`，保持原样，未 push，含完整历史 |
+| 分支 | **公开**：`feature/knowledge-workspace`，已推送到 kaiyankay/Generative-Planting。基于 main 3615e93，一个提交，只新增文件，另加 `.gitignore` 的几行。**2026-11-26 经 Kay 同意，main 已快进到这个提交（3615e93 → c0cc39f）；线上地址 https://kaiyankay.github.io/Generative-Planting/knowledge/ （只发布公开副本）。** **本地**：`feature/dynamic-knowledge-canvas`，保持原样，未 push，含完整历史 |
 | 回退 | tag `knowledge-phase-02a`（b844e8f）= 02A 版本。02A.1 的方案图在 `docs/knowledge/redesign-02a1/` |
 | 改动范围 | `knowledge/`、`tools/knowledge/`、`docs/knowledge/`、`docs/qa/knowledge_*`、`docs/screenshots/knowledge-02a1/`、`docs/screenshots/knowledge-02b/`。空间模型文件与基线 5a7062d 完全相同 |
 | 提交 | 1806595（精简，回退基础）→ 73c4095（Part A）→ Part B 单独提交 |
@@ -378,7 +378,7 @@ python3 -I tools/knowledge/record_ask.py
    - 配色：白底、#252A25、#82967D、#A8B8AE、#B66D48。
 
    是否认可？
-2. **发布与许可**：公开分支 `feature/knowledge-workspace` 已推送，但**未合并 main**，何时合并由你决定。Robertson 数字化表和 Metro Vancouver 原文引语仍只在本地研究副本里；如果确认了许可，可以改为发布完整副本，改动就是把 `build_seed.py` 里的 `RESTRICTED_SOURCES` 清空。另一个会话的集成分支（`Generative-Planting-design` 里的 `integration/design-prototype`）合并的是本地的 73c4095，那里面含有受限资料；以后集成进主网页时，应改为合并这个公开分支。
+2. **发布与许可**：公开分支 `feature/knowledge-workspace` 已推送，并已快进合并进 main，线上地址是 https://kaiyankay.github.io/Generative-Planting/knowledge/ 。Robertson 数字化表和 Metro Vancouver 原文引语仍只在本地研究副本里；如果确认了许可，可以改为发布完整副本，改动就是把 `build_seed.py` 里的 `RESTRICTED_SOURCES` 清空。另一个会话的集成分支（`Generative-Planting-design` 里的 `integration/design-prototype`）合并的是本地的 73c4095，那里面含有受限资料；以后集成进主网页时，应改为合并这个公开分支。
 3. **Robertson 的分类学核对**：由谁核对、何时核对。当前做法是带标记作为线索显示，符合你这次的要求。
 4. **两个分析参数**：探索性分组的阈值（0.25），以及共同属性的折叠比例（80%）。
 5. **Detroit 植物类型**：植物符号依赖空间模型物种表中的 `plantType`（该字段未标为 inferred）。是否接受？

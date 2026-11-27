@@ -14,6 +14,16 @@ Before and after pushing, every tracked text file was scanned for the 7 Metro Va
 
 The two screenshots that show that material stay local and are marked `localOnly` in their indexes.
 
+**Live (2026-11-26).** With Kay's go-ahead, main was fast-forwarded 3615e93 → c0cc39f. Pages served https://kaiyankay.github.io/Generative-Planting/knowledge/ about 40 s later. Checked in the browser pane:
+
+- The page loads the public copy `base-965bbf84fc2f`: 1083 records, 150 plants.
+- It never requests `data/local/`, which returns 404 there.
+- No console errors.
+- The Metro Vancouver records have no quote, and their locator says "kept in the local research copy".
+- Robertson shows its 38-plant chart and the kept-local note, with no row table.
+- Ask says "Claude · not connected", because the page runs without the knowledge server; "Ask Claude" is disabled.
+- The Design link opens the main site, which still returns 200.
+
 ## Part B — Claude integration (2026-11-26)
 
 | Suite | Result |
