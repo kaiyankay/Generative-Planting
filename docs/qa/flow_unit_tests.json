@@ -386,10 +386,10 @@
      "chosen": false,
      "evidence": [
       {
-       "id": "pk.mwynr15lltcn",
+       "id": "pk.mwys1mo65ra7",
        "statement": "TEST FIXTURE: flowers October to November, bees and moths visit",
        "source": "project",
-       "at": "2026-11-27T07:26:27.225Z",
+       "at": "2026-11-27T09:26:40.134Z",
        "uncertainty": "personal observation, not verified"
       }
      ],
@@ -670,8 +670,8 @@
  ],
  "passed": 42,
  "failed": 0,
- "ms": 7725,
- "when": "2026-11-27T07:26:29.157Z",
+ "ms": 7282,
+ "when": "2026-11-27T09:26:41.890Z",
  "runner": "headless Chrome (SwiftShader) over CDP, flow-tests.html",
  "errors": [
   "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8797/favicon.ico",

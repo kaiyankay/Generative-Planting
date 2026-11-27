@@ -34,6 +34,7 @@ export const ICON = {
   check: '<svg class="ic" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"/></svg>',
 };
 export function download(name, obj) {
+  try { window.__gpLastExport = { name, bytes: JSON.stringify(obj).length, at: new Date().toISOString() }; } catch { /* */ }
   const blob = new Blob([JSON.stringify(obj, null, 1)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }

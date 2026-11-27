@@ -18,6 +18,7 @@
 #app.flow .loading { font-family: var(--f-text); }
 .f-shell { position: absolute; inset: 0; pointer-events: none; z-index: 6; font-size: 13px; line-height: 1.45; }
 .f-shell > * { pointer-events: auto; }
+.f-shell [hidden], .f-shell[hidden] { display: none !important; } /* author display rules must not override hidden */
 .f-shell button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 .f-shell input, .f-shell select, .f-shell textarea { font: inherit; color: inherit; }
 .f-shell :focus-visible { outline: 1.5px solid var(--f-ink); outline-offset: 2px; }
@@ -124,10 +125,10 @@ table.members select { padding: 2px; font-size: 12px; }
 .diff .add { color: var(--f-botanic-ink); } .diff .rem { color: var(--f-warn); text-decoration: line-through; }
 details > summary { cursor: pointer; color: var(--f-ink-2); font-size: 12px; margin: 6px 0; }
 .issues { list-style: none; padding: 0; margin: 0; }
-.issues li button { width: 100%; text-align: left; padding: 7px 0; border-bottom: 1px solid var(--f-rule) !important; display: grid; grid-template-columns: 12px 1fr; gap: 6px; }
-.issues li button .dot { width: 8px; height: 8px; margin-top: 5px; background: var(--f-ink-4); }
-.issues li button .dot.gap { background: var(--f-warn); } .issues li button .dot.conflict { background: var(--f-mine); } .issues li button .dot.uncertain { background: transparent; border: 1px dashed var(--f-ink-3); }
-.issues li.sel button { background: var(--f-wash); }
+.issues li > button { width: 100%; text-align: left; padding: 7px 0; border-bottom: 1px solid var(--f-rule) !important; display: grid; grid-template-columns: 12px 1fr; gap: 6px; }
+.issues li > button .dot { width: 8px; height: 8px; margin-top: 5px; background: var(--f-ink-4); }
+.issues li > button .dot.gap { background: var(--f-warn); } .issues li > button .dot.conflict { background: var(--f-mine); } .issues li > button .dot.uncertain { background: transparent; border: 1px dashed var(--f-ink-3); }
+.issues li.sel > button { background: var(--f-wash); }
 .seg2 { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--f-rule-2); }
 .seg2 button { padding: 7px 4px; font-size: 12px; border-left: 1px solid var(--f-rule) !important; }
 .seg2 button:first-child { border-left: 0 !important; }
@@ -169,10 +170,11 @@ details > summary { cursor: pointer; color: var(--f-ink-2); font-size: 12px; mar
 @media (max-width: 900px) {
   #app.flow { --f-panel: 100vw; }
   #dpanel.f-panel { top: auto; height: 46%; width: 100%; border-left: 0; border-top: 1px solid var(--f-rule-2); }
-  #app.flow #c2d, #app.flow #c3d { height: calc(54% - var(--f-top)); }
+  #app.flow #c2d, #app.flow #c3d { height: calc(54% - var(--f-top) - var(--f-bottom)); }
   .f-steps button .lbl, .f-proj, .f-save { display: none; }
   .f-chip, .f-toast, .f-tl { transform: translateX(-50%); }
-  .f-tl { grid-template-columns: repeat(12, 1fr); width: calc(100% - 24px); bottom: calc(46% + 8px); }
-  .f-insp { left: 8px; right: 8px; width: auto; bottom: calc(46% + 8px); max-height: 30%; }
+  .f-tl { grid-template-columns: repeat(12, 1fr); width: calc(100% - 24px); bottom: calc(46% + var(--f-bottom) + 8px); }
+  .f-insp { left: 8px; right: 8px; width: auto; bottom: calc(46% + var(--f-bottom) + 8px); max-height: 30%; }
+  .f-toast { bottom: calc(46% + var(--f-bottom) + 8px); }
   .beds { grid-template-columns: repeat(5, 1fr); }
 }

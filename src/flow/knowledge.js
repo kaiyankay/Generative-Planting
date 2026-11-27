@@ -130,8 +130,9 @@ export function parseNote(text, catalogue) {
   const mm = MONTHS.map((m, i) => [m.toLowerCase(), i + 1]);
   const full = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
   const monthsIn = (s) => { const found = new Set(); full.forEach((m, i) => { if (s.includes(m)) found.add(i + 1); }); mm.forEach(([m, i]) => { if (new RegExp(`\\b${m}\\b`).test(s)) found.add(i); }); return [...found].sort((a, b) => a - b); };
-  const range = t.match(/(?:flowers?|blooms?|flowering)[^.]*?\b(?:from\s+)?([a-z]+)\s*(?:to|–|-|until|through)\s*([a-z]+)/);
-  if (range) { const a = monthsIn(range[1]), b = monthsIn(range[2]); if (a.length && b.length) { const ms = []; for (let m = a[0]; ; m = (m % 12) + 1) { ms.push(m); if (m === b[0] || ms.length > 12) break; } out.push({ attr: 'bloom', value: ms }); reasons.push(`month range "${range[1]}–${range[2]}"`); } }
+  const range = t.match(/(?:flowers?|blooms?|flowering)[^.]*?\b(?:from\s+)?([a-z]+)(?:\s+(?:to|until|through|till)\s+|\s*[–-]\s*)([a-z]+)/);
+  const rangeOK = range && monthsIn(range[1]).length && monthsIn(range[2]).length;
+  if (rangeOK) { const a = monthsIn(range[1]), b = monthsIn(range[2]); if (a.length && b.length) { const ms = []; for (let m = a[0]; ; m = (m % 12) + 1) { ms.push(m); if (m === b[0] || ms.length > 12) break; } out.push({ attr: 'bloom', value: ms }); reasons.push(`month range "${range[1]}–${range[2]}"`); } }
   else if (/flower|bloom/.test(t)) { const ms = monthsIn(t); if (ms.length) { out.push({ attr: 'bloom', value: ms }); reasons.push('months named with flowering'); } }
   const groups = GROUPS.filter((g) => t.includes(g.replace(/s$/, ''))); if (groups.length && /visit|pollinat|attract|feed|forag|bee|butterfl|moth|fly|flies|beetle|wasp|humming/.test(t)) { const g2 = groups.filter((g) => !(g === 'bees' && groups.includes('bumblebees') && !/\bbees?\b/.test(t.replace(/bumblebees?/g, '')))); out.push({ attr: 'pollinators', value: g2 }); reasons.push('pollinator group names'); }
   if (/\b(full sun|sunny|in sun)\b/.test(t)) { out.push({ attr: 'light', value: /part/.test(t) ? ['sun', 'part'] : ['sun'] }); reasons.push('light words'); }

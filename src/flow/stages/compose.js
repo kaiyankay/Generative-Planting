@@ -204,6 +204,7 @@ function bindEditor(F, el) {
     const uses = P.usesOf(E.mixId);
     if (!uses.length) { P.applyMixEdit(E.mixId, next, { scope: 'all' }); F.u.editor = null; F.toast(`${next.name} v${next.version} saved.`); F.render(); return; }
     E.save = { next, preview: P.previewMixEdit(E.mixId, next), selUses: [...F.u.cells].filter((c) => uses.includes(c)) }; F.renderPanel();
+    const box = [...F.panel.querySelectorAll('.cand')].pop(); if (box) box.scrollIntoView({ block: 'nearest' });
   });
   a('saveall', () => { const r = P.applyMixEdit(E.mixId, E.save.next, { scope: 'all' }); if (r.ok === false) { F.toast(r.errors.join('; '), { err: true }); return; } const n = E.save.next; F.u.editor = null; F.toast(`${n.name} v${n.version}: ${P.usesOf(n.id).length} cells rearranged; other cells unchanged.`); F.render(); });
   a('savevar', () => { const sel = E.save.selUses; const r = P.applyMixEdit(E.mixId, E.save.next, { scope: 'variant', cells: sel }); if (r.ok === false) { F.toast(r.errors.join('; '), { err: true }); return; } F.u.editor = null; F.toast(`Local variant applied to ${sel.length} cell${sel.length === 1 ? '' : 's'}; the shared mix and its other cells are unchanged.`); F.render(); });

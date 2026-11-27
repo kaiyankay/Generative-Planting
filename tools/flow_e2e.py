@@ -86,7 +86,7 @@ class Page:
         self("Input.insertText", text=text)
 
     def world(self, x, y):  # world metres -> client px in the active view
-        return self.js(f"(() => {{ const F = GPFlow; if (F.ctx.st.view === 'plan') return F.plan.T({x}, {y}); return F.scene.screenOf({x}, {y}); }})()")
+        return self.js(f"(() => {{ const F = GPFlow; if (F.ctx.st.view === 'plan') {{ const r = document.getElementById('c2d').getBoundingClientRect(); const p = F.plan.T({x}, {y}); return [p[0] + r.left, p[1] + r.top]; }} return F.scene.screenOf({x}, {y}); }})()")
 
     def settle(self):
         self.js("new Promise((r) => { const t = setTimeout(r, 2500); requestAnimationFrame(() => requestAnimationFrame(() => { clearTimeout(t); r(); })); })"); time.sleep(0.4)
@@ -179,8 +179,14 @@ def journey(P, base):
         P.click_el("#fnext"); P.wait("GPFlow.stage() === 'structure'"); return {"stage": S("GPFlow.stage()"), "view": S("GPFlow.ctx.st.view")}
     step("structure-start", "Click 'Continue to Structure'", "Structure stage; plan view; eligible beds outlined; prompt to select a bed", to_structure)
 
-    def click_bed(bed, logic):
+    def click_bed(bed, logic, via="canvas"):
         def fn():
+            if via == "list":
+                if S("!!document.querySelector('.bedlist') && !document.querySelector('.bedlist').open"): P.click_el(".bedlist summary")
+                P.click_el(f'[data-bed="{bed}"]'); P.wait(f"GPFlow.u.bed === '{bed}' && GPFlow.u.thumbs && Object.keys(GPFlow.u.thumbs).length === 3", 240)
+                P.click_el(f"[data-logic={logic}]"); P.wait(f"GPFlow.u.preview && GPFlow.u.preview.logic === '{logic}'")
+                pv = S("(() => { const p = GPFlow.u.preview; return { cells: p.cells.length, explanation: p.adaptation.explanation, params: p.params, notes: p.adaptation.notes }; })()")
+                return {**pv, "via": "bed list", "ok": pv["cells"] > 0}
             c = S(f"(() => {{ const o = GPFlow.store.getObject('{bed}'); const g = o.geometry.type === 'Polygon' ? o.geometry.coordinates[0] : o.geometry.coordinates[0][0]; let x = 0, y = 0; for (const p of g) {{ x += p[0]; y += p[1]; }} return [x / g.length, y / g.length]; }})()")
             sx, sy = P.world(*c); P.click(sx, sy)
             P.wait(f"GPFlow.u.bed === '{bed}' && GPFlow.u.thumbs && Object.keys(GPFlow.u.thumbs).length === 3", 120)
@@ -192,7 +198,8 @@ def journey(P, base):
 
     def confirm():
         P.click_el("[data-a=confirm]"); P.wait("!GPFlow.u.preview")
-        return {"cells": S("GPFlow.P.allCells().length"), "draft": S("GPFlow.store.draftInfo()"), "ok": S("GPFlow.P.allCells().length") > 0}
+        left = S("GPFlow.store.model.placements.filter(p => !p.id.startsWith('pl.dz.') && GPFlow.P.state.beds[p.bedId]).length")
+        return {"cells": S("GPFlow.P.allCells().length"), "draft": S("GPFlow.store.draftInfo()"), "referencePlacementsLeftInStructuredBeds": left, "ok": S("GPFlow.P.allCells().length") > 0 and left == 0}
     step("structure-B1-confirmed", "Click 'Confirm cells'", "Cells committed; B1 emptied in a working draft, other beds keep the reference", confirm)
 
     def back_forth():
@@ -204,7 +211,7 @@ def journey(P, base):
     step("structure-back-and-return", "Click '← Define', then 'Continue to Structure'", "Brief and cells unchanged", back_forth, shot=False)
     step("structure-A2-honeycomb", "Click bed A2 on the canvas, then Honeycomb", "Hex cells adapted to A2", click_bed("bed.A2", "honeycomb"))
     step("structure-A2-confirmed", "Confirm", "A2 cells committed; B1 unchanged", confirm)
-    step("structure-TE-organic", "Click the triangle bed TE (with an existing tree crown), then Organic patches", "Patches from a clipped Voronoi; crown inside the bed", click_bed("bed.TE", "organic"))
+    step("structure-TE-organic", "Click TE (triangle bed with an existing tree crown) in the bed list, then Organic patches", "Patches from a clipped Voronoi; crown inside the bed", click_bed("bed.TE", "organic", "list"))
     step("structure-TE-confirmed", "Confirm", "Three beds structured", confirm)
 
     def to_compose():
@@ -341,18 +348,23 @@ def journey(P, base):
 
     def save_export():
         P.type("#snapname", "First pass"); P.click_el("[data-a=snap]"); P.wait("GPFlow.P.snapshots().length === 1")
-        dl = tempfile.mkdtemp(); P("Page.setDownloadBehavior", behavior="allow", downloadPath=dl)
-        P.click_el("[data-a=export]")
+        dl = tempfile.mkdtemp()
+        try: P("Browser.setDownloadBehavior", behavior="allow", downloadPath=dl)
+        except RuntimeError: P("Page.setDownloadBehavior", behavior="allow", downloadPath=dl)
+        P.click_el("#dpanel [data-a=export]")
         f = None
         for _ in range(60):
             fs = [x for x in os.listdir(dl) if x.endswith(".json")]
             if fs: f = os.path.join(dl, fs[0]); break
             time.sleep(0.5)
+        method = "downloaded file"
         data = json.load(open(f)) if f else None
+        if data is None and S("!!window.__gpLastExport"):  # headless download not captured: read the same export object in the page
+            data = S("GPFlow.P.exportData()"); method = "in-page export object (headless download not captured); button produced " + json.dumps(S("window.__gpLastExport"))
         summary = None
         if data:
             i0 = data["instances"][0]
-            summary = {"file": os.path.basename(f), "bytes": os.path.getsize(f), "keys": list(data.keys()), "cells": len(data["cells"]), "mixes": len(data["mixes"]), "instances": len(data["instances"]), "firstInstance": i0, "caveats": len(data["caveats"]), "hasPerformance": bool(data.get("performance"))}
+            summary = {"method": method, "file": os.path.basename(f) if f else None, "bytes": os.path.getsize(f) if f else None, "keys": list(data.keys()), "cells": len(data["cells"]), "mixes": len(data["mixes"]), "instances": len(data["instances"]), "firstInstance": i0, "caveats": len(data["caveats"]), "hasPerformance": bool(data.get("performance"))}
         return {"snapshots": S("GPFlow.P.snapshots().map(s => s.name)"), "export": summary, "ok": bool(summary) and summary["instances"] == S("GPFlow.P.totals().plants") and i0.get("z") is not None}
     step("explore-save-export", "Type a snapshot name, click 'Save snapshot', click 'Export planting data'", "Snapshot read back from storage; export file with brief, cells, mixes, every plant x/y/z, performance, caveats", save_export)
 

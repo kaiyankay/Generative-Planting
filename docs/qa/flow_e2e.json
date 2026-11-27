@@ -1,0 +1,934 @@
+{
+ "runner": "headless Chrome (SwiftShader) over CDP; real mouse input on DOM controls and canvas",
+ "url": "http://127.0.0.1:8797/Generative-Planting/",
+ "knowledgeDb": "gp-knowledge-e2e-1795771601",
+ "started": "2026-11-27 02:26:41",
+ "steps": [
+  {
+   "n": 1,
+   "name": "define-first-visit",
+   "action": "Open the app with an empty browser profile",
+   "expected": "One project preselected, intent input and starters, Rules mode stated, no resume prompt, no site set-up page",
+   "actual": {
+    "stage": "define",
+    "resume": false,
+    "starters": 3,
+    "mode": "Rules mode \u2014 offline, no language model"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/01-define-first-visit.png",
+   "s": 26.1,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 2,
+   "name": "define-brief",
+   "action": "Click the starter 'Connected flower resources along the paths\u2026'",
+   "expected": "Explicit brief: pollinators + continuity on, what was read is shown",
+   "actual": {
+    "objectives": {
+     "flowering": true,
+     "pollinators": true,
+     "continuity": true,
+     "suitability": true
+    },
+    "months": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10
+    ],
+    "read": [
+     [
+      "pollinator / bee / butterfly",
+      "Pollinator resources (groups)"
+     ],
+     [
+      "connected / corridor / along paths",
+      "Connected resources in space"
+     ]
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/02-define-brief.png",
+   "s": 11.0,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 3,
+   "name": "define-layer-toggle",
+   "action": "Open Layers, hide 'Site vegetation'",
+   "expected": "Layer hidden in the view; the site query (crowns, distances) is unchanged",
+   "actual": {
+    "treesVisible": false,
+    "sampleBefore": "{\"elevation\":176.28,\"slope\":1.4321,\"pathDist\":0.3242,\"canopy\":0}",
+    "pointValuesAfter": "{\"field.elevation\":176.28,\"field.slope\":1.4321,\"field.distance-to-path\":0.3242,\"field.canopy\":0}"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/03-define-layer-toggle.png",
+   "s": 16.0,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 4,
+   "name": "define-unknowns",
+   "action": "Read the knowledge panel",
+   "expected": "Sources listed with counts; illustrative layer labelled not verified; unknown site data stated",
+   "actual": {
+    "text": "Coverage over the 240 plants of the site: flowering months 27 %, pollinator groups 22 %, light 27 %, moisture 43 % \u2014 27 % of plants carry illustrative values."
+   },
+   "result": "pass",
+   "s": 0.0,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 5,
+   "name": "structure-start",
+   "action": "Click 'Continue to Structure'",
+   "expected": "Structure stage; plan view; eligible beds outlined; prompt to select a bed",
+   "actual": {
+    "stage": "structure",
+    "view": "plan"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/05-structure-start.png",
+   "s": 3.6,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 6,
+   "name": "structure-B1-bands",
+   "action": "Click bed B1 on the canvas, then the Bands card",
+   "expected": "Numbered cells adapted to the bed, with the reason shown",
+   "actual": {
+    "cells": 13,
+    "explanation": "Bands parallel to the path along the bed (65.6 m of path edge) (99\u00b0), 2.5 m wide, cut into equal segments of about 7.5 m along their length.",
+    "params": {
+     "size": 2.5,
+     "angle": 99.3,
+     "seed": null,
+     "offset": 0,
+     "mode": "auto"
+    },
+    "notes": [
+     "Sun, soil moisture and pH have no data here: they do not shape the cells.",
+     "1 edge fragment (< 30 % of a cell) merged into a neighbour."
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/06-structure-B1-bands.png",
+   "s": 15.9,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 7,
+   "name": "structure-B1-confirmed",
+   "action": "Click 'Confirm cells'",
+   "expected": "Cells committed; B1 emptied in a working draft, other beds keep the reference",
+   "actual": {
+    "cells": 13,
+    "draft": {
+     "from": "blank",
+     "scope": [
+      "bed.B1"
+     ],
+     "changes": 0,
+     "batches": 0,
+     "locks": [],
+     "dirty": true,
+     "saved": true
+    },
+    "referencePlacementsLeftInStructuredBeds": 0
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/07-structure-B1-confirmed.png",
+   "s": 13.3,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 8,
+   "name": "structure-back-and-return",
+   "action": "Click '\u2190 Define', then 'Continue to Structure'",
+   "expected": "Brief and cells unchanged",
+   "actual": {
+    "briefSame": true,
+    "cellsSame": true,
+    "extraShot": "docs/screenshots/integrated-prototype/09-back-to-define-intact.png"
+   },
+   "result": "pass",
+   "s": 3.4,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 9,
+   "name": "structure-A2-honeycomb",
+   "action": "Click bed A2 on the canvas, then Honeycomb",
+   "expected": "Hex cells adapted to A2",
+   "actual": {
+    "cells": 25,
+    "explanation": "Cells parallel to the path along the bed (63.7 m of path edge) (103\u00b0), 3.5 m across.",
+    "params": {
+     "size": 3.5,
+     "angle": 103.3,
+     "seed": null,
+     "offset": [
+      0.25,
+      0.433
+     ],
+     "mode": "auto"
+    },
+    "notes": [
+     "Relief in the bed is 0.23 m: elevation is not used to orient or classify.",
+     "Sun, soil moisture and pH have no data here: they do not shape the cells.",
+     "9 edge fragments (< 30 % of a cell) merged into a neighbour."
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/09-structure-A2-honeycomb.png",
+   "s": 12.7,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 10,
+   "name": "structure-A2-confirmed",
+   "action": "Confirm",
+   "expected": "A2 cells committed; B1 unchanged",
+   "actual": {
+    "cells": 38,
+    "draft": {
+     "from": "blank",
+     "scope": [
+      "bed.A2",
+      "bed.B1"
+     ],
+     "changes": 0,
+     "batches": 0,
+     "locks": [],
+     "dirty": true,
+     "saved": true
+    },
+    "referencePlacementsLeftInStructuredBeds": 0
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/10-structure-A2-confirmed.png",
+   "s": 12.0,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 11,
+   "name": "structure-TE-organic",
+   "action": "Click TE (triangle bed with an existing tree crown) in the bed list, then Organic patches",
+   "expected": "Patches from a clipped Voronoi; crown inside the bed",
+   "actual": {
+    "cells": 19,
+    "explanation": "19 patches from a clipped Voronoi partition (Lloyd relaxation, 2 steps) of seed layout 3 of 6: the layout whose patches mix the fewest known site conditions (tree crown, path edge, elevation tercile) and leave the fewest slivers.",
+    "params": {
+     "size": 3.5,
+     "angle": null,
+     "seed": 3,
+     "offset": 0,
+     "mode": "auto"
+    },
+    "notes": [
+     "Sun, soil moisture and pH have no data here: they do not shape the cells."
+    ],
+    "via": "bed list"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/11-structure-TE-organic.png",
+   "s": 5.5,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 12,
+   "name": "structure-TE-confirmed",
+   "action": "Confirm",
+   "expected": "Three beds structured",
+   "actual": {
+    "cells": 57,
+    "draft": {
+     "from": "blank",
+     "scope": [
+      "bed.A2",
+      "bed.B1",
+      "bed.TE"
+     ],
+     "changes": 0,
+     "batches": 0,
+     "locks": [],
+     "dirty": true,
+     "saved": true
+    },
+    "referencePlacementsLeftInStructuredBeds": 0
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/12-structure-TE-confirmed.png",
+   "s": 11.8,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 13,
+   "name": "compose-start",
+   "action": "Click 'Continue to Compose'",
+   "expected": "First action is Suggest / Create a mix; cells shown unassigned (hatched)",
+   "actual": {
+    "task": "Start with a mix: a reusable recipe of plants, roles and proportions. You will paint it into the numbered cells.",
+    "primary": "btn-p"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/13-compose-start.png",
+   "s": 2.3,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 14,
+   "name": "compose-suggest",
+   "action": "Click 'Suggest mixes'",
+   "expected": "Rules-mode candidates with members, roles, proportions, coverage, rationale; labelled not AI",
+   "actual": {
+    "mode": "rules",
+    "recipes": [
+     {
+      "name": "Season-long pollinator mix",
+      "members": 8,
+      "months": [
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10
+      ]
+     },
+     {
+      "name": "Early and late season mix",
+      "members": 8,
+      "months": [
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10
+      ]
+     },
+     {
+      "name": "Structure-led mix",
+      "members": 8,
+      "months": [
+       4,
+       5,
+       6,
+       7,
+       8,
+       9
+      ]
+     }
+    ],
+    "target": {
+     "cells": 57,
+     "areaM2": 688.1,
+     "crownShare": 0.01,
+     "light": "open",
+     "pathEdgeShare": 0.24,
+     "moisture": "unknown",
+     "note": "Light is read from existing tree crowns (inference); soil moisture has no data."
+    }
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/14-compose-suggest.png",
+   "s": 2.7,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 15,
+   "name": "compose-accept",
+   "action": "Accept the first two candidates",
+   "expected": "Two mixes in the project library (origin: rules)",
+   "actual": {
+    "mixes": [
+     [
+      "mix.season.1",
+      "Season-long pollinator mix",
+      "rules",
+      8
+     ],
+     [
+      "mix.edges.2",
+      "Early and late season mix",
+      "rules",
+      8
+     ]
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/15-compose-accept.png",
+   "s": 23.8,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 16,
+   "name": "compose-auto",
+   "action": "Click 'Auto compose', check the preview, Accept",
+   "expected": "Every unassigned cell proposed; accept places real plant instances (model rows = project instances)",
+   "actual": {
+    "proposals": 57,
+    "by": {
+     "mix.edges.2": 28,
+     "mix.season.1": 29
+    },
+    "rule": "greedy marginal gain: coverage + continuity + balance + variety \u2212 conflict; ties by cell id, then mix id",
+    "plants": 3067,
+    "modelRows": 3067,
+    "previewShot": "docs/screenshots/integrated-prototype/16b-auto-compose-preview.png"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/16-compose-auto.png",
+   "s": 20.4,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 17,
+   "name": "compose-inspect-cell",
+   "action": "Click cell TE\u00b71 on the canvas (no brush)",
+   "expected": "Inspector opens only now: conditions (crown), mix, placed vs target",
+   "actual": {
+    "inspector": "Cell TE\u00b71\n\norganic \u00b7 9.96 m\u00b2 \u00b7 1 neighbours\n\nTree crown\nopen\nPath edge\n50 % within 1 m of a path\nElevation\n176.46\u2013176.48 m\nSun, moisture, pH\nno data\n\n Early and late season mix v1 auto\n\n45 of 45 plants placed (4.5 / m\u00b2).\n\nDeschampsia cespitosa \u2018Goldtau\u2019 16\nPycnanthemum virginianum 5\nAquilegia canadensis 4\nPhysostegia virginiana 4\nParthenium integrifolium 4\nSolidago riddellii 4\n+ 2 more\n\n14 plants "
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/17-compose-inspect-cell.png",
+   "s": 6.7,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 18,
+   "name": "compose-paint-drag",
+   "action": "Click 'Paint' on the second mix and drag across five A2 cells",
+   "expected": "One gesture = one assignment = one undo step; plants replaced in those cells only",
+   "actual": {
+    "cells": [
+     "c.A2.1",
+     "c.A2.2",
+     "c.A2.3",
+     "c.A2.4",
+     "c.A2.5"
+    ],
+    "assigned": [
+     "mix.edges.2",
+     "mix.edges.2",
+     "mix.edges.2",
+     "mix.edges.2",
+     "mix.edges.2"
+    ],
+    "undoSteps": 1
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/18-compose-paint-drag.png",
+   "s": 36.3,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 19,
+   "name": "compose-undo-redo-esc",
+   "action": "Click Undo, then Redo, then press Esc",
+   "expected": "Undo restores the previous plants, redo the painted ones; Esc leaves paint mode",
+   "actual": {
+    "after": "3072:ad117c91",
+    "undone": "3067:d7aabffc",
+    "redone": "3072:ad117c91",
+    "paintOff": true
+   },
+   "result": "pass",
+   "s": 17.6,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 20,
+   "name": "compose-3d",
+   "action": "Click 'Axo'",
+   "expected": "The same plants and cell tints in the existing 3D model (one record set for 2D and 3D)",
+   "actual": {
+    "view": "axo",
+    "rows": 3072,
+    "projectPlants": 3072
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/20-compose-3d.png",
+   "s": 22.7,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 21,
+   "name": "compose-edit-shared-mix",
+   "action": "Edit mix 1: type 'keep the grass matrix, increase spring bloom', Propose, Apply, Save \u2192 Update all",
+   "expected": "A patch, not a regeneration; preview of affected plants; only that mix's cells rearranged",
+   "actual": {
+    "matched": [
+     "keep the matrix: matrix members are not changed",
+     "spring bloom: add scilla-mischtschenkoana (known flowering Mar, Apr; source illustrative)",
+     "members already flowering then raised \u00d71.25"
+    ],
+    "preview": {
+     "before": 1551,
+     "after": 1569
+    },
+    "uses": 28,
+    "version": 2,
+    "otherCellsUnchanged": true,
+    "shots": [
+     "docs/screenshots/integrated-prototype/22-mix-edit-proposal.png",
+     "docs/screenshots/integrated-prototype/22-mix-edit-update-all-preview.png"
+    ]
+   },
+   "result": "pass",
+   "s": 11.3,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 22,
+   "name": "compose-add-knowledge",
+   "action": "Edit mix 2 \u2192 'add what you know' on a plant \u2192 type a note \u2192 Read my note \u2192 Save (this project)",
+   "expected": "Claims reviewed before saving; original words kept; project scope; committed design unchanged",
+   "actual": {
+    "plant": "sp.m-pycnanthemum-virginianum",
+    "claims": {
+     "bloom": [
+      10
+     ],
+     "pollinators": [
+      "moths"
+     ],
+     "light": []
+    },
+    "before": [
+     7,
+     8,
+     9
+    ],
+    "after": [
+     [
+      10
+     ],
+     "project",
+     "conflict"
+    ],
+    "record": {
+     "id": "pk.mwys8x1200xd",
+     "kind": "fact",
+     "plantId": "sp.m-pycnanthemum-virginianum",
+     "attr": "pollinators",
+     "value": [
+      "moths"
+     ],
+     "original": "Here it keeps flowering into October and I saw moths on it in the evening.",
+     "statement": "Here it keeps flowering into October and I saw moths on it in the evening.",
+     "uncertainty": "personal observation, not verified",
+     "scope": "project",
+     "source": "project",
+     "at": "2026-11-27T09:32:20.150Z"
+    },
+    "shot": "docs/screenshots/integrated-prototype/23-knowledge-add-review.png"
+   },
+   "result": "pass",
+   "s": 28.1,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 23,
+   "name": "explore-start",
+   "action": "Click 'Continue to Explore'",
+   "expected": "Same design, planting view by default",
+   "actual": {
+    "view": "planting",
+    "issues": [
+     "TE\u00b716: light conflict"
+    ]
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/23-explore-start.png",
+   "s": 23.4,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 24,
+   "name": "explore-pollinator-months",
+   "action": "Click 'Pollinators', then April, June, August on the timeline",
+   "expected": "Resource cells, groups and continuity per month from the placed plants; the design is not changed",
+   "actual": {
+    "byMonth": {
+     "4": {
+      "resource": 57,
+      "uncertain": 0,
+      "groups": [
+       "bees",
+       "bumblebees",
+       "butterflies",
+       "flies",
+       "hummingbirds"
+      ],
+      "components": 3
+     },
+     "6": {
+      "resource": 57,
+      "uncertain": 0,
+      "groups": [
+       "bees",
+       "beetles",
+       "bumblebees",
+       "flies",
+       "hummingbirds"
+      ],
+      "components": 3
+     },
+     "8": {
+      "resource": 57,
+      "uncertain": 0,
+      "groups": [
+       "bees",
+       "beetles",
+       "bumblebees",
+       "butterflies",
+       "flies",
+       "hummingbirds"
+      ],
+      "components": 3
+     }
+    },
+    "designUnchanged": true
+   },
+   "result": "pass",
+   "s": 17.7,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 25,
+   "name": "explore-views",
+   "action": "Click 'Adaptability', then 'Seasonality'",
+   "expected": "Match / conflict / uncertain from known traits; per-plant flowering in the month",
+   "actual": {
+    "shots": [
+     "docs/screenshots/integrated-prototype/25-adaptability.png",
+     "docs/screenshots/integrated-prototype/25-seasonality.png"
+    ],
+    "adapt": {
+     "match": 0,
+     "conflict": 1,
+     "uncertain": 56
+    }
+   },
+   "result": "pass",
+   "s": 6.6,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 26,
+   "name": "explore-issue-to-compose",
+   "action": "Click an issue, then its action (Edit mix / Reassign)",
+   "expected": "Returns to Compose with the mix or cells selected; then back to Explore",
+   "actual": {
+    "issue": {
+     "id": "fit.c.TE.16",
+     "type": "conflict",
+     "actions": [
+      "editMix",
+      "reassign"
+     ]
+    },
+    "action": "editMix",
+    "composeState": {
+     "editor": true,
+     "cells": [
+      "c.TE.16"
+     ],
+     "knowledge": false
+    },
+    "shots": [
+     "docs/screenshots/integrated-prototype/26-issue-selected.png",
+     "docs/screenshots/integrated-prototype/26-issue-to-compose.png"
+    ]
+   },
+   "result": "pass",
+   "s": 6.3,
+   "errorsSoFar": 0
+  },
+  {
+   "n": 27,
+   "name": "knowledge-workspace-and-back",
+   "action": "Click 'Knowledge' in the top bar, then 'Design'",
+   "expected": "Knowledge workspace over the design; back to the same stage and view",
+   "actual": {
+    "stageKept": true,
+    "shot": "docs/screenshots/integrated-prototype/27-knowledge-workspace.png"
+   },
+   "result": "pass",
+   "s": 5.7,
+   "errorsSoFar": 1
+  },
+  {
+   "n": 28,
+   "name": "explore-save-export",
+   "action": "Type a snapshot name, click 'Save snapshot', click 'Export planting data'",
+   "expected": "Snapshot read back from storage; export file with brief, cells, mixes, every plant x/y/z, performance, caveats",
+   "actual": {
+    "snapshots": [
+     "First pass"
+    ],
+    "export": {
+     "method": "downloaded file",
+     "file": "detroit-planting-design-1.json",
+     "bytes": 1026592,
+     "keys": [
+      "schema",
+      "exported",
+      "site",
+      "project",
+      "brief",
+      "knowledge",
+      "structure",
+      "cells",
+      "mixes",
+      "quantities",
+      "instances",
+      "performance",
+      "caveats"
+     ],
+     "cells": 57,
+     "mixes": 2,
+     "instances": 3090,
+     "firstInstance": {
+      "id": "c.B1.1#1",
+      "plantId": "sp.m-pycnanthemum-virginianum",
+      "cellId": "c.B1.1",
+      "mixId": "mix.season.1",
+      "mixVersion": 2,
+      "role": "seasonal",
+      "x": -27.623,
+      "y": -5.743,
+      "z": 176.01931111,
+      "spacingM": 0.48,
+      "seed": 1,
+      "proposal": true
+     },
+     "caveats": 5,
+     "hasPerformance": true
+    }
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/28-explore-save-export.png",
+   "s": 2.6,
+   "errorsSoFar": 1
+  },
+  {
+   "n": 29,
+   "name": "reload-resume",
+   "action": "Reload the page, click 'Resume this design'",
+   "expected": "Same brief, cells, mixes, assignments, plant positions and stage",
+   "actual": {
+    "fingerprint": [
+     "3090:f29859f0",
+     "3090:f29859f0"
+    ],
+    "mixes": [
+     [
+      "mix.season.1v2",
+      "mix.edges.2v1"
+     ],
+     [
+      "mix.season.1v2",
+      "mix.edges.2v1"
+     ]
+    ],
+    "modelRows": 3090,
+    "stage": "explore",
+    "brief": "Connected flower resources along the paths for bees and butterflies.",
+    "shot": "docs/screenshots/integrated-prototype/29-reload-resume-offer.png"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/29-reload-resume.png",
+   "s": 82.8,
+   "errorsSoFar": 1
+  },
+  {
+   "n": 30,
+   "name": "explore-compare",
+   "action": "Click 'Compare' on the snapshot",
+   "expected": "Same metric definitions side by side; knowledge-version difference flagged if any",
+   "actual": {
+    "table": "Now vs \u201cFirst pass\u201d\n\tsnapshot\tnow\nplants\t3,090\t3,090\nspecies\t10\t10\nbrief months with a resource\t7 / 7\t7 / 7\npollinator groups per month (mean)\t4.6\t4.6\nflowering known (plants)\t100 %\t100 %\n\nThe knowledge in use differs from the snapshot's: some differences come from knowledge, not design.\n\nClose"
+   },
+   "result": "pass",
+   "screenshot": "docs/screenshots/integrated-prototype/30-explore-compare.png",
+   "s": 0.9,
+   "errorsSoFar": 1
+  },
+  {
+   "n": 31,
+   "name": "narrow-layout",
+   "action": "Narrow the window to 820 px",
+   "expected": "Panel below the canvas; stepper numbers only",
+   "actual": {
+    "shot": "docs/screenshots/integrated-prototype/31-narrow-820.png"
+   },
+   "result": "pass",
+   "s": 4.6,
+   "errorsSoFar": 1
+  }
+ ],
+ "consoleErrors": [
+  "log: Failed to load resource: the server responded with a status of 404 (File not found) http://127.0.0.1:8797/Generative-Planting/knowledge/data/local/seed.json"
+ ],
+ "finished": "2026-11-27 02:34:51",
+ "passed": 31,
+ "failed": 0,
+ "shots": [
+  {
+   "file": "docs/screenshots/integrated-prototype/01-define-first-visit.png",
+   "caption": "01 define-first-visit: Open the app with an empty browser profile"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/02-define-brief.png",
+   "caption": "02 define-brief: Click the starter 'Connected flower resources along the paths\u2026'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/03-define-layer-toggle.png",
+   "caption": "03 define-layer-toggle: Open Layers, hide 'Site vegetation'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/05-structure-start.png",
+   "caption": "05 structure-start: Click 'Continue to Structure'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/06-structure-B1-bands.png",
+   "caption": "06 structure-B1-bands: Click bed B1 on the canvas, then the Bands card"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/07-structure-B1-confirmed.png",
+   "caption": "07 structure-B1-confirmed: Click 'Confirm cells'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/09-back-to-define-intact.png",
+   "caption": "08 structure-back-and-return: Click '\u2190 Define', then 'Continue to Structure'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/09-structure-A2-honeycomb.png",
+   "caption": "09 structure-A2-honeycomb: Click bed A2 on the canvas, then Honeycomb"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/10-structure-A2-confirmed.png",
+   "caption": "10 structure-A2-confirmed: Confirm"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/11-structure-TE-organic.png",
+   "caption": "11 structure-TE-organic: Click TE (triangle bed with an existing tree crown) in the bed list, then Organic patches"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/12-structure-TE-confirmed.png",
+   "caption": "12 structure-TE-confirmed: Confirm"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/13-compose-start.png",
+   "caption": "13 compose-start: Click 'Continue to Compose'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/14-compose-suggest.png",
+   "caption": "14 compose-suggest: Click 'Suggest mixes'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/15-compose-accept.png",
+   "caption": "15 compose-accept: Accept the first two candidates"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/16-compose-auto.png",
+   "caption": "16 compose-auto: Click 'Auto compose', check the preview, Accept"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/16b-auto-compose-preview.png",
+   "caption": "16 compose-auto: Click 'Auto compose', check the preview, Accept"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/17-compose-inspect-cell.png",
+   "caption": "17 compose-inspect-cell: Click cell TE\u00b71 on the canvas (no brush)"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/18-compose-paint-drag.png",
+   "caption": "18 compose-paint-drag: Click 'Paint' on the second mix and drag across five A2 cells"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/20-compose-3d.png",
+   "caption": "20 compose-3d: Click 'Axo'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/22-mix-edit-proposal.png",
+   "caption": "21 compose-edit-shared-mix: Edit mix 1: type 'keep the grass matrix, increase spring bloom', Propose, Apply, Save \u2192 Update all"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/22-mix-edit-update-all-preview.png",
+   "caption": "21 compose-edit-shared-mix: Edit mix 1: type 'keep the grass matrix, increase spring bloom', Propose, Apply, Save \u2192 Update all"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/23-explore-start.png",
+   "caption": "23 explore-start: Click 'Continue to Explore'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/23-knowledge-add-review.png",
+   "caption": "22 compose-add-knowledge: Edit mix 2 \u2192 'add what you know' on a plant \u2192 type a note \u2192 Read my note \u2192 Save (this project)"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/24-apr.png",
+   "caption": "24-apr"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/24-aug.png",
+   "caption": "24-aug"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/24-jun.png",
+   "caption": "24-jun"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/25-adaptability.png",
+   "caption": "25 explore-views: Click 'Adaptability', then 'Seasonality'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/25-seasonality.png",
+   "caption": "25 explore-views: Click 'Adaptability', then 'Seasonality'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/26-issue-selected.png",
+   "caption": "26 explore-issue-to-compose: Click an issue, then its action (Edit mix / Reassign)"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/26-issue-to-compose.png",
+   "caption": "26 explore-issue-to-compose: Click an issue, then its action (Edit mix / Reassign)"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/27-knowledge-workspace.png",
+   "caption": "27 knowledge-workspace-and-back: Click 'Knowledge' in the top bar, then 'Design'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/28-explore-save-export.png",
+   "caption": "28 explore-save-export: Type a snapshot name, click 'Save snapshot', click 'Export planting data'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/29-reload-resume-offer.png",
+   "caption": "29 reload-resume: Reload the page, click 'Resume this design'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/29-reload-resume.png",
+   "caption": "29 reload-resume: Reload the page, click 'Resume this design'"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/30-explore-compare.png",
+   "caption": "30 explore-compare: Click 'Compare' on the snapshot"
+  },
+  {
+   "file": "docs/screenshots/integrated-prototype/31-narrow-820.png",
+   "caption": "31 narrow-layout: Narrow the window to 820 px"
+  }
+ ]
+}

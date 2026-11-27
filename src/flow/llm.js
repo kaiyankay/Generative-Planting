@@ -16,6 +16,9 @@ export class MixReasoner {
     this.log = []; // provider mode of every request (honest record)
   }
   async probe() {
+    // the model gate exists only on the local server (tools/flow_server.py); static hosting has no endpoint to ask
+    const local = typeof location !== 'undefined' && (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) || /[?&]llm=1\b/.test(location.search));
+    if (!local && this.endpoint === 'api/flow/llm') { this.status = { mode: 'rules', live: false, checked: true, reasons: ['static hosting: no language-model server'], model: null }; return this.status; }
     try {
       const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2500);
       const r = await fetch(this.endpoint + '/status', { signal: ctl.signal, cache: 'no-store' }); clearTimeout(t);

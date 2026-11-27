@@ -82,7 +82,7 @@ function bind(F, el) {
   a('reseed', () => { F.u.params = { ...F.u.params, seed: (F.u.preview.params.seed || 1) + 6 }; regen(F); });
   a('auto', () => { F.u.params = {}; regen(F); });
   a('cancel', () => { F.u.preview = null; F.u.logic = F.P.state.beds[F.u.bed] ? F.P.state.beds[F.u.bed].logic : null; F.render(); });
-  const commit = (remap) => { const pv = F.u.preview; const r = F.P.commitStructure(F.u.bed, pv, { remap }); if (r && r.ok === false) { F.toast(r.error || 'not committed', { err: true }); return; } F.u.preview = null; F.u.thumbs = null; F.toast(`${pv.cells.length} cells confirmed in ${F.P.bedCode(pv.bedId)}.`); F.u.bed = null; F.render(); };
+  const commit = (remap) => { const pv = F.u.preview; const r = F.P.commitStructure(F.u.bed, pv, { remap }); if (r && r.ok === false) { F.toast(r.error || 'not committed', { err: true }); return; } F.u.preview = null; F.u.thumbs = null; F.toast(`${pv.cells.length} cells confirmed in ${F.P.bedCode(pv.bedId)}. Select another bed or continue.`); F.u.bed = null; F.ctx.fit(); F.render(); };
   a('confirm', () => commit('overlap')); a('confirmclear', () => commit('none'));
   a('unstructure', () => { const b = F.u.bed; F.P.removeStructure(b); F.u.bed = null; F.toast(`${F.P.bedCode(b)} shows the reference planting again (undo to restore your cells).`); F.render(); });
 }

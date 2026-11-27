@@ -118,7 +118,8 @@ density, ephemeral = coverage × density in drift; species split by weight (equa
 
 **Rules mode suggestion** (offline, deterministic):
 1. Target summary of the chosen cells: area, crown share → light class (open / mixed / under crown); moisture unknown.
-2. Candidates: catalogue plants (no trees, no lawn) minus "avoid" preferences; light conflicts are excluded, plants with
+2. Candidates: herbaceous catalogue plants (no trees, shrubs or plants with nominal spread > 1.2 m — a shrub at an individual
+   share would take most of a cell; woody plants are added by hand) minus "avoid" preferences; light conflicts are excluded, plants with
    unknown flowering or light are listed separately as uncertain.
 3. Three variants by greedy marginal coverage of the brief's (month × pollinator group) pairs (months only if groups are
    off): *season-long*, *early and late* (end months weighted ×2), *structure-led* (two structural plants first). Up to 7

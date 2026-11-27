@@ -27,7 +27,9 @@ export function suggestMixes({ brief, cells, K, prefs = [], max = 3, existingCou
   const months = brief.objectives.flowering && brief.objectives.flowering.on ? brief.objectives.flowering.months : [4, 5, 6, 7, 8, 9, 10];
   const wantGroups = brief.objectives.pollinators && brief.objectives.pollinators.on;
   const avoid = new Set(prefs.filter((p) => p.type === 'avoid').map((p) => p.plantId)); const favour = new Set(prefs.filter((p) => p.type === 'favour').map((p) => p.plantId));
-  const pool = K.catalogue().filter((s) => !avoid.has(s.id));
+  // Rules mode proposes herbaceous mixes: woody plants (shrubs, spread > 1.2 m) are left to the designer, because their
+  // individual share would take most of a cell's area (they can be added by hand in the editor)
+  const pool = K.catalogue().filter((s) => !avoid.has(s.id) && s.plantType !== 'shrub' && s.plantType !== 'tree' && (s.nominalSpreadM || 0.5) <= 1.2);
   const known = [], uncertain = [];
   for (const s of pool) {
     const t = K.traits(s.id); const lf = lightFit(t, target.light);
@@ -114,7 +116,8 @@ export function interpretEdit(text, mix, { K, months = [4, 5, 6, 7, 8, 9, 10] } 
     const want = season ? SEASON[season] : months; const cov = coverageOf(mix.members.map((m) => m.plantId), K, months);
     const score = (id) => { const tr = K.traits(id); if (tr.bloom.status === 'unknown' || tr.windPollinated === true) return 0; let s = 0; for (const m of tr.bloom.value) if (want.includes(m)) s += cov.months.includes(m) ? 0.5 : 1.5; if (group && tr.pollinators.status !== 'unknown' && tr.pollinators.value.includes(group)) s += 2; return s; };
     const already = [...inMix].filter((id) => score(id) > 0);
-    const cand = cat.map((s) => s.id).filter((id) => !inMix.has(id) && !changes.some((c) => c.plantId === id) && ![...inMix].some((x) => sameTaxon(x, id))).map((id) => [id, score(id)]).filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const herb = (id) => { const o = cat.find((s) => s.id === id); return o && o.plantType !== 'shrub' && o.plantType !== 'tree' && (o.nominalSpreadM || 0.5) <= 1.2; }; // automatic additions stay herbaceous (named additions are not limited)
+    const cand = cat.map((s) => s.id).filter((id) => herb(id) && !inMix.has(id) && !changes.some((c) => c.plantId === id) && ![...inMix].some((x) => sameTaxon(x, id))).map((id) => [id, score(id)]).filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     if (cand.length) { const id = cand[0][0]; const tr = K.traits(id); changes.push({ op: 'add', plantId: id, role: tr.role.status !== 'unknown' && tr.role.value !== 'matrix' ? tr.role.value : 'seasonal', proportion: 0.1 }); matched.push(`${season ? season + ' bloom' : group ? group : 'more flowering'}: add ${short(id)} (known flowering ${tr.bloom.value.map((m) => MONTHS[m - 1]).join(', ')}${group ? `, ${tr.pollinators.status !== 'unknown' ? tr.pollinators.value.join(', ') : 'groups unknown'}` : ''}; source ${tr.bloom.source})`); }
     for (const id of already.filter((id) => { const tr = K.traits(id); return tr.bloom.value.some((m) => want.includes(m)); }).slice(0, 3)) changes.push({ op: 'setProportion', plantId: id, proportion: (mix.members.find((m) => m.plantId === id).proportion) * 1.25 });
     if (already.length) matched.push(`members already flowering then raised ×1.25`);

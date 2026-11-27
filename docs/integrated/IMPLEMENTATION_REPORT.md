@@ -66,7 +66,22 @@ the live path is untested against a model.** Validation with invalid answers is 
 
 ## 6 · Tests
 
-RESULTS_PLACEHOLDER
+All in a real browser (headless Chrome, SwiftShader WebGL, DevTools protocol), on the real Detroit model. Full step
+table, actual values and screenshots: [../qa/FLOW_E2E.md](../qa/FLOW_E2E.md); raw records `docs/qa/flow_unit_tests.json`,
+`docs/qa/flow_e2e.json`.
+
+| Gate | Evidence | Result |
+|---|---|---|
+| 0 audit / preserve | [IMPLEMENTATION_MAP.md](IMPLEMENTATION_MAP.md); baseline tag; `test_model.py` 23/23 (model bytes unchanged); `test_seed.py` 31/31; D6 reference planting not overwritten | pass |
+| 1 first-time user (P0) | journey steps 1–31 from an empty browser profile with real mouse input: brief, layer toggle with unchanged site query, B1 Bands by canvas click, back to Define and return, A2 honeycomb, TE organic, Rules-mode suggestion, Auto compose, inspector, paint drag, undo / redo / Esc, 3D, Explore months, issue → Compose, Knowledge and back, snapshot, export file inspected, reload + resume with identical plant fingerprint, compare, narrow layout | **31 / 31 pass** |
+| 2 converging branches (P0) | engine tests S1–S9, A1–A2, M1, D1–D5, D10 (valid geometry for all three logics, holes, determinism, objective- and context-driven adaptation on labelled fixtures, adjacency, largest remainder, arrangement inside cells and off trunks, one gesture = one undo, Auto compose scope, update-all vs local variant, logic change with remap, new plant) | **42 / 42 pass** (engine tests, all gates) |
+| 3 knowledge (P0) | K1–K8, L1–L2 (first use without personal records, knowledge change → recipe change, project scope isolation, personal note saved and used, visible conflict + scoped choice, explicit intent reading, bounded edit parser, refusal of invalid model answers, Rules mode on a static page, no key in the client) | included above |
+| 4 performance (P0) | P1–P6, D9 (known example {Apr, May} / {Jun, Jul}, replacement changes coverage, unknown → uncertain, adjacency vs separation, empty design, known mismatch vs unknown, timeline never changes the design) | included above |
+| 5 interface / regressions (P0) | four stages only; layers closed by default; inspector only on selection; one primary action; existing site suite on `?classic=1`: **177 / 177** (`docs/qa/browser_tests_classic.json`) | pass — see note |
+
+Console during the journey: one line, `knowledge/data/local/seed.json` 404 — the Knowledge workspace looks for its
+git-ignored local research copy on localhost and falls back to the public copy (existing behaviour, not an error of the
+workflow). The site suite first showed 4 failures in the exploded-plate click tests; they did not reproduce in the browser pane and passed 177 / 177 when the run was repeated with the pane idle (the baseline commit also gives 177 / 177): load from a second WebGL page, not a regression. The language-model status endpoint is not probed on static hosts (no 404 there).
 
 ## 7 · How to run
 
@@ -79,4 +94,22 @@ python3 -I tools/run_browser_tests.py              # the existing site-component
 
 ## 8 · Known issues and requirements not (fully) met
 
-ISSUES_PLACEHOLDER
+1. **Flowering / pollinator data are illustrative.** Without the teaching layer most Detroit plants are unknown and Rules
+   mode cannot propose a recipe (it says so and offers manual creation). Sourced data are needed for any real use.
+2. **No language model was exercised.** The live adapter and server endpoint are written and validated with fixtures
+   only; prompts, schema fit and latency with Claude Sonnet 5.5 are untested.
+3. **Light suitability is the only site-based suitability**, inferred from NAIP crowns; moisture is always uncertain
+   (no data). The Rain Garden and meadow hydrology lists are used as plant attributes only, not as cell conditions.
+4. **Bands are straight** (parallel to the chosen reference direction); they do not bend with a curved path. Organic patch
+   edges are straight Voronoi edges. Honeycomb / organic sizes are the candidates listed in ALGORITHMS.md.
+5. **Arrangement capacity**: dense mixes in small cells relax spacing (counted) and can leave a few plants unplaced
+   (≈ 1.5 % in the test design); the shortfall is reported per cell and in the export, not hidden.
+6. **Compare** is against your own snapshots only; a comparison with the reconstructed reference planting is not offered
+   because the reference has no comparable per-plant traits (stated, not faked).
+7. **Undo** covers design gestures (structure, mixes, assignments, project knowledge); personal knowledge saved to the
+   shared notebook is undone in the Knowledge workspace.
+8. **3D**: cells show as ground tints and plants as the existing form proxies; cell numbers and the seasonality dots are
+   plan only. Camera position in 3D is not persisted (plan view is).
+9. **Narrow screens**: basic stacked layout (panel below the canvas) checked at 820 px; not tuned for phones.
+10. **Preview hosting**: raw.githack serves the branch with a one-click third-party notice; GitHub Pages was not changed
+    (it can serve only `main`).

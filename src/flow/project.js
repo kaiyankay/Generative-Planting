@@ -213,13 +213,14 @@ export class Project {
     if (!scope.length) { if (s.draft) { s.discardDraft(); } return; }
     let ops = [];
     if (!same || rebuildAll || changedCells == null) {
-      s.createDraft({ from: 'blank', scope, activate: false });
+      s.createDraft({ from: 'blank', scope, activate: false }); this._newDraft = true;
       for (const c of Object.keys(st.instances)) { const op = this._placementOp(c); if (op) ops.push(op); }
     } else {
       for (const c of changedCells) { const pid = this._pid(c); if (s.draft.model.placements.some((p) => p.id === pid)) ops.push({ op: 'remove', target: pid }); const op = this._placementOp(c); if (op) ops.push(op); }
     }
     if (ops.length) { const r = s.applyPatch(ops); if (!r.ok) { console.error('draft patch refused', r.errors); this.emit('error', { message: 'The plant positions were refused by the model check: ' + r.errors.slice(0, 2).map((e) => e.message).join('; ') }); } }
-    if (s.scenario !== 'working') s.setScenario('working'); else s.emit('model', { scenario: 'working' });
+    // a new draft object must be activated (re-indexed); a patched one is already current
+    if (s.scenario !== 'working' || this._newDraft) { this._newDraft = false; s.setScenario('working'); } else s.emit('model', { scenario: 'working' });
   }
   _pid(cellId) { return 'pl.dz.' + cellId.replace(/^c\./, '').replace(/[^A-Za-z0-9._-]/g, '_'); }
   _placementOp(cellId) {

@@ -156,12 +156,20 @@ export async function startFlow(ctx) {
   // ---------------------------------------------------------------- canvas: paint hook (plan + 3D ground texture)
   store.flowPaint = (c2, T, o, phase) => paintFlow(F, c2, T, o, phase);
   // selection from the canvas: a click resolves to a cell (or a bed in Structure)
-  store.on('selection', (sel) => {
-    if (F.u.paint || !sel || !sel.at) { if (!sel && !F.u.paint && F.u.cells.size && F._clearOnNull) { F._clearOnNull = false; } return; }
-    const [x, y] = sel.at; const mod = F.mod();
-    if (mod.onCanvasClick) mod.onCanvasClick(F, x, y, sel, { shift: F._shift });
-  });
-  window.addEventListener('pointerdown', (e) => { F._shift = e.shiftKey || e.metaKey; }, true);
+  // a click (press and release without dragging) on either canvas resolves to world coordinates directly — not through
+  // the site picker, so small or empty cells are always selectable
+  for (const cv of [document.getElementById('c2d'), document.getElementById('c3d')]) {
+    let down = null;
+    cv.addEventListener('pointerdown', (e) => { down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; }, true);
+    cv.addEventListener('pointerup', (e) => {
+      if (!down || F.u.paint || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4) { down = null; return; } down = null;
+      let p = null;
+      if (cv.id === 'c2d') { if (ctx.st.view !== 'plan') return; const r = cv.getBoundingClientRect(); p = plan.inv(e.clientX - r.left, e.clientY - r.top); }
+      else { if (ctx.st.view === 'plan' || !scene) return; p = scene.groundAt(e.clientX, e.clientY); }
+      if (!p) return; const mod = F.mod();
+      setTimeout(() => { if (store.selection) store.select(null); if (mod.onCanvasClick) mod.onCanvasClick(F, p[0], p[1], null, { shift: e.shiftKey || e.metaKey }); }, 0); // the workflow's selection replaces the site card
+    });
+  }
 
   // ---------------------------------------------------------------- Design | Knowledge (parallel workspace, same page)
   function setWorkspace(ws, focus) {
