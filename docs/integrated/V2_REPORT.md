@@ -3,6 +3,9 @@
 Branch `feature/integrated-prototype` (appended to V1 `e64f437`, no force push; V1 tag `v1/integrated-prototype-e64f437`).
 PR #1 updated, **not merged**; `main` and GitHub Pages unchanged. Package: `Generative_Planting_V2_Overnight` (00–04 +
 private references; the references and the course slides were read locally and are **not** in the repository).
+Preview of the tested commit (third-party raw.githack, not GitHub Pages; verified loading, structure and a brush stroke there):
+https://raw.githack.com/kaiyankay/Generative-Planting/b6e6b8f54d21f9cbc410feb3eb12b07fbbc0ee0f/index.html
+
 Algorithms: [ALGORITHMS_V2.md](ALGORITHMS_V2.md) · visual changes: [DESIGN_CHANGES_V2.md](DESIGN_CHANGES_V2.md) ·
 test report with every step, screenshot and assertion: [../qa/V2_E2E.md](../qa/V2_E2E.md) · machine-readable:
 `docs/qa/v2_e2e.json` (incl. the pointer log), `docs/qa/v2_unit_tests.json`, `docs/qa/browser_tests.json`.
