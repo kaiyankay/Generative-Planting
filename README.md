@@ -31,6 +31,8 @@ Details: [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md).
 - **Conditions** (bed card, or C): every bed is a computational unit on the 1 m terrain grid. Show elevation, slope, distance to path, to the bed edge or to walls in bands no finer than the data's accuracy, or combine conditions with thresholds into **zones** that stay inside the bed and keep its id. Shift-click adds beds; *All design beds* takes the 20 beds open to design. *Hide planting* only hides; *Empty these beds in a new design* starts a working design in which only those beds are empty — the fields and zones do not change. Sun, soil moisture and pH have no data and are never shown as 0.
 - For code and the wider workflow: `window.GP`, or `postMessage` when embedded ([docs/MODEL_CONTRACT.md](docs/MODEL_CONTRACT.md), [docs/COMPUTATIONAL_SPACE.md](docs/COMPUTATIONAL_SPACE.md)).
 
+![Conditions: slope × distance to path, zones inside bed B1](docs/screenshots/phase-01-3/05-b1-zones-slope-path.png)
+
 ![Plan, one layer alone with trace overlays](docs/screenshots/phase-01-2/04-solo-with-trace.png)
 
 ## Build and test

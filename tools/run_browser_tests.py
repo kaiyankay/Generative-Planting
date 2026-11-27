@@ -25,6 +25,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url")
     ap.add_argument("--out", default=os.path.join(ROOT, "docs", "qa", "browser_tests.json"))
+    ap.add_argument("--timeout", type=int, default=3600, help="seconds; software WebGL over the network can need more than 30 min")
     a = ap.parse_args()
     srv = tmp = None
     url = a.url
@@ -38,7 +39,7 @@ def main():
            "--window-size=1600,1000", f"--user-data-dir={prof}", "--virtual-time-budget=90000", "--run-all-compositor-stages-before-draw",
            "--dump-dom", url]
     t0 = time.time()
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=a.timeout)
     dom = p.stdout
     m = re.search(r'id="summary"[^>]*data-json="([^"]*)"', dom)
     if not m:

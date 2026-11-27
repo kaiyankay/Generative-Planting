@@ -1,6 +1,7 @@
 # Phase 01.3 · Computational Spatial Foundation — 交接报告
 
-分支：`feature/computational-space`（基于 `ux/site-setup-component`），**未合并、未部署**；GitHub Pages 仍是 Phase 01.1。
+**线上：** https://kaiyankay.github.io/Generative-Planting/ （2026-11-26 按你的要求部署：`main` 快进到 94b56e4，包含 Phase 01.2 + 01.3；线上测试结果见文末“部署验证”）。
+分支 `feature/computational-space` 仍保留在 GitHub 上。
 Knowledge 模块的分支与 worktree（`feature/dynamic-knowledge-canvas`，`Generative-Planting-knowledge`）未被触碰。
 
 ## 一句话
@@ -137,4 +138,13 @@ Knowledge 模块的分支与 worktree（`feature/dynamic-knowledge-canvas`，`Ge
 3. **k-means / 机器学习聚类（P74）未做**：在 Detroit 这种近乎平坦的场地上，它会把均匀地面切成“区域”；如果需要，可在同一接口下加，并带同样的均匀性保护。
 4. **只有方格单元**：蜂窝只用于位置采样。若希望区域本身是蜂窝，需要从方格数据重采样，会引入插值。
 5. **日照 / 遮荫**：可以从现有树冠、建筑和地形做一个**模拟**日照场，但那是 hypothetical，需要你决定是否要以及如何标注。
-6. 分支 `feature/computational-space` 已推送到 GitHub 供验收；是否合并到 main、是否部署到 Pages 由你决定。
+6. 已按你的要求部署到 GitHub Pages（`main` 快进合并，没有强制推送）。Knowledge 分支只在本机、基于更早的 main，这次快进不影响它；它以后合入 main 时需要在 01.3 之上合并。
+
+## 部署验证
+
+| 检查 | 结果 |
+|---|---|
+| Pages 发布 | `main` 快进到 94b56e4 后约 40 秒，`src/compute.js`、`data/compute.json` 返回 200，运行时 API = 0.6 |
+| 线上页面（浏览器面板打开） | `?view=plan&cond=B1&show=zones` 显示 B1 的四个区域：72.3 / 137.0 / 15.6 / 8.0 m²，与本机一致；控制台 0 个错误 |
+| 线上浏览器测试 `tests.html` | **177 / 177**（桌面浏览器面板，Chromium，GPU；`docs/qa/browser_tests_live.json`） |
+| 无头 SwiftShader 线上运行 | 在旧的 30 分钟上限内没跑完（软件渲染 + 网络），已把上限改为可配置（默认 60 分钟）；同一套测试本机无头 177 / 177 |
