@@ -1,0 +1,152 @@
+{
+ "total": 18,
+ "ok": 18,
+ "notRun": 5,
+ "connection": {
+  "connected": false,
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "effort": "medium",
+  "fallbacks": "default",
+  "checks": [
+   {
+    "id": "sdk",
+    "ok": false,
+    "detail": "Python package \"anthropic\" is not installed — pip install anthropic"
+   },
+   {
+    "id": "credentials",
+    "ok": false,
+    "detail": "no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine"
+   },
+   {
+    "id": "authorised",
+    "ok": false,
+    "detail": "paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls"
+   }
+  ]
+ },
+ "results": [
+  {
+   "name": "L01 status reports the three gates (SDK, credentials, authorisation) and never the key itself",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L02 not connected: ask and extract return not_connected with reasons, no answer and no client is created",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L03 search_knowledge = kq retrieval on the same effective knowledge (ids, order, place match), and is recorded as retrieved",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L04 licence-restricted text stays local: no verbatim Metro Vancouver quote or locator, Robertson marked; unknown ids reported, not invented",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L05 get_records reads the layer it was given: Combined includes the designer's Yarrow note, Preset does not",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L06 resolve_name and get_entity",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L07 every tool is strict (additionalProperties false, all properties required); the extraction schema is strict throughout",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L08 request: claude-sonnet-5-5, server-side fallback beta with fallbacks='default', effort medium, max_tokens 16000, cached system prompt, the five strict tools",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L09 loop: both tool results go back in ONE user message (ids matched), pause_turn is continued, and retrieved / cited / answer are reported apart",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L10 extraction: json_schema output format; ids the knowledge does not hold are cleared (never invented) and noted; result is a preview only",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "L11 a refusal is reported as declined, with no answer text",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S01 GET /api/llm/status: same gates as the adapter, plus the Preset version the server reads",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S02 the server rebuilds the browser's knowledge from its events: 9 Combined + 9 Preset queries return the browser's ids and scores",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S03 a different knowledge version is refused (409) with both revisions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S04 requests from another web origin are refused (403); non-JSON bodies are refused (415)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S05 private inputs, git metadata and local settings are never served (also through ../ or encoded paths)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S06 /api/ask over HTTP: not connected here, so no answer text — or a real answer only when every gate is open",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "S07 the page itself is served by the same server (same origin as the API)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "R01 a real question answered by claude-sonnet-5-5 with tool calls over the effective knowledge",
+   "ok": null,
+   "notRun": true,
+   "detail": "Claude not connected on this machine (Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls)"
+  },
+  {
+   "name": "R02 every record Claude cites exists in the knowledge version on screen",
+   "ok": null,
+   "notRun": true,
+   "detail": "Claude not connected on this machine (Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls)"
+  },
+  {
+   "name": "R03 a citation followed in the page opens that record",
+   "ok": null,
+   "notRun": true,
+   "detail": "Claude not connected on this machine (Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls)"
+  },
+  {
+   "name": "R04 a real extraction preview of a designer's note, confirmed and saved",
+   "ok": null,
+   "notRun": true,
+   "detail": "Claude not connected on this machine (Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls)"
+  },
+  {
+   "name": "R05 Preset vs Combined: same model, questions and settings (tools/knowledge/llm/validate.py --run-model)",
+   "ok": null,
+   "notRun": true,
+   "detail": "Claude not connected on this machine (Python package \"anthropic\" is not installed — pip install anthropic; no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile on this machine; paid calls not authorised — start the server with GP_CLAUDE_ALLOW_CALLS=1 when you want real calls)"
+  }
+ ],
+ "note": "L08–L11 use a scripted stand-in to test our loop; they are not model tests. R01–R05 are the model tests."
+}

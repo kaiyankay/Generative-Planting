@@ -9,3 +9,10 @@ node_modules/
 __pycache__/
 tools/.cache/
 .claude/
+
+# licence not cleared for publication: kept in the local research copy only
+knowledge/data/local/
+sources/knowledge/robertson_1929_subset.tsv
+sources/knowledge/metro_vancouver_water.json
+docs/screenshots/knowledge/16-water-rule-record.png
+docs/screenshots/knowledge-02a1/12-research-robertson.png
