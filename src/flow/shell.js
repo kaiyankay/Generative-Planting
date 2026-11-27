@@ -58,7 +58,7 @@ export async function startFlow(ctx) {
   shell.innerHTML = `
     <header class="f-top">
       <button class="f-word" id="fword" title="Introduction and landscapes">Generative Planting</button>
-      <nav class="f-sections" aria-label="Workspace"><button data-ws="design" aria-pressed="true">Design</button><button data-ws="knowledge" aria-pressed="false">Knowledge</button></nav>
+      <nav class="f-sections" aria-label="Workspace"><button data-ws="design" aria-pressed="true">Design</button><button data-ws="knowledge" aria-pressed="false">Knowledge</button><a class="f-about" href="about/" title="How it works, research and method, sources and data. Your design stays saved in this browser.">About</a></nav>
       <span class="f-proj"><span class="site">${esc(preset.name)}</span><input id="fname" aria-label="Design name" maxlength="60"></span>
       <nav class="f-steps" aria-label="Workflow stages" id="fsteps"></nav>
       <span class="f-save" id="fsave" aria-live="polite"></span>
@@ -436,8 +436,9 @@ export async function startFlow(ctx) {
   library.onChange(() => { if (F._ready) F.renderPanel(); });
   if (params.get('resume') === '1' && stored) F.resume(); else sv('define').mode = 'plan';
   F.render();
-  if (params.get('intro') !== '0' && params.get('resume') !== '1') showIntro(F);
+  if (params.get('intro') !== '0' && params.get('resume') !== '1' && params.get('ws') !== 'knowledge') showIntro(F);
   else if (params.get('resume') !== '1') { F.u.entry = !!F.u.resume; P.setStage('define'); ctx.setObs('plan'); Define.enter(F, { fresh: true }); F.render(); F.focusBounds(plan.gardenBounds(), 0, { animate: false }); } // never wipes a saved design
+  if (params.get('ws') === 'knowledge') setWorkspace('knowledge'); // arriving from About
   return F;
 }
 

@@ -41,7 +41,7 @@ export function showIntro(F, { again = false } = {}) {
   el.innerHTML = `<canvas class="i-field" aria-hidden="true"></canvas>
     <section class="i-hero"><p class="kicker">Research prototype · Rules mode, no paid AI</p><h1 class="i-title">Generative<br>Planting</h1>
       <p class="i-lede">Design planting with knowledge, space and plant communities together — say what you want, shape the site, then paint living mixes that grow under the brush.</p>
-      <div class="row"><button class="btn-p big" data-i="start">Start</button>${again ? '<button class="lnk" data-i="close">Back to the design</button>' : '<button class="lnk" data-i="skip">Skip the introduction</button>'}</div></section>
+      <div class="row"><button class="btn-p big" data-i="start">Start</button>${again ? '<button class="lnk" data-i="close">Back to the design</button>' : '<button class="lnk" data-i="skip">Skip the introduction</button>'}<a class="lnk" href="about/">About the research</a></div></section>
     <section class="i-pick" hidden><p class="kicker">Choose a landscape</p><h2>Where do you want to design?</h2><div class="cards">
       <button class="lcard" data-site="${esc(F.preset.id)}"><div class="art">${axoSvg(F)}</div><b>${esc(F.preset.name)}</b><span class="xs">Belle Isle, Detroit · ${F.P.eligibleBeds().length} beds and areas · terrain 1 m · real model</span><span class="go">${F.u.resume && !again ? `Continue “${esc(F.u.resume.name)}” →` : 'Enter →'}</span></button>
       ${PLANNED.map((p) => `<div class="lcard off" aria-disabled="true" title="${esc(p.note)}"><div class="art">${plannedSvg()}</div><b>${esc(p.name)}</b><span class="xs">${esc(p.place)}</span><span class="go">Planned</span></div>`).join('')}

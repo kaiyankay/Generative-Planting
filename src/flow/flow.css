@@ -37,6 +37,8 @@
 .f-sections button { position: relative; padding: 0 12px; color: var(--ink-2) !important; font-weight: 500 !important; }
 .f-sections button::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--olive-deep); transform: scaleX(0); transform-origin: left; transition: transform .22s var(--ease); }
 .f-sections button[aria-pressed="true"] { color: var(--ink) !important; } .f-sections button[aria-pressed="true"]::after { transform: scaleX(1); }
+.f-sections .f-about { position: relative; display: flex; align-items: center; padding: 0 12px; color: var(--ink-2); font: 500 14px/1 var(--sans); text-decoration: none; } .f-sections .f-about:hover { color: var(--ink); }
+.f-sections .f-about::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--olive-deep); transform: scaleX(0); transform-origin: left; transition: transform .22s var(--ease); } .f-sections .f-about:hover::after { transform: scaleX(.35); }
 .f-proj { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--ink-3); font-size: 13px; }
 .f-proj .site::after { content: "·"; margin-left: 8px; }
 .f-proj input { border: 1px solid transparent; background: none; padding: 3px 6px; border-radius: 6px; min-width: 120px; max-width: 220px; }

@@ -1,3 +1,23 @@
+# Generative Planting · About (How it works · Research & Method · Sources & data)
+
+> **Branch `feature/integrated-prototype` (PR #1, not merged; `main` and GitHub Pages unchanged).** About is a workspace beside
+> Design and Knowledge (top bar of the app, and *About the research* on the introduction): `about/` Project ·
+> `about/how-it-works/` · `about/method/` · `about/data/`. It inherits the Planting Intelligence About (its `platform.css` /
+> `about.css`, editorial layout, stage tabs, numbered method steps, expanders) with this project's content.
+> Every drawing of a plant is the real engine's output: `about/js/case.js` designs beds **B1 + A1** of the Detroit model with the
+> same Project commands as Design (Rules-mode strategy → three spatial logics → numbered cells → five legend mixes painted by
+> number → one soft-edge brush gesture → perf/3 by month), in an **in-memory project that is never saved** (`about/js/engine.js`
+> also refuses any write to the app's `gp.*` storage keys while it runs). The pages read the stored run
+> `about/data/case.json` for an instant start; *Recompute in this browser* (How it works) runs the engine again and compares the
+> fingerprints. Course diagrams (ASLA 2024 *Generative Planting at Scale*, P24–26, P32, P34–36, P41, P69–72, P110, P135) are
+> redrawn from the example; the slides are not in the repository.
+>
+> Build and check: `python3 -I -u tools/about_build.py` (two engine runs must give identical fingerprints → writes
+> `about/data/case.json`; 24 screenshots at 1920 × 1080 and 1440 × 900 → `docs/screenshots/about/`; console errors and missing
+> resources → `docs/qa/about_build.json`). Returning to Design uses `?resume=1`, to Knowledge `?resume=1&ws=knowledge`.
+>
+> ![How it works: one brush gesture, as the engine evaluated it](docs/screenshots/about/14-how-compose-brush.png)
+
 # Generative Planting V3.1 · Integrated experience, refined and distilled
 
 > **Branch `feature/integrated-prototype` (PR #1, not merged; `main` and GitHub Pages unchanged).** V3.1 refines V2 (kept as

@@ -1,3 +1,15 @@
+# Generative Planting · About 模块 — 交接（2026-11-27）
+
+About 与 Design、Knowledge 平级（应用顶栏 + 简介页 “About the research”）。四页：`about/`（Project）、`about/how-it-works/`、
+`about/method/`（Research & Method）、`about/data/`（Sources & data）。直接继承 Planting Intelligence About 的 CSS 与版式组件，
+内容全部换成本项目。所有植物图形来自真实引擎：`about/js/case.js` 用与 Design 相同的 Project 命令设计 B1 + A1（内存项目，永不保存；
+运行期间拒绝写入 `gp.*` 存储键），页面先读 `about/data/case.json`（同一引擎的存储结果，课堂投影即时打开），How it works 的
+“Recompute in this browser” 现场重算并比对指纹。`python3 -I -u tools/about_build.py` 重建存储结果与截图（两次运行指纹必须一致）。
+验证：保存的设计在访问 About（引擎运行两次）前后字节一致；About → Design（`?resume=1`）与 → Knowledge（`?resume=1&ws=knowledge`）
+回到原阶段；引擎测试 71/71；截图 24 张 0 控制台错误、0 缺失资源。课件只在本机阅读，未提交。
+
+---
+
 # Generative Planting V3.1 — 交接（HANDOFF，2026-11-27/28 overnight）
 
 分支 **`feature/integrated-prototype`**（在 V2 `6fd9001` 之上追加 commit，已 push，PR #1 已更新，**未合并**；`main` 与正式 Pages 未动）。
